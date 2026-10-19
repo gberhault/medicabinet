@@ -27,7 +27,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
   `scripts/check-fixtures.py` + fixture test; `SharedFixtures` in
   `MediCabinetCoreTestSupport`; `ExpiryDateFixtureTests` (one case per fixture entry).
   *Test:* a broken fixture under `scripts/tests/fixtures/` makes the Swift suite fail.
-- [ ] **T4 — Shared schema fixture, checked on iOS** [#33] (S1, S3, P1)
+- [x] **T4 — Shared schema fixture, checked on iOS** [#33] (S1, S3, P1)
   `fixtures/schema-v1.json` (tables, columns, indexes incl. partial, foreign keys);
   iOS `SchemaFixtureTests` introspects a migrated DB and compares. *Test:* passes on iOS; a
   modified copy of the fixture fails.
