@@ -107,7 +107,7 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
   *Tests:* view-model edit/delete/undo/summary; UI test.
 - [x] **T19 — Manual entry** `[ios]` [#16] (M1–M4; §7.7)
   *Tests:* view-model (code check digit, name rules); UI test with camera denied.
-- [ ] **T20 — iOS accessibility pass** `[ios]` (X3)
+- [x] **T20 — iOS accessibility pass** `[ios]` (X3)
   *Tests:* UI tests at an accessibility text size and in dark mode; every control labelled.
 
 *T15–T19 landed together in the iOS Scan-tab commit (one view model, one set of screens), T21–T25 in the Android one; the view-model and screen tests carry the per-task coverage.*
@@ -123,12 +123,12 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
 - [x] **T23 — Expiry field and completion sheet** `[android]` (as T17)
 - [x] **T24 — Session list, edit, delete/undo, summary** `[android]` (as T18)
 - [x] **T25 — Manual entry** `[android]` (as T19)
-- [ ] **T26 — Android accessibility pass** `[android]` (X3)
+- [x] **T26 — Android accessibility pass** `[android]` (X3)
   Font scale 2.0, dark theme, TalkBack labels, 48 dp targets.
 
 ## 8. Finish
 
-- [ ] **T27 — Docs** `[shared]` (X5)
+- [x] **T27 — Docs** `[shared]` (X5)
   `docs/bulk-scan.md` (+ `docs/README.md` link), `docs/architecture.md` (schema v2, scanner
   layering, new fixtures), `fixtures/README.md` final; string parity green.
 - [ ] **T28 — Device measurements** `[shared]` (X2; §8)
