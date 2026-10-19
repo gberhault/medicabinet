@@ -1,0 +1,18 @@
+{
+  "formatVersion": 1,
+  "description": "The category taxonomy in display order. Each case name is a CategoryID raw value. assignedByBuild: the reference-data build may give the category to a product (uncategorized is the no-match result, not assigned by a rule; first-aid is manual only). userSelectable: offered when the user picks a category (uncategorized is not).",
+  "cases": [
+    { "name": "pain-fever", "assignedByBuild": true, "userSelectable": true },
+    { "name": "cold-ent", "assignedByBuild": true, "userSelectable": true },
+    { "name": "digestion", "assignedByBuild": true, "userSelectable": true },
+    { "name": "allergy", "assignedByBuild": true, "userSelectable": true },
+    { "name": "skin-wound", "assignedByBuild": true, "userSelectable": true },
+    { "name": "eyes", "assignedByBuild": true, "userSelectable": true },
+    { "name": "muscles-joints", "assignedByBuild": true, "userSelectable": true },
+    { "name": "mouth-teeth", "assignedByBuild": true, "userSelectable": true },
+    { "name": "vitamins-minerals", "assignedByBuild": true, "userSelectable": true },
+    { "name": "first-aid", "assignedByBuild": false, "userSelectable": true },
+    { "name": "other", "assignedByBuild": true, "userSelectable": true },
+    { "name": "uncategorized", "assignedByBuild": false, "userSelectable": false }
+  ]
+}

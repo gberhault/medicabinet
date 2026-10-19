@@ -20,6 +20,7 @@ Every file is JSON with:
 | File | Used for |
 |------|----------|
 | `expiry-dates.json` | `ExpiryDate` validation, `lastValidDay`, `sortKey`, error kinds |
+| `categories.json` | the category taxonomy in display order; which categories the reference-data build may assign and which the user may pick |
 | `schema-v1.sql` | the exact v1 DDL both platforms run (each platform's test compares its own copy, ignoring whitespace and `--` comments) |
 | `schema-v1.json` | the tables, columns and indexes every platform's database v1 must have |
 | `repository-contract.json` | names of the repository contract checks both platforms run (the checks themselves are code) |
@@ -33,7 +34,7 @@ These strings are identical on both platforms (storage values, error kinds, expo
 | Expiry error kinds | `invalidYear`, `invalidMonth`, `invalidDay` |
 | `RemovalReason` | `usedUp`, `thrownAway` |
 | `ExpiryStatus` | `expired`, `expiringSoon`, `ok`, `unknown` |
-| `CategoryID.uncategorized` | `uncategorized` |
+| `CategoryID` (taxonomy, display order) | `pain-fever`, `cold-ent`, `digestion`, `allergy`, `skin-wound`, `eyes`, `muscles-joints`, `mouth-teeth`, `vitamins-minerals`, `first-aid`, `other`, `uncategorized` |
 | Repository errors | `notFound`, `unknownLocation`, `duplicate`, `duplicateDefault` |
 
 ## Adding a fixture
