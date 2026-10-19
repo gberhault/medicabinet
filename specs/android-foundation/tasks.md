@@ -74,7 +74,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
 
 ## 4. Persistence (#36)
 
-- [ ] **T14 — SQLDelight schema v1 and driver** [#36] (P1, P2, P8)
+- [x] **T14 — SQLDelight schema v1 and driver** [#36] (P1, P2, P8)
   `Location.sq` / `Box.sq` = iOS v1 statements + named queries; driver with foreign keys and
   WAL; database in internal storage. *Tests first (Robolectric):* `SchemaTest` vs
   `fixtures/schema-v1.json`; constraint tests mirroring iOS `MigrationTests`; `EXPLAIN QUERY

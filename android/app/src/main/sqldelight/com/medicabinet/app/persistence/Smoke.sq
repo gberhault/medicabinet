@@ -1,4 +1,0 @@
--- Temporary: proves the SQLDelight plugin generates code with AGP 9. Replaced by Location.sq / Box.sq (T14).
-CREATE TABLE smoke_check (
-    id INTEGER NOT NULL PRIMARY KEY
-);

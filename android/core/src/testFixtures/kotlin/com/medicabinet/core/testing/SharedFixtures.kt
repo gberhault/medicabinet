@@ -33,6 +33,8 @@ object SharedFixtures {
 
     fun expiryDates(): ExpiryDateFixture = json.decodeFromString(text("expiry-dates.json"))
 
+    fun schemaV1(): SchemaSnapshot = json.decodeFromString(text("schema-v1.json"))
+
     /** Names of the repository contract checks, in order (`fixtures/repository-contract.json`). */
     fun repositoryContractCheckNames(): List<String> =
         json.decodeFromString<NamedCases>(text("repository-contract.json")).cases.map { it.name }

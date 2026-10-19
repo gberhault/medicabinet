@@ -203,7 +203,12 @@ keeps `createdAt` and `removal`). `java.time.Instant` is truncated to millisecon
   unlock — the equivalent of iOS `completeUntilFirstUserAuthentication`) is required on
   devices launching with Android 10+; older devices use file-based or full-disk encryption.
 - **Schema v1:** `Location.sq` / `Box.sq` contain the iOS v1 `CREATE TABLE` / `CREATE INDEX`
-  statements verbatim (CHECKs, partial unique index, `ON DELETE RESTRICT`). Foreign keys are
+  statements (CHECKs, partial unique index, `ON DELETE RESTRICT`) with **one difference found in T14**:
+  SQLDelight's SQLite dialect rejects the `DATETIME` type name, so Android declares those columns
+  `TEXT`. Both platforms store the same ISO-8601 text (`yyyy-MM-dd HH:mm:ss.SSS`, UTC), so only the
+  declared type name differs. `fixtures/schema-v1.json` records it under `typeAliases` and the Android
+  comparison maps the expected type through it; the iOS comparison stays exact. iOS v1 is not touched
+  (a shipped migration is never edited). Foreign keys are
   enabled on every connection (`PRAGMA foreign_keys = ON` in the driver callback `onOpen`).
   WAL is enabled. Future migrations: `src/main/sqldelight/migrations/<N>.sqm`; schema
   snapshots `.db` committed under `app/src/main/sqldelight/databases/`; `verifySqlDelightMigration`

@@ -46,11 +46,22 @@ kotlin {
     }
 }
 
+// The shared fixtures at <repo>/fixtures (MEDICABINET_FIXTURES_DIR overrides, as for :core).
+val fixturesDir = providers.environmentVariable("MEDICABINET_FIXTURES_DIR")
+    .orElse(rootProject.layout.projectDirectory.dir("../fixtures").asFile.path)
+
+tasks.withType<Test>().configureEach {
+    systemProperty("medicabinet.fixtures", fixturesDir.get())
+    inputs.dir(fixturesDir)
+}
+
 sqldelight {
     databases {
         create("AppDatabase") {
             packageName.set("com.medicabinet.app.persistence")
-            // v1 schema is identical to iOS v1; migrations live in src/main/sqldelight/migrations.
+            // v1 schema = iOS v1 (see Location.sq / Box.sq). Migrations are N.sqm files next to the .sq files;
+            // the committed N.db snapshots below are what verifySqlDelightMigration checks them against.
+            schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
             verifyMigrations.set(true)
         }
     }
@@ -74,7 +85,10 @@ dependencies {
 
     debugImplementation(libs.androidx.ui.tooling)
 
+    testImplementation(testFixtures(project(":core")))
     testImplementation(libs.junit4)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
     testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 

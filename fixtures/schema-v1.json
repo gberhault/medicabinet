@@ -1,6 +1,9 @@
 {
   "formatVersion": 1,
-  "description": "Tables, columns, foreign keys and created indexes that database schema v1 must have on every platform. Compared against PRAGMA table_info / foreign_key_list / index_list / index_info of a freshly migrated database. CHECK constraints are not introspectable; each platform tests them by behaviour.",
+  "description": "Tables, columns, foreign keys and created indexes that database schema v1 must have on every platform. Compared against PRAGMA table_info / foreign_key_list / index_list / index_info of a freshly migrated database. CHECK constraints are not introspectable; each platform tests them by behaviour. typeAliases: declared types that a platform may spell differently \u2014 Android declares TEXT where iOS declares DATETIME (SQLDelight's SQLite dialect rejects the DATETIME type name); both store ISO-8601 text, and the Android comparison maps the expected type through this table.",
+  "typeAliases": {
+    "DATETIME": "TEXT"
+  },
   "tables": {
     "box": {
       "columns": [

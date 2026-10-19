@@ -58,6 +58,9 @@ bash "$ROOT/scripts/tests/test-shared-fixtures-break.sh" android
 step "unit tests (:core, :app)"
 "${GRADLE[@]}" :core:test :app:testDebugUnitTest
 
+step "SQLDelight migrations match the committed schema"
+"${GRADLE[@]}" verifySqlDelightMigration
+
 step "instrumented tests compile (build only)"
 "${GRADLE[@]}" :app:compileDebugAndroidTestKotlin
 
