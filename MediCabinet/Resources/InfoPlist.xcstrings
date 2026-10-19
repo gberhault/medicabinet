@@ -1,0 +1,23 @@
+{
+  "sourceLanguage": "fr",
+  "strings": {
+    "CFBundleDisplayName": {
+      "comment": "App name under the icon",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MediCabinet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MediCabinet"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

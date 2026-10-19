@@ -81,7 +81,7 @@ for them to measure (T15–T16).
 
 ## 5. Localization, privacy, remaining gates (#5, #6)
 
-- [ ] **T15 — String Catalogs and `check-strings.sh`** [#6] (R8.1, R8.2)
+- [x] **T15 — String Catalogs and `check-strings.sh`** [#6] (R8.1, R8.2)
   All keys of design §10 in fr + en, `InfoPlist.xcstrings` (`CFBundleDisplayName`
   MediCabinet); script added to `local-ci.sh`. *Test:* fixture catalog with a missing `en`
   value fails.

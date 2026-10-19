@@ -38,6 +38,10 @@ bash scripts/lint.sh
 step "lint rule fixtures"
 bash scripts/tests/test-lint-rules.sh
 
+step "localization (fr + en complete)"
+bash scripts/check-strings.sh
+bash scripts/tests/test-check-strings.sh
+
 step "MediCabinetCore tests"
 (cd Packages/MediCabinetCore && swift test --enable-code-coverage)
 
