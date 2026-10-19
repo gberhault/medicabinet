@@ -58,7 +58,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
 
 ## 2. Cores (#10, #11)
 
-- [ ] **T7 — `Reference/` in `MediCabinetCore`** `[ios]` [#10, #11] (C1, C2, C8, C9, L1, L2; §7)
+- [x] **T7 — `Reference/` in `MediCabinetCore`** `[ios]` [#10, #11] (C1, C2, C8, C9, L1, L2; §7)
   `Taxonomy` and `CategoryID` constants, `ReferenceProduct` / `ProductLookup` (bulk-scan's exact
   signatures), `CIP13.from(gtin:)`, `ReferenceDataDate`, `ReferenceUnavailableReason`,
   `ReferenceStatus`, `ReferenceDataSource`; `InMemoryReferenceData` and fixture loaders in

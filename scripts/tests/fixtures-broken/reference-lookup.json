@@ -1,0 +1,149 @@
+{
+  "formatVersion": 1,
+  "description": "GTIN -> CIP13 conversion (CIP13.from: both cores) and product lookup (both apps, against fixtures/reference-sample.sqlite). expect.cip13 is the 13-digit CIP13 of a GTIN-14 03400... with a valid GS1 check digit, else null (and then no query is made). expect.product is the sample database row (name, category) or null for an unknown product. Withdrawn products are still found. The sample database is built by scripts/tests/write-reference-sample.py.",
+  "cases": [
+    {
+      "name": "DataMatrix GTIN of an active CIP13",
+      "gtin": "03400900000013",
+      "expect": {
+        "cip13": "3400900000020",
+        "product": {
+          "name": "TESTAMOL 500 mg, comprimé pelliculé",
+          "category": "pain-fever"
+        }
+      }
+    },
+    {
+      "name": "product with several presentations",
+      "gtin": "03400900000136",
+      "expect": {
+        "cip13": "3400900000136",
+        "product": {
+          "name": "TESTAMOL 1000 mg, comprimé effervescent",
+          "category": "pain-fever"
+        }
+      }
+    },
+    {
+      "name": "accented name keeps its characters",
+      "gtin": "03400900000051",
+      "expect": {
+        "cip13": "3400900000051",
+        "product": {
+          "name": "ŒDÈME TEST, crème",
+          "category": "skin-wound"
+        }
+      }
+    },
+    {
+      "name": "withdrawn product is still known",
+      "gtin": "03400900000105",
+      "expect": {
+        "cip13": "3400900000105",
+        "product": {
+          "name": "TESTRETIRE 100 mg, comprimé",
+          "category": "pain-fever"
+        }
+      }
+    },
+    {
+      "name": "known product the rules could not classify",
+      "gtin": "03400900000082",
+      "expect": {
+        "cip13": "3400900000082",
+        "product": {
+          "name": "TESTINCONNU, comprimé",
+          "category": "uncategorized"
+        }
+      }
+    },
+    {
+      "name": "valid CIP13 that is not in the database",
+      "gtin": "03400900005001",
+      "expect": {
+        "cip13": "3400900005001",
+        "product": null
+      }
+    },
+    {
+      "name": "parapharmacy ACL 3401 is not a medicine CIP13",
+      "gtin": "03401900000003",
+      "expect": {
+        "cip13": null,
+        "product": null
+      }
+    },
+    {
+      "name": "foreign product GTIN",
+      "gtin": "05012345678900",
+      "expect": {
+        "cip13": null,
+        "product": null
+      }
+    },
+    {
+      "name": "wrong check digit",
+      "gtin": "03400900000014",
+      "expect": {
+        "cip13": null,
+        "product": null
+      }
+    },
+    {
+      "name": "13 digits (an EAN-13, not a GTIN-14)",
+      "gtin": "3400900000013",
+      "expect": {
+        "cip13": null,
+        "product": null
+      }
+    },
+    {
+      "name": "15 digits",
+      "gtin": "003400900000013",
+      "expect": {
+        "cip13": null,
+        "product": null
+      }
+    },
+    {
+      "name": "letters in a GTIN-14",
+      "gtin": "0340090000A013",
+      "expect": {
+        "cip13": null,
+        "product": null
+      }
+    },
+    {
+      "name": "empty string",
+      "gtin": "",
+      "expect": {
+        "cip13": null,
+        "product": null
+      }
+    },
+    {
+      "name": "SQL-looking text",
+      "gtin": "' OR 1=1 --  ",
+      "expect": {
+        "cip13": null,
+        "product": null
+      }
+    },
+    {
+      "name": "full-width digits are not digits",
+      "gtin": "０３４００９００００００１３",
+      "expect": {
+        "cip13": null,
+        "product": null
+      }
+    },
+    {
+      "name": "surrounding spaces are not trimmed",
+      "gtin": " 03400900000013",
+      "expect": {
+        "cip13": null,
+        "product": null
+      }
+    }
+  ]
+}

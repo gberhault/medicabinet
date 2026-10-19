@@ -16,9 +16,17 @@ expect_failure() { # description, command...
 if [[ "$WHICH" == ios || "$WHICH" == all ]]; then
   expect_failure "ios: Swift suite fails on a broken expiry fixture" \
     env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter ExpiryDateFixtureTests
+  expect_failure "ios: Swift suite fails on a broken taxonomy fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter TaxonomyFixtureTests
+  expect_failure "ios: Swift suite fails on a broken reference-lookup fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter CIP13FixtureTests
 fi
 if [[ ("$WHICH" == android || "$WHICH" == all) && -f "$ROOT/android/gradlew" ]]; then
   expect_failure "android: Kotlin suite fails on a broken expiry fixture" \
     env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*ExpiryDateFixtureTest*'"
+  expect_failure "android: Kotlin suite fails on a broken taxonomy fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*TaxonomyFixtureTest*'"
+  expect_failure "android: Kotlin suite fails on a broken reference-lookup fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*Cip13FixtureTest*'"
 fi
 exit $fail
