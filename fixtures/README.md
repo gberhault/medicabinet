@@ -13,14 +13,15 @@ Every file is JSON with:
 | `description` | what the cases mean, in one or two sentences |
 | `cases` | list of objects with a unique `name` (files that are not case lists, such as `schema-v1.json`, have their own keys instead) |
 
-`python3 -I scripts/check-fixtures.py` validates this (run by `scripts/local-ci.sh`).
+`python3 -I scripts/check-fixtures.py` validates the `.json` files (run by `scripts/local-ci.sh`); `.sql` files are plain text.
 
 ## Files
 
 | File | Used for |
 |------|----------|
 | `expiry-dates.json` | `ExpiryDate` validation, `lastValidDay`, `sortKey`, error kinds |
-| `schema-v1.json` | the tables, columns and indexes every platform's database v1 must have (`typeAliases`: Android's `TEXT` is iOS's `DATETIME`) |
+| `schema-v1.sql` | the exact v1 DDL both platforms run (each platform's test compares its own copy, ignoring whitespace and `--` comments) |
+| `schema-v1.json` | the tables, columns and indexes every platform's database v1 must have |
 | `repository-contract.json` | names of the repository contract checks both platforms run (the checks themselves are code) |
 
 ## Names that cross platforms

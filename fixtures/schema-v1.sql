@@ -1,6 +1,17 @@
--- Schema v1: the iOS v1 statements, with one difference: date columns are declared TEXT where iOS says
--- DATETIME, because SQLDelight's SQLite dialect rejects the DATETIME type name. Both store ISO-8601 text
--- ('yyyy-MM-dd HH:mm:ss.SSS', UTC). fixtures/schema-v1.json records this under "typeAliases".
+-- Schema v1 — the exact SQL both platforms run on first launch (whitespace is ignored when comparing).
+-- iOS: ios/MediCabinet/Sources/Persistence/Migrations.swift   Android: android/app/.../persistence/Migrations.kt
+-- Never edit once shipped: add a v2 on both platforms instead (and update fixtures/schema-*.json).
+
+CREATE TABLE location (
+  id        TEXT PRIMARY KEY NOT NULL,
+  name      TEXT NOT NULL CHECK (length(name) BETWEEN 1 AND 100),
+  isDefault INTEGER NOT NULL DEFAULT 0,
+  sortOrder INTEGER NOT NULL DEFAULT 0,
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX location_single_default ON location(isDefault) WHERE isDefault = 1;
+
 CREATE TABLE box (
   id                 TEXT PRIMARY KEY NOT NULL,
   gtin               TEXT CHECK (gtin IS NULL OR length(gtin) = 14),
@@ -16,43 +27,16 @@ CREATE TABLE box (
   serial             TEXT CHECK (serial IS NULL OR length(serial) <= 20),
   isOpened           INTEGER NOT NULL DEFAULT 0,
   removalReason      TEXT CHECK (removalReason IS NULL OR removalReason IN ('usedUp', 'thrownAway')),
-  removedAt          TEXT,
-  createdAt          TEXT NOT NULL,
-  updatedAt          TEXT NOT NULL,
+  removedAt          DATETIME,
+  createdAt          DATETIME NOT NULL,
+  updatedAt          DATETIME NOT NULL,
   CHECK ((expiryYear IS NULL) = (expiryMonth IS NULL)),
   CHECK ((expiryYear IS NULL) = (expirySortKey IS NULL)),
   CHECK (expiryDay IS NULL OR expiryYear IS NOT NULL),
   CHECK ((removalReason IS NULL) = (removedAt IS NULL))
 );
-
 CREATE INDEX box_gtin     ON box(gtin);
 CREATE INDEX box_location ON box(locationId);
 CREATE INDEX box_expiry   ON box(expirySortKey);
 CREATE INDEX box_active   ON box(removedAt);
 CREATE INDEX box_serial   ON box(gtin, serial) WHERE serial IS NOT NULL;
-
-selectActive:
-SELECT * FROM box WHERE removedAt IS NULL ORDER BY createdAt, id;
-
-selectById:
-SELECT * FROM box WHERE id = ?;
-
-insert:
-INSERT INTO box (
-  id, gtin, productName, category, categoryOverridden, locationId,
-  expiryYear, expiryMonth, expiryDay, expirySortKey, lot, serial, isOpened,
-  removalReason, removedAt, createdAt, updatedAt
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-
-update:
-UPDATE box SET
-  gtin = ?, productName = ?, category = ?, categoryOverridden = ?, locationId = ?,
-  expiryYear = ?, expiryMonth = ?, expiryDay = ?, expirySortKey = ?, lot = ?, serial = ?,
-  isOpened = ?, updatedAt = ?
-WHERE id = ?;
-
-markRemoved:
-UPDATE box SET removalReason = ?, removedAt = ?, updatedAt = ? WHERE id = ?;
-
-undoRemoval:
-UPDATE box SET removalReason = NULL, removedAt = NULL, updatedAt = ? WHERE id = ?;

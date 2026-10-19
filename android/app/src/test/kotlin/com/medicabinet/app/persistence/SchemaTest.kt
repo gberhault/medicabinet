@@ -1,8 +1,9 @@
 package com.medicabinet.app.persistence
 
+import android.content.Context
 import android.database.sqlite.SQLiteException
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.core.app.ApplicationProvider
-import app.cash.sqldelight.db.SqlDriver
 import com.medicabinet.core.testing.SharedFixtures
 import java.util.UUID
 import kotlin.test.assertContains
@@ -18,22 +19,18 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class SchemaTest {
-    private lateinit var driver: SqlDriver
+    private lateinit var cabinet: CabinetDatabase
+    private val db: SupportSQLiteDatabase get() = cabinet.database
 
     @Before
     fun openDatabase() {
-        driver =
-            DatabaseFactory.openDriver(
-                ApplicationProvider.getApplicationContext(),
-                name = "test-${UUID.randomUUID()}.db"
-            )
+        cabinet = CabinetDatabase(ApplicationProvider.getApplicationContext(), name = "test-${UUID.randomUUID()}.db")
     }
 
     @After
-    fun closeDatabase() = driver.close()
+    fun closeDatabase() = cabinet.close()
 
-    private fun location(id: String = "L", name: String = "Cabinet", isDefault: Int = 0) = SqlProbe.execute(
-        driver,
+    private fun location(id: String = "L", name: String = "Cabinet", isDefault: Int = 0) = db.execSQL(
         "INSERT INTO location (id, name, isDefault, sortOrder, createdAt, updatedAt) " +
             "VALUES ('$id', '$name', $isDefault, 0, '2027-01-01 00:00:00.000', '2027-01-01 00:00:00.000')"
     )
@@ -45,8 +42,7 @@ class SchemaTest {
         day: Int? = null,
         removal: Pair<String?, String?> = null to null,
         name: String = "Doliprane"
-    ) = SqlProbe.execute(
-        driver,
+    ) = db.execSQL(
         "INSERT INTO box (id, gtin, productName, locationId, expiryYear, expiryMonth, expiryDay, expirySortKey, " +
             "removalReason, removedAt, createdAt, updatedAt) VALUES ('${UUID.randomUUID()}', ${gtin.sql()}, '$name', " +
             "'$location', ${expiry.first.sql()}, ${expiry.second.sql()}, ${day.sql()}, ${expiry.third.sql()}, " +
@@ -59,26 +55,34 @@ class SchemaTest {
         else -> toString()
     }
 
-    // --- shape ---
+    // --- shape: identical to iOS ---
 
     @Test
-    fun theMigratedDatabaseMatchesTheSharedSchemaFixture() {
-        val expected = SharedFixtures.schemaV1().withTypeAliasesApplied()
-        val actual = SqlProbe.snapshot(driver)
-        assertEquals(expected, actual)
+    fun theMigratedDatabaseMatchesTheSharedSchemaFixtureExactly() {
+        assertEquals(SharedFixtures.schemaV1(), SqlProbe.snapshot(db))
     }
 
     @Test
+    fun theV1SqlEqualsTheSharedSqlFixture() {
+        assertEquals(normalized(SharedFixtures.text("schema-v1.sql")), normalized(Migrations.v1.sql))
+    }
+
+    @Test
+    fun aChangedStatementDoesNotEqualTheSharedSqlFixture() {
+        val altered = Migrations.v1.sql.replace("BETWEEN 1 AND 100", "BETWEEN 1 AND 99")
+        assertNotEquals(normalized(SharedFixtures.text("schema-v1.sql")), normalized(altered))
+    }
+
+    /** Whitespace and `--` comment lines are not part of the comparison (same rule as the iOS test). */
+    private fun normalized(sql: String): String = sql.lines().filterNot {
+        it.trim().startsWith("--")
+    }.joinToString(" ").trim().split(Regex("\\s+")).joinToString(" ")
+
+    @Test
     fun aFixtureWithAMissingIndexDoesNotMatch() {
-        val altered = SharedFixtures.schemaV1().let {
-            it.copy(
-                indexes = it.indexes.filterNot { index ->
-                    index.name ==
-                        "box_gtin"
-                }
-            )
-        }
-        assertNotEquals(altered.withTypeAliasesApplied(), SqlProbe.snapshot(driver))
+        val fixture = SharedFixtures.schemaV1()
+        val altered = fixture.copy(indexes = fixture.indexes.filterNot { it.name == "box_gtin" })
+        assertNotEquals(altered, SqlProbe.snapshot(db))
     }
 
     @Test
@@ -90,13 +94,13 @@ class SchemaTest {
             fixture.indexes.map { it.name }.toSet()
         )
         assertEquals("serial IS NOT NULL", fixture.indexes.first { it.name == "box_serial" }.where)
-        assertEquals("TEXT", fixture.typeAliases["DATETIME"])
+        assertTrue(fixture.tables.getValue("box").columns.any { it.type == "DATETIME" })
     }
 
     @Test
     fun foreignKeysAreEnforcedAndWriteAheadLoggingIsOn() {
-        assertEquals(1L, SqlProbe.long(driver, "PRAGMA foreign_keys"))
-        assertEquals("wal", SqlProbe.string(driver, "PRAGMA journal_mode")?.lowercase())
+        assertEquals(1L, SqlProbe.long(db, "PRAGMA foreign_keys"))
+        assertEquals("wal", SqlProbe.string(db, "PRAGMA journal_mode")?.lowercase())
     }
 
     // --- constraints (mirror the iOS MigrationTests) ---
@@ -107,7 +111,7 @@ class SchemaTest {
         box(expiry = Triple(2027, 3, "2027-03-15"), day = 15)
         box(expiry = Triple(2027, 3, "2027-03-31"))
         box()
-        assertEquals(3L, SqlProbe.long(driver, "SELECT COUNT(*) FROM box"))
+        assertEquals(3L, SqlProbe.long(db, "SELECT COUNT(*) FROM box"))
     }
 
     @Test
@@ -160,13 +164,13 @@ class SchemaTest {
         assertFailsWith<SQLiteException> { box(location = "missing") }
         location()
         box()
-        assertFailsWith<SQLiteException> { SqlProbe.execute(driver, "DELETE FROM location WHERE id = 'L'") }
+        assertFailsWith<SQLiteException> { db.execSQL("DELETE FROM location WHERE id = 'L'") }
     }
 
     // --- indexes are used by the hot queries ---
 
     private fun planOf(sql: String): String =
-        SqlProbe.query(driver, "EXPLAIN QUERY PLAN $sql") { it.getString(3)!! }.joinToString(" | ")
+        SqlProbe.query(db, "EXPLAIN QUERY PLAN $sql") { it.getString(3) }.joinToString(" | ")
 
     @Test
     fun hotQueriesUseAnIndex() {
@@ -180,7 +184,7 @@ class SchemaTest {
 
     @Test
     fun databaseAndBackupsLiveInInternalStorage() {
-        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val context = ApplicationProvider.getApplicationContext<Context>()
         val paths = AppPaths(context)
         val internalRoot = context.dataDir.absolutePath
         assertTrue(paths.databaseFile.absolutePath.startsWith(internalRoot), "database outside internal storage")

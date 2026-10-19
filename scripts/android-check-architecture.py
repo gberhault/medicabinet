@@ -7,9 +7,9 @@ stripped first, but a string literal naming a forbidden symbol can still trigger
 exception puts `arch-allow:<rule>` in a comment on the same line. Stdlib only.
 
 Rules
-  core_forbidden_imports        :core imports no android.*, androidx.* or sqldelight
+  core_forbidden_imports        :core imports no android.* or androidx.*
   core_no_wall_clock            :core main code never reads the wall clock (use the injected Clock)
-  sql_confined_to_persistence   SQLDelight / android.database only under app/.../persistence/
+  sql_confined_to_persistence   androidx.sqlite / android.database only under app/.../persistence/
   no_network                    no network API imports and no INTERNET permission
   log_through_applog            android.util.Log only inside AppLog.kt
 """
@@ -23,8 +23,8 @@ IMPORT = r"^\s*import\s+"
 RULES = [
     {
         "id": "core_forbidden_imports",
-        "message": ":core is pure Kotlin — no android.*, androidx.* or SQLDelight imports",
-        "pattern": re.compile(IMPORT + r"(android\.|androidx\.|app\.cash\.sqldelight)"),
+        "message": ":core is pure Kotlin — no android.* or androidx.* imports",
+        "pattern": re.compile(IMPORT + r"(android\.|androidx\.)"),
         "applies": lambda p: "/android/core/src/" in p and p.endswith(".kt"),
     },
     {
@@ -36,8 +36,8 @@ RULES = [
     },
     {
         "id": "sql_confined_to_persistence",
-        "message": "SQLDelight and android.database may only be used under .../persistence/",
-        "pattern": re.compile(IMPORT + r"(app\.cash\.sqldelight|android\.database)"),
+        "message": "androidx.sqlite and android.database may only be used under .../persistence/",
+        "pattern": re.compile(IMPORT + r"(androidx\.sqlite|android\.database)"),
         "applies": lambda p: "/android/app/src/main/" in p and p.endswith(".kt") and "/persistence/" not in p,
     },
     {

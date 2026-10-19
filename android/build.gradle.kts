@@ -1,6 +1,4 @@
 // Top-level build file.
-// The SQLDelight plugin is deliberately NOT declared here: it pins org.jetbrains:annotations to 13.0,
-// which conflicts with AGP 9 on a shared plugin classpath. :app declares it itself.
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.jvm) apply false

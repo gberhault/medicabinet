@@ -94,6 +94,26 @@ struct SchemaSnapshot: Codable, Equatable, Sendable {
         #expect(try migrated() == fixture())
     }
 
+    /// `fixtures/schema-v1.sql` is the text both platforms must run for v1 (whitespace and `--` comments ignored).
+    @Test func theV1SqlEqualsTheSharedSqlFixture() throws {
+        let fixture = try #require(String(bytes: SharedFixtures.data("schema-v1.sql"), encoding: .utf8))
+        #expect(Self.normalized(Migrations.v1SQL) == Self.normalized(fixture))
+    }
+
+    @Test func aChangedStatementDoesNotEqualTheSharedSqlFixture() throws {
+        let fixture = try #require(String(bytes: SharedFixtures.data("schema-v1.sql"), encoding: .utf8))
+        let altered = Migrations.v1SQL.replacingOccurrences(of: "BETWEEN 1 AND 100", with: "BETWEEN 1 AND 99")
+        #expect(Self.normalized(altered) != Self.normalized(fixture))
+    }
+
+    private static func normalized(_ sql: String) -> String {
+        sql.split(separator: "\n")
+            .filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix("--") }
+            .joined(separator: " ")
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
+    }
+
     @Test func aFixtureWithAMissingIndexDoesNotMatch() throws {
         var altered = try fixture()
         altered.indexes.removeAll { $0.name == "box_gtin" }

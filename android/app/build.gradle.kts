@@ -2,9 +2,6 @@ plugins {
     id("com.android.application")
     // AGP 9 built-in Kotlin — do not apply org.jetbrains.kotlin.android
     alias(libs.plugins.kotlin.compose)
-    // Declared here only (not in the root file): the SQLDelight plugin pins org.jetbrains:annotations
-    // to 13.0, which conflicts with AGP 9's plugin classpath when both share the root classpath.
-    alias(libs.plugins.sqldelight)
 }
 
 android {
@@ -55,18 +52,6 @@ tasks.withType<Test>().configureEach {
     inputs.dir(fixturesDir)
 }
 
-sqldelight {
-    databases {
-        create("AppDatabase") {
-            packageName.set("com.medicabinet.app.persistence")
-            // v1 schema = iOS v1 (see Location.sq / Box.sq). Migrations are N.sqm files next to the .sq files;
-            // the committed N.db snapshots below are what verifySqlDelightMigration checks them against.
-            schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
-            verifyMigrations.set(true)
-        }
-    }
-}
-
 dependencies {
     implementation(project(":core"))
 
@@ -80,8 +65,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.sqldelight.android.driver)
-    implementation(libs.sqldelight.coroutines)
+    implementation(libs.androidx.sqlite.framework)
 
     debugImplementation(libs.androidx.ui.tooling)
 

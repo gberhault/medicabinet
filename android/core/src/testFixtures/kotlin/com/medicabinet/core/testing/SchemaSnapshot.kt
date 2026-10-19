@@ -7,12 +7,7 @@ import kotlinx.serialization.Serializable
  * `fixtures/schema-v1.json`, which the iOS database is compared with too.
  */
 @Serializable
-data class SchemaSnapshot(
-    val tables: Map<String, Table>,
-    val indexes: List<Index>,
-    /** Declared types a platform may spell differently (`DATETIME` on iOS is `TEXT` on Android). */
-    val typeAliases: Map<String, String> = emptyMap()
-) {
+data class SchemaSnapshot(val tables: Map<String, Table>, val indexes: List<Index>) {
     @Serializable
     data class Column(
         val name: String,
@@ -35,13 +30,5 @@ data class SchemaSnapshot(
         val columns: List<String>,
         val unique: Boolean,
         val where: String?
-    )
-
-    /** This snapshot with every declared type replaced through [typeAliases] (used on the expected side). */
-    fun withTypeAliasesApplied(): SchemaSnapshot = copy(
-        tables = tables.mapValues { (_, table) ->
-            table.copy(columns = table.columns.map { it.copy(type = typeAliases[it.type] ?: it.type) })
-        },
-        typeAliases = emptyMap()
     )
 }

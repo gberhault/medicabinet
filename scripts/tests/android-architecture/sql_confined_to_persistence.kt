@@ -1,5 +1,5 @@
 package com.medicabinet.app.features
 
-import app.cash.sqldelight.db.SqlDriver
+import androidx.sqlite.db.SupportSQLiteDatabase
 
-class Bad(val driver: SqlDriver)
+class Bad(val database: SupportSQLiteDatabase)

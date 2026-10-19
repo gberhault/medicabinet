@@ -74,7 +74,7 @@ it cannot run the exact iOS DDL, and the user switched Android to plain SQLite �
 
 ## 4. Persistence (#36)
 
-- [ ] **T14 — SQLite schema v1 (exact iOS DDL) and open helper** [#36] (P1, P2, P8)
+- [x] **T14 — SQLite schema v1 (exact iOS DDL) and open helper** [#36] (P1, P2, P8)
   Remove SQLDelight (plugin, `.sq`, `1.db`, dependencies, the `DATETIME` fixture alias);
   `Migrations` (v1 = iOS v1 SQL verbatim), `CabinetDatabase` on `androidx.sqlite` with foreign keys
   and WAL; database in internal storage. *Tests first (Robolectric):* `SchemaTest` vs
