@@ -2,83 +2,94 @@
 
 ## Prerequisites
 
-- Xcode 16 or newer (Swift 6 language mode, iOS 17 deployment target); developed with Xcode 27
-- `brew install xcodegen swiftlint`
-- Python 3 (system `python3` is enough; the check scripts only use the standard library)
+| | |
+|--|--|
+| Both | Python 3 (standard library only), `git`, `gh` |
+| iOS | Xcode 16+ (developed with 27), `brew install xcodegen swiftlint` |
+| Android | JDK 17+ (developed on 21: `brew install --cask temurin@21`), Android SDK (Android Studio or the command-line tools). `android/local.properties` with `sdk.dir=…` is created for you by `scripts/android-local-ci.sh`; Gradle downloads missing SDK platforms (licences must be accepted). |
 
 ## First setup
 
 ```bash
-cp Config/Signing.local.xcconfig.sample Config/Signing.local.xcconfig   # then put your team ID in it
-xcodegen generate
-open MediCabinet.xcodeproj
+# iOS
+cp ios/Config/Signing.local.xcconfig.sample ios/Config/Signing.local.xcconfig   # put your team ID in it
+(cd ios && xcodegen generate) && open ios/MediCabinet.xcodeproj
+
+# Android
+open -a "Android Studio" android        # or: (cd android && ./gradlew :app:assembleDebug)
 ```
 
-`Config/Signing.local.xcconfig` is gitignored. The simulator build works without it; running
-on a device needs your Apple Developer team. The `.xcodeproj` is generated from `project.yml`
-and is not committed: run `xcodegen generate` after pulling or editing `project.yml`.
+`ios/Config/Signing.local.xcconfig` is gitignored; the simulator build works without it. The `.xcodeproj` is
+generated from `ios/project.yml` and not committed. Never commit keystores or `local.properties`.
 
 ## Commands
 
 ```bash
-bash scripts/local-ci.sh                          # the full gate — mandatory before a PR
-xcodegen generate                                 # regenerate the Xcode project
-swift test --package-path Packages/MediCabinetCore   # core tests only (fast, no simulator)
-bash scripts/lint.sh                              # SwiftLint against the committed baseline
-bash scripts/check-strings.sh                     # fr + en completeness
-bash scripts/check-version.sh                     # project.yml version == top CHANGELOG entry
+bash scripts/local-ci.sh                 # everything: shared checks + iOS gate + Android gate (mandatory before a PR)
+bash scripts/local-ci.sh shared|ios|android     # one part
+bash scripts/ios-local-ci.sh             # iOS gate only
+bash scripts/android-local-ci.sh         # Android gate only
+
+swift test --package-path ios/Packages/MediCabinetCore      # iOS core tests (fast, no simulator)
+(cd android && ./gradlew :core:test)                        # Android core tests (fast, no emulator)
+(cd android && ./gradlew :app:testDebugUnitTest)            # Android app tests (Robolectric, JVM)
+(cd android && ./gradlew ktlintFormat)                      # fix Kotlin formatting
+bash scripts/check-version.sh ios|android                   # version == top changelog entry
+python3 -I scripts/check-fixtures.py                        # shared fixtures valid
+python3 -I scripts/check-string-parity.py                   # iOS and Android wording identical
 ```
 
-`local-ci.sh` runs, in order: generate → SwiftLint → lint-rule fixtures → localization check →
-version check → core tests → app unit + UI tests on an iPhone simulator → coverage gate
-(≥ 80% lines for the core and for the app). It stops at the first failure and names the step.
+A PR must pass the gate of every product it touches. Each gate stops at the first failure and names the step.
 
-### Lint rules
+- **iOS gate:** xcodegen → SwiftLint (baseline) → lint-rule fixtures → localization → version → a wrong shared
+  fixture fails the Swift suite → core tests → app unit + UI tests on a simulator → coverage ≥ 80%.
+- **Android gate:** debug build → detekt + ktlint (baselines) → localization → architecture rules → lint gate
+  fixtures → a wrong shared fixture fails the Kotlin suite → unit tests → coverage ≥ 80% → version →
+  instrumented tests compile.
 
-`.swiftlint.yml` adds architecture rules on top of the defaults:
+### Lint and architecture rules
 
 | Rule | Enforces |
 |------|----------|
-| `core_forbidden_imports` | core imports no UIKit / SwiftUI / VisionKit / GRDB |
-| `core_no_wall_clock` | core never calls `Date()` / `Date.now` (use the injected `Clock`) |
-| `grdb_confined_to_persistence` | `import GRDB` only under `MediCabinet/Sources/Persistence/` |
-| `no_network` | no `URLSession`, `URLRequest` or `import Network` |
-| `no_public_log_privacy` | no public log interpolation |
+| iOS `core_forbidden_imports`, Android `core_forbidden_imports` | cores import no UI / storage framework |
+| iOS `core_no_wall_clock`, Android `core_no_wall_clock` | cores never read the system clock (inject `Clock`) |
+| iOS `grdb_confined_to_persistence`, Android `sql_confined_to_persistence` | the SQLite library is only used under `Persistence/` / `persistence/` |
+| iOS `no_network`, Android `no_network` | no network API; Android also no `INTERNET` permission |
+| iOS `no_public_log_privacy`, Android `log_through_applog` | logs never carry cabinet contents |
 
-They are regex rules: they also match comments and string literals, so a comment that names a
-forbidden symbol triggers them — rephrase it. A justified exception uses
-`// swiftlint:disable:next <rule>` on its own line. `scripts/tests/` holds fixtures proving
-each rule (and each gate script) fails when it should; never regenerate the lint baseline to
-hide a new finding.
+They are regex rules: they also match comments, so rephrase a comment that names a forbidden symbol. A justified
+exception uses `// swiftlint:disable:next <rule>` (iOS) or `arch-allow:<rule>` in a comment (Android).
+`scripts/tests/` holds fixtures proving each rule and gate fails when it should. Never regenerate a lint baseline
+to hide a new finding.
 
 ## Tests
 
-- Core: Swift Testing, run with `swift test`. Use `FixedClock` / `MutableClock` for any date
-  logic; test month ends, leap years and "today is the expiry day".
-- App: Swift Testing for unit and integration tests (`MediCabinetTests`), XCUITest for flows
-  (`MediCabinetUITests`). UI tests launch with `-UITestingTemporaryStorage` (a throwaway
-  database) and force English.
-- New repositories must pass `RepositoryContract.checks` (see the GRDB tests for the pattern).
-- The iOS Simulator does not expose Data Protection, so the file-protection attribute can
-  only be read back on a real device; the simulator test checks the request instead.
-- Launch time is an opt-in measurement (it relaunches the app several times):
-
-  ```bash
-  TEST_RUNNER_MEDICABINET_MEASURE_LAUNCH=1 xcodebuild -project MediCabinet.xcodeproj \
-    -scheme MediCabinet -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
-    test -only-testing:MediCabinetUITests/LaunchPerformanceUITests
-  ```
+- **Shared first.** A rule that must behave identically gets a fixture under `fixtures/` before either
+  implementation; both suites run it (`SharedFixtures` on each side).
+- Core: Swift Testing / JUnit 5 with an injected clock; test month ends, leap years, `DD=00`, "today is the
+  expiry day".
+- New repositories must pass `RepositoryContract` (Swift and Kotlin versions, same 13 named checks).
+- iOS app: Swift Testing + XCUITest (`-UITestingTemporaryStorage` gives a throwaway database and English).
+  The iOS Simulator does not expose Data Protection, so the file-protection attribute is verified through a
+  recording `FileManager`; a read-back test runs on a real device only.
+- Android app: JUnit 4 + Robolectric, including Compose UI tests on the JVM (`@GraphicsMode(NATIVE)`),
+  Turbine for flows. The instrumented smoke test needs a device or emulator and is optional locally.
+- **Never run `connectedDebugAndroidTest` or `adb install` with a personal phone plugged in unless you mean
+  to**: use `ANDROID_SERIAL=emulator-5554` (the launch script takes an explicit serial for this reason).
+- Launch time: iOS `TEST_RUNNER_MEDICABINET_MEASURE_LAUNCH=1 xcodebuild … -only-testing:MediCabinetUITests/LaunchPerformanceUITests`;
+  Android `bash scripts/android-measure-launch.sh [adb-serial]`. Results are recorded in `reports/`.
 
 ## Localization
 
-Add every user-facing string to `MediCabinet/Resources/Localizable.xcstrings` with both `fr`
-and `en` marked `translated` (permission texts and the display name go in
-`InfoPlist.xcstrings`). Use positional format arguments (`%1$@`). Never build text by
-concatenation.
+- iOS: add keys to `ios/MediCabinet/Resources/Localizable.xcstrings` with `fr` and `en` both `translated`
+  (permission texts and the display name in `InfoPlist.xcstrings`).
+- Android: add the key (dots → underscores, `%1$@` → `%1$s`) to `values/strings.xml` (French) **and**
+  `values-en/strings.xml` with the **same wording** as iOS. `scripts/check-string-parity.py` fails otherwise; a key that
+  exists on one platform only must be listed with a reason in that script.
+- Use positional format arguments; never concatenate user-facing text.
 
 ## Versioning
 
-One product, one semver clock: `MARKETING_VERSION` in `project.yml` and the top entry of
-`CHANGELOG.md` must match (`check-version.sh`). Bump `CURRENT_PROJECT_VERSION` for every
-build installed as a distinct binary (device, TestFlight). The bump is the last commit of a
-feature branch.
+Two independent semver clocks (see CLAUDE.md): iOS `MARKETING_VERSION` in `ios/project.yml` + `ios/CHANGELOG.md`;
+Android `versionName` in `android/app/build.gradle.kts` + `android/CHANGELOG.md`. The bump is the last commit of a
+feature branch; tags are `ios/vX.Y.Z` and `android/vX.Y.Z` (`v0.1.0` is the legacy iOS tag).

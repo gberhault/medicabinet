@@ -1,80 +1,94 @@
 # Architecture
 
-MediCabinet is a native iPhone app (iOS 17+, SwiftUI, Swift 6 with strict concurrency). The
-cabinet lives only on the device: no server, no analytics, no network request.
+MediCabinet is **two native apps** — iOS (Swift, SwiftUI, iOS 17+) in `ios/` and Android (Kotlin,
+Jetpack Compose, Android 8.0+) in `android/` — in one repository. The cabinet lives only on the device:
+no server, no analytics, no network request. Nothing is shared at the code level; what keeps the two apps
+behaving identically is the **shared contract** below.
 
-## Layers
+## The shared contract (`fixtures/`)
+
+Language-neutral test vectors that both test suites run (see [`fixtures/README.md`](../fixtures/README.md)):
+
+| File | Guarantees |
+|------|------------|
+| `expiry-dates.json` | `ExpiryDate` validation, last valid day, sort key and error kinds are identical |
+| `schema-v1.sql` | the v1 database DDL is **character for character** the same SQL on both platforms |
+| `schema-v1.json` | the migrated databases have the same tables, columns, foreign keys and indexes |
+| `repository-contract.json` | both repository implementations pass the same named list of contract checks |
+| `README.md` | the cross-platform names (error kinds, enum raw values) — both suites assert the code matches |
+
+A wrong fixture fails each platform's suite (`scripts/tests/test-shared-fixtures-break.sh`), iOS and
+Android French/English wording is compared by `scripts/check-string-parity.py` (the Android strings started as
+a copy of the iOS catalog). The future export format and sync payload will be specified once and tested
+the same way.
+
+## Layers (both platforms)
 
 ```
-View  →  ViewModel (@Observable, @MainActor)  →  repository protocol (core)  →  GRDB implementation
+View/Screen  →  ViewModel  →  repository interface (core)  →  SQLite implementation
 ```
 
-| Where | What |
-|-------|------|
-| `Packages/MediCabinetCore` | Pure Swift, tested with `swift test` on a Mac. Domain types (`Box`, `Location`, `ProductRef`, `CategoryID`, `ExpiryDate`, `ExpiryStatus`, `RemovalReason`), the injected `Clock`, and the repository ports (`LocationRepository`, `BoxRepository`). It may not import UIKit, SwiftUI, VisionKit or GRDB (lint-enforced) and never calls `Date()` itself. |
-| `Packages/MediCabinetCore` → `MediCabinetCoreTestSupport` | `MutableClock`, an in-memory fake store and `RepositoryContract`, the list of checks every repository implementation must pass. |
-| `MediCabinet/Sources/Persistence` | The only place that imports GRDB: `AppDatabase`, `Migrations`, records, `GRDBLocationRepository` / `GRDBBoxRepository`, `BackupService`, `Bootstrap`. |
-| `MediCabinet/Sources/App` | App entry, `AppEnvironment` (the repositories and clock handed to the UI), `BootstrapModel`, `RootView`, the launch error screen, `Log`. |
-| `MediCabinet/Sources/Features` | One folder per feature (today: `MainTabView`, placeholders, `Settings`). |
+| | iOS (`ios/`) | Android (`android/`) |
+|--|--------------|----------------------|
+| Domain core, pure and testable on the desktop | Swift package `MediCabinetCore` (`swift test`) | Gradle module `:core`, Kotlin/JVM (`./gradlew :core:test`) |
+| Core may not import | UIKit, SwiftUI, VisionKit, GRDB; never `Date()` | `android.*`, `androidx.*`; never the wall clock outside `SystemClock` |
+| Test helpers | `MediCabinetCoreTestSupport` (fake store, `RepositoryContract`) | `:core` test fixtures (same) |
+| Persistence | GRDB — the only place that imports it is `Persistence/` | `androidx.sqlite` — only under `persistence/` |
+| App | `MediCabinet/Sources/{App,Features,Persistence}` | `app/src/main/kotlin/com/medicabinet/app/{app,features,persistence,ui}` |
+| Dependency injection | manual (`AppEnvironment`, built by `Bootstrap`) | manual (`MediCabinetApplication` builds `Bootstrap`) |
 
-Dependency injection is manual: `Bootstrap` builds an `AppEnvironment` once and `RootView`
-puts it in the SwiftUI environment. Tests build their own with in-memory databases and a fixed
-clock.
+The architecture rules are enforced by lint: SwiftLint custom rules (`ios/.swiftlint.yml`) and
+`scripts/android-check-architecture.py`, each with fixtures proving the rules fire.
 
 ## The database
 
-- SQLite through GRDB, in `Application Support/MediCabinet/cabinet.sqlite` (WAL mode).
-- The directory and database files use iOS Data Protection
-  `completeUntilFirstUserAuthentication`: encrypted at rest until the first unlock after boot,
-  so notification digests can still be rescheduled while the phone is locked.
-- `Application Support` is part of the user's iCloud / iPhone backup (not excluded), so a
-  restored phone gets the cabinet back.
-- Ids are UUIDs stored as text; every row has `createdAt` / `updatedAt` (repositories stamp
-  `updatedAt` from the injected clock). The model is sync-friendly although no sync exists.
-- Boxes are never deleted when removed: `removalReason` + `removedAt` mark them as used up or
-  thrown away, which is what makes Undo possible.
-- Expiry is stored as year/month/day parts plus `expirySortKey` (`YYYY-MM-DD` of the last
-  valid day). A box with no expiry has all of them `NULL` and is *unknown*, never OK.
-  Month-precision dates (GS1 day `00`) leave `expiryDay` `NULL`.
-- Constraints in SQL back up the Swift rules (name lengths, 14-digit GTIN, month range, one
-  default location, removal columns set together, restricted location deletion).
+SQLite on both platforms, running the **same v1 SQL**, in the app's private storage:
+
+- iOS: GRDB, `Application Support/MediCabinet/cabinet.sqlite`, Data Protection
+  `completeUntilFirstUserAuthentication`, included in iCloud/iPhone backups.
+- Android: `androidx.sqlite`, `databases/cabinet.db` in internal storage (encrypted at rest by the device),
+  included in Android Auto Backup and device transfer together with its `-wal` file and the backup copies.
+- WAL mode, foreign keys on. Ids are UUIDs stored as upper-case text; every row has `createdAt` /
+  `updatedAt`; dates are UTC text `yyyy-MM-dd HH:mm:ss.SSS`. Boxes are never deleted when removed:
+  `removalReason` + `removedAt` make Undo possible. The model is sync-ready (see CLAUDE.md, Product decisions).
+- Expiry is stored as year/month/day parts plus `expirySortKey`. A box with no expiry has all of them `NULL`
+  and is *unknown*, never OK. Month precision (GS1 day `00`) leaves `expiryDay` `NULL`.
+- SQL constraints back up the Kotlin/Swift rules (lengths, 14-digit GTIN, month range, one default
+  location, removal columns set together, no deleting a location that holds boxes).
 
 ### Migrations
 
-`Migrations.migrator` registers named, ordered migrations (`v1`, …). Rules:
-
-1. Never edit a migration that has shipped; add a new one.
-2. Never erase the database on a schema change.
-3. Each migration runs in its own transaction.
+Named, ordered, append-only (`Migrations.swift` / `Migrations.kt`): never edit one that has shipped, add a
+new one **on both platforms** (and update `fixtures/schema-v1.sql`/`.json`'s successors). iOS tracks them in
+GRDB's table, Android in `PRAGMA user_version`. Neither platform ever erases the database on a schema change;
+Android refuses a downgrade.
 
 ### Backups and failure handling
 
-Before applying pending migrations to an **existing** database, `BackupService` writes a
-self-contained copy to `Application Support/MediCabinet/Backups/pre-migration-<UTC time>-<last
-applied migration>.sqlite` using SQLite's online backup API, and keeps the newest five.
-
-`Bootstrap` runs on launch, off the main thread:
+Before applying pending migrations to an **existing** database, a `BackupService` writes a self-contained copy
+(`Backups/pre-migration-<UTC time>-<last applied>.sqlite` on iOS, `backups/…db` on Android) using SQLite's
+backup API / a checkpointed copy, and keeps the newest five. `Bootstrap` runs on launch, off the main thread:
 
 1. Open the database (create the protected directory on first launch).
-2. If migrations are pending on an existing database: back it up. If that fails → stop, show
-   "Backup failed" with **Try again**. Nothing is migrated.
-3. Migrate. If a migration fails → close the database, put the pre-migration copy back (drop
-   `-wal` / `-shm`), show "Update failed" with **Try again**. The copy stays in `Backups/`.
+2. If migrations are pending on an existing database: back it up. If that fails → stop, "Backup failed"
+   with **Try again**. Nothing is migrated.
+3. Migrate in one transaction. If it fails → put the pre-migration copy back, "Update failed" with
+   **Try again**. The copy stays in the backups folder.
 4. Ensure exactly one default location exists (localized name).
-5. Prune old backups, hand the `AppEnvironment` to the UI.
+5. Prune old backups, hand the environment to the UI.
 
-On a first launch there is nothing to lose, so no backup is made; a failed first migration
-leaves an empty database that **Try again** migrates.
+On a first launch there is nothing to lose, so no backup is made. **An unreadable database file is reported
+("Storage unavailable") and never deleted** — Android's platform helpers delete corrupt databases by default,
+so `CabinetDatabase` overrides that, with a mutation-checked regression test; iOS has the same guarantee.
 
 ## Privacy
 
-No analytics, crash reporting, advertising or network code (a lint rule forbids
-`URLSession` / `URLRequest` / `Network`). `PrivacyInfo.xcprivacy` declares no tracking and no
-collected data. Logs use `os.Logger` with the default private level; a lint rule forbids
-opting values into public output. Item-related values (lot, serial, names) never go in log
-messages.
+No analytics, crash reporting, advertising or network code (lint rules on both platforms; the Android manifest
+requests no permission). iOS `PrivacyInfo.xcprivacy` declares no tracking and no collected data. Logs carry
+no cabinet contents: iOS uses `os.Logger`'s private default (public interpolation is lint-forbidden), Android
+logs only the failure stage and exception class through `AppLog`.
 
 ## Localization
 
-French (development language) and English, in String Catalogs. `scripts/check-strings.sh`
-fails when a key lacks a translation in either language.
+French (fallback) and English on both platforms: iOS String Catalogs, Android `values/` (French) and
+`values-en/`, with per-app language selection on Android 13+. The same screen says the same thing on both.

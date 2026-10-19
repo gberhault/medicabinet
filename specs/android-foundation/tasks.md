@@ -124,7 +124,7 @@ it cannot run the exact iOS DDL, and the user switched Android to plain SQLite �
 
 ## 7. Docs and wrap-up (#38)
 
-- [ ] **T23 — Docs, README, Android CHANGELOG, launch measurement** [#38] (I5, I6)
+- [x] **T23 — Docs, README, Android CHANGELOG, launch measurement** [#38] (I5, I6)
   `docs/architecture.md` and `docs/development.md` for both platforms, README Android build
   and install, `android/CHANGELOG.md` `## 0.1.0`, `scripts/android-measure-launch.sh` and its
   result in `reports/android-foundation/README.md`.
