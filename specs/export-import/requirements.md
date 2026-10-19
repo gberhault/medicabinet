@@ -1,6 +1,6 @@
 # Export and import of the cabinet — Requirements
 
-Status: **Draft — awaiting approval**
+Status: **Approved 2026-10-19** · amendments to F7 and E6 proposed with the design (awaiting approval)
 Epic: #26 · Children: #27, #28, #29 · Branch: `feature/26-export-import` · Platforms: iOS + Android
 
 ## Introduction
@@ -88,8 +88,10 @@ on any phone and in any later version, can read back, so that a backup never goe
    beyond F3.
 7. Every cabinet the app can hold SHALL export to an archive that the same app version, and
    the app on the other platform, import back into an equal cabinet: same ids, fields and
-   dates, at millisecond precision. Validation (V) SHALL never be stricter than what the
-   database accepts.
+   dates, at millisecond precision. Validation (V) SHALL accept every value the app can
+   store: the database rules, and for columns without a database rule a limit above anything
+   the app writes. The encoder SHALL validate its own output, so an export that could not be
+   imported back is never produced. *(Amended with the design, §1.7.)*
 8. For a given cabinet, the encoder SHALL produce the same bytes every time: stable key order
    and stable entity order. Files from either platform SHALL decode to equal cabinets on both.
 9. Every `formatVersion` ever shipped SHALL keep a golden archive file under `fixtures/`
@@ -147,9 +149,11 @@ choose, so that I have a backup or can move to a new phone.*
    user SHALL choose **Save to file** (system document picker) or **Share** (share sheet).
    Android SHALL grant read access only to the chosen recipient, through the app's own
    provider.
-6. Any temporary export file SHALL live in the app's protected private storage and SHALL be
-   deleted once the share or save finishes or is cancelled, and at the next launch if the app
-   was stopped meanwhile.
+6. Any temporary export file SHALL live in the app's protected private storage, outside
+   device backups. It SHALL be deleted when the platform reports that the share finished or
+   was cancelled (iOS), otherwise at the next export or the next launch (Android: the share
+   sheet does not report when the receiving app has read the file). *(Amended with the
+   design, §1.7.)*
 7. WHEN writing the file fails (e.g. storage full, the picker's destination refuses it), the
    system SHALL say so and offer **Try again**. The cabinet SHALL be unchanged.
 8. WHEN saving to a file succeeds, the system SHALL confirm it. The app SHALL never send,
