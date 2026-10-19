@@ -19,15 +19,8 @@ struct MainTabView: View {
             )
             .tabItem { Label("tab.expiring", systemImage: "calendar.badge.exclamationmark") }
 
-            SettingsPlaceholder()
+            SettingsView()
                 .tabItem { Label("tab.settings", systemImage: "gearshape") }
         }
-    }
-}
-
-/// Replaced by the real Settings screen in T14.
-private struct SettingsPlaceholder: View {
-    var body: some View {
-        Text("tab.settings")
     }
 }

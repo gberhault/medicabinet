@@ -1,6 +1,38 @@
 {
   "sourceLanguage": "fr",
   "strings": {
+    "about.disclaimer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MediCabinet is an inventory tool. It gives no medical advice: for any question about a medicine, ask a pharmacist or a doctor."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MediCabinet est un outil d'inventaire. Il ne donne aucun conseil médical : pour toute question sur un médicament, demandez conseil à un pharmacien ou à un médecin."
+          }
+        }
+      }
+    },
+    "about.version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %1$@ (%2$@)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %1$@ (%2$@)"
+          }
+        }
+      }
+    },
     "bootstrap.error.backup.message": {
       "localizations": {
         "en": {
@@ -237,6 +269,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Le scan arrive bientôt"
+          }
+        }
+      }
+    },
+    "settings.about": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À propos"
+          }
+        }
+      }
+    },
+    "settings.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages"
           }
         }
       }

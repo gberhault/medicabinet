@@ -75,7 +75,7 @@ for them to measure (T15–T16).
   `RootView`, `MainTabView` (Scan · Cabinet · Expiring · Settings), `ContentUnavailableView`
   placeholders, error screen with Retry. *Tests:* `MainTabUITests`; accessibility-size + dark
   mode UI test; error-state view-model unit test.
-- [ ] **T14 — Settings and About** [#2] (R2.3, R8.3)
+- [x] **T14 — Settings and About** [#2] (R2.3, R8.3)
   `AppInfo` abstraction, `AboutView` + view model, disclaimer. *Tests:* `AboutViewModelTests`
   (fake `AppInfo`, fr/en formatting), `AboutUITests` (version and build match the bundle).
 
