@@ -22,12 +22,12 @@ screens and the wiring. Section numbers are referenced from `tasks.md`.
   the preview and an `ImageAnalysis` use case (`STRATEGY_KEEP_ONLY_LATEST`, background
   executor). Each analysed frame goes to zxing-cpp's `BarcodeReader.read(ImageProxy)` with
   `formats = {DATA_MATRIX, EAN_13}` and `textMode = PLAIN`, which keeps GS as ASCII 29 (to be
-  confirmed by the capture task, T5). The `symbologyIdentifier` (`]d2`) is prepended to the
+  confirmed by the capture task, T6). The `symbologyIdentifier` (`]d2`) is prepended to the
   payload so the parser sees the same shape as on iOS.
 - zxing-cpp ships a native library per ABI. Release builds keep `arm64-v8a`, `armeabi-v7a`
-  and `x86_64` (emulator). The APK size increase is measured in T14 and recorded in the PR
+  and `x86_64` (emulator). The APK size increase is measured in T5 and recorded in the PR
   (limit: the 50 MB app-size target).
-- Before adding it (T14), check and record in the PR: licence file, last release date
+- Before adding it (T5), check and record in the PR: licence file, last release date
   (< 12 months), merged manifest adds no permission (`PrivacyTest`), no network classes.
 
 ### 1.2 iOS scanner: VisionKit `DataScannerViewController`
@@ -35,7 +35,7 @@ screens and the wiring. Section numbers are referenced from `tasks.md`.
 - `recognizedDataTypes: [.barcode(symbologies: [.dataMatrix, .ean13])]`,
   `qualityLevel: .balanced`, `recognizesMultipleItems: true`, `isHighFrameRateTrackingEnabled:
   true`, `isHighlightingEnabled: true`, guidance off (our own hint).
-- The payload is `RecognizedItem.Barcode.payloadStringValue`. If T5 shows that VisionKit drops
+- The payload is `RecognizedItem.Barcode.payloadStringValue`. If T6 shows that VisionKit drops
   the GS separators, the adapter switches to `observation.payloadData` (iOS 17) and the spec
   is updated first.
 - `DataScannerViewController.isSupported` (hardware) and `isAvailable` (permission and
@@ -96,7 +96,7 @@ by `check-fixtures.py`. A GS separator is written `\u001d` in JSON.
   before AI 17 (expiry missing, lot swallows the rest or is dropped when > 20 chars);
   lot/serial 20 and 21 chars; lot with a character outside CSET 82; unknown AI (`240`) before
   AI 17; EAN-13 CIP13 `3400…` and ACL `3401…`; 12 and 15 digits; empty; 513 characters; NUL
-  and LF characters; no AI 01. Then every real payload shape captured in T5.
+  and LF characters; no AI 01. Then every real payload shape captured in T6.
 
 ### 2.2 `fixtures/scan-debounce.json` (D)
 
@@ -425,7 +425,7 @@ android/app/src/main/kotlin/com/medicabinet/app/features/scan/
 - Architecture rule (`android-check-architecture.py`): `androidx.camera` and `zxingcpp`
   imports only under `features/scan/camera/` (+ fixture).
 - Dependencies (`libs.versions.toml`): `androidx.camera:*` 1.4.x/1.5.x stable, `zxing-cpp`
-  `android` 3.x — exact versions pinned in T14.
+  `android` 3.x — exact versions pinned in T5.
 
 ## 7. Flows
 
@@ -454,7 +454,7 @@ android/app/src/main/kotlin/com/medicabinet/app/features/scan/
   target together with the UI work.
 - `ScanDebouncer.observe` with 5 payloads × 10 000 frames: < 50 ms in a core test (no
   per-frame allocation growth).
-- Measured once on devices in T26 (signpost / `Trace` sections around evaluate + add, no
+- Measured once on devices in T28 (signpost / `Trace` sections around evaluate + add, no
   payload in the section name), result in `reports/bulk-scan/README.md`.
 - Camera off when not visible (C7); no I/O on the main thread; queries indexed.
 
@@ -513,8 +513,8 @@ precision).
 ## 12. Risks
 
 - **Scanner payload shapes** (VisionKit GS handling, zxing-cpp `PLAIN` mode) are verified in
-  T5 on real boxes; a surprise there changes §1.1–1.2 and the fixture, not the parser's rules.
+  T6 on real boxes; a surprise there changes §1.1–1.2 and the fixture, not the parser's rules.
 - **Dependency on #11**: the epic PR waits for the BDPM lookup; the branch may need a rebase
   on `develop` after epic #7 merges (schema v2 vs any reference-data change).
 - **Robolectric timing** is noisy: the §8 budgets are generous and use medians.
-- **Native library size** (zxing-cpp) measured in T14.
+- **Native library size** (zxing-cpp) measured in T5.
