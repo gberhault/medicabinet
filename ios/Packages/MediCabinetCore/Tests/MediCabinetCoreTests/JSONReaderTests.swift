@@ -27,7 +27,11 @@ import Testing
         [0xF0, 0x9F, 0xA7],                // truncated four-byte sequence
         [0xF4, 0x90, 0x80, 0x80],          // above U+10FFFF
         [0xF5, 0x80, 0x80, 0x80],          // lead byte that never occurs
-        [0xFF]
+        [0xFF],
+        [0xE2, 0x28, 0xA1],                // bad second byte
+        [0xE2, 0x82, 0x28],                // bad third byte
+        [0xF0, 0x9F, 0x28, 0xBC],          // bad third byte of four
+        [0xF0, 0x9F, 0xA7, 0x28]           // bad fourth byte
     ] as [[UInt8]])
     func invalidUTF8IsNotJSON(_ bytes: [UInt8]) {
         #expect(throws: ArchiveError(.notJSON)) { try reader(bytes: bytes) }
@@ -67,22 +71,35 @@ import Testing
 
     // MARK: strings
 
+    /// The escape tests write `¤` where JSON needs a backslash: the source never holds a `\uXXXX` sequence,
+    /// which editors and tools tend to turn into the character it names and so silently change the test.
+    private func json(_ text: String) -> String {
+        text.replacingOccurrences(of: "¤", with: "\\")
+    }
+
     @Test func stringEscapesAreDecoded() throws {
-        var parsed = try reader(#""q\" b\\ s\/ \b\f\n\r\t A é € 🧳 \u0000""#)
-        #expect(try parsed.readString(field) == "q\" b\\ s/ \u{08}\u{0C}\n\r\t A é € 🧳 \u{0}")
+        var parsed = try reader(json("\"q¤\" b¤¤ s¤/ ¤b¤f¤n¤r¤t ¤u0041 ¤u00e9 ¤u20AC ¤ud83e¤uddf3 ¤u0000\""))
+        #expect(try parsed.readString(field) == "q\" b\\ s/ \u{08}\u{0C}\n\r\t A \u{E9} \u{20AC} \u{1F9F3} \u{0}")
+    }
+
+    @Test func anEscapedScalarJustAboveTheSurrogatesIsAnOrdinaryCharacter() throws {
+        var parsed = try reader(json("\"¤ue000¤uFFFF\""))
+        #expect(try parsed.readString(field) == "\u{E000}\u{FFFF}")
     }
 
     @Test(arguments: [
-        #""\ud83e""#,              // high surrogate at the end of the string
-        #""\ud83ex""#,             // high surrogate followed by a plain character
-        #""\ud83e\n""#,            // ... by another escape
-        #""\ud83eA""#,        // ... by an escaped non-surrogate
-        #""\ud83e\ud83e""#,        // ... by another high surrogate
-        #""\udd0f""#,              // lone low surrogate
-        #""\q""#, #""\u12""#, #""\u12G4""#, #""abc"#, "\"a\u{01}b\"", #""\"#, #""\u"#
+        "\"¤ud83e\"",             // high surrogate at the end of the string
+        "\"¤ud83ex\"",            // high surrogate followed by a plain character
+        "\"¤ud83e¤n\"",           // ... by another escape
+        "\"¤ud83e¤u0041\"",       // ... by an escaped non-surrogate
+        "\"¤ud83e¤ud83e\"",       // ... by another high surrogate
+        "\"¤udd0f\"",             // lone low surrogate
+        "\"¤q\"", "\"¤u12\"", "\"¤u12G4\"", "\"abc", "\"a\u{01}b\"", "\"¤", "\"¤u",
+        "\"¤u12g4\"", "\"¤u12/4\"", "\"¤u12:4\"", "\"¤u12@4\"", "\"¤u12`4\"",   // just outside each hex range
+        "\"¤ud83e¤ue000\""                                                       // ... a high surrogate, then an escape above the low ones
     ])
     func malformedStringsAreNotJSON(_ text: String) throws {
-        var parsed = try reader(text)
+        var parsed = try reader(json(text))
         #expect(throws: ArchiveError(.notJSON)) { try parsed.readString(field) }
     }
 
