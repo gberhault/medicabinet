@@ -57,7 +57,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
 
 ## 3. Kotlin core (#35)
 
-- [ ] **T10 — `ExpiryDate` and its errors** [#35] (K2, K3, S3, S6)
+- [x] **T10 — `ExpiryDate` and its errors** [#35] (K2, K3, S3, S6)
   *Tests first:* `ExpiryDateFixtureTest` (dynamic test per case of the shared fixture) +
   Kotlin-specific tests (equality, ordering, kinds).
 - [ ] **T11 — `Clock`, `SystemClock`, `FixedClock`, `MutableClock`** [#35] (K5)

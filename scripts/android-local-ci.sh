@@ -52,6 +52,9 @@ bash "$ROOT/scripts/tests/test-android-architecture.sh"
 step "lint gate fixtures (a bad file fails ktlint and detekt)"
 bash "$ROOT/scripts/tests/test-android-lint-gates.sh"
 
+step "shared fixtures: a wrong fixture fails the Kotlin suite"
+bash "$ROOT/scripts/tests/test-shared-fixtures-break.sh" android
+
 step "unit tests (:core, :app)"
 "${GRADLE[@]}" :core:test :app:testDebugUnitTest
 
