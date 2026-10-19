@@ -350,7 +350,9 @@ New contract checks (names added to `repository-contract.json`, in order):
 `delete and undoDelete on unknown or wrong-state boxes throw notFound`,
 `a second box with the same gtin and serial is rejected with duplicateSerial`,
 `a deleted box frees its serial`, `box by gtin and serial returns removed boxes but not deleted ones`,
-`latestBox returns the most recent non-deleted box of a gtin`.
+`latestBox returns the most recent non-deleted box of a gtin`,
+`update to a serial already in the cabinet is rejected`,
+`undoDelete is rejected when the serial was taken meanwhile`.
 
 ## 5. iOS app
 

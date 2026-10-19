@@ -64,14 +64,16 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
 - [x] **T10 — Schema v2 fixtures and contract names** `[shared]` [#40] (V1, V3; §2.5, §4)
   `schema-v2.sql`, `schema-v2.json`, new checks in `repository-contract.json`,
   `duplicateSerial` in `fixtures/README.md`. *Test:* `check-fixtures.py` green.
-- [ ] **T11 — iOS v2 migration and repository additions** `[ios]` [#40] (V1–V3, I7; §4)
+- [x] **T11 — iOS v2 migration and repository additions** `[ios]` [#40] (V1–V3, I7; §4)
   `Migrations.v2` (text equals the fixture), GRDB `box(gtin:serial:)`, `latestBox(gtin:)`,
   `delete`, `undoDelete`, deleted boxes hidden, unique violation → `.duplicateSerial`; core
   ports + in-memory fake + `RepositoryContract` checks. *Tests:* contract on fake and GRDB,
   `SchemaFixtureTests` v2 (and v1 at version 1), upgrade v1 → v2 with data, bootstrap backup
   before v2.
-- [ ] **T12 — Android v2 migration and repository additions** `[android]` [#40] (same)
+- [x] **T12 — Android v2 migration and repository additions** `[android]` [#40] (same)
   `Migrations.v2`, `SqlBoxRepository`, Kotlin ports + fake + contract. Same tests (Robolectric).
+
+*T11 and T12 landed in one commit: the shared `repository-contract.json` lists the new checks, so shipping one platform alone would leave the other's suite red.*
 
 ## 5. Intake service (#15, #16, #12)
 

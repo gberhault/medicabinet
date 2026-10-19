@@ -33,22 +33,26 @@ public enum RepositoryContract {
             Location(name: name, isDefault: isDefault, sortOrder: sortOrder, createdAt: clock.now)
         }
 
-        func box(in location: Location, name: String = "Doliprane", expiry: ExpiryDate? = nil) -> Box {
-            Box(product: ProductRef(gtin: "03400930000001", name: name), category: CategoryID(rawValue: "pain-fever"),
-                locationID: location.id, expiry: expiry, lot: "L1", serial: "S1", createdAt: clock.now)
+        /// Every box gets its own serial unless one is given: the same GTIN and serial cannot exist twice.
+        func box(
+            in location: Location, name: String = "Doliprane", expiry: ExpiryDate? = nil,
+            gtin: String = "03400930000001", serial: String? = String(UUID().uuidString.prefix(12))
+        ) -> Box {
+            Box(product: ProductRef(gtin: gtin, name: name), category: CategoryID(rawValue: "pain-fever"),
+                locationID: location.id, expiry: expiry, lot: "L1", serial: serial, createdAt: clock.now)
         }
     }
 
     public static var checks: [Check] { locationChecks + boxChecks }
 
-    private static func require(_ condition: Bool, _ message: String) throws {
+    static func require(_ condition: Bool, _ message: String) throws {
         if !condition { throw ContractFailure(description: message) }
     }
 
     /// Matches by type and case description rather than `as RepositoryError`: when the app and
     /// its test bundle each link a static copy of the core, the two copies' types are distinct
     /// at runtime and dynamic casts between them fail.
-    private static func expect(_ expected: RepositoryError, from work: () async throws -> Void) async throws {
+    static func expect(_ expected: RepositoryError, from work: () async throws -> Void) async throws {
         do {
             try await work()
         } catch {
@@ -182,6 +186,6 @@ public enum RepositoryContract {
                 try await expect(.duplicate) { try await env.boxes.insert(box) }
                 try require(try await env.boxes.activeBoxes().count == 1, "rejected inserts must not persist")
             }
-        ]
+        ] + deletionChecks
     }
 }

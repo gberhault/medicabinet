@@ -50,6 +50,8 @@ struct BoxRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
     var removedAt: Date?
     var createdAt: Date
     var updatedAt: Date
+    /// Tombstone of a box added by mistake; `nil` for every box the app shows.
+    var deletedAt: Date?
 
     init(_ box: Box) {
         id = box.id.uuidString
@@ -69,6 +71,7 @@ struct BoxRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
         removedAt = box.removal?.date
         createdAt = box.createdAt
         updatedAt = box.updatedAt
+        deletedAt = nil
     }
 
     func model() throws -> Box {

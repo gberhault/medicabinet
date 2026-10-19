@@ -38,7 +38,7 @@ class BackupServiceTest {
 
     /** An on-disk cabinet migrated to v1 holding one location; left open so recent writes sit in the WAL. */
     private fun existingCabinet(keepOpen: Boolean): CabinetDatabase {
-        val cabinet = CabinetDatabase(context, name)
+        val cabinet = CabinetDatabase(context, name, listOf(Migrations.v1))
         cabinet.database.execSQL(
             "INSERT INTO location (id, name, isDefault, sortOrder, createdAt, updatedAt) " +
                 "VALUES ('L', 'Kept', 0, 0, '2027-01-01 00:00:00.000', '2027-01-01 00:00:00.000')"

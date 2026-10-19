@@ -90,7 +90,7 @@ class ModelTest {
             ExpiryStatus.entries.map { it.rawValue } +
             CategoryID.UNCATEGORIZED.rawValue +
             listOf("invalidYear", "invalidMonth", "invalidDay") +
-            listOf("notFound", "unknownLocation", "duplicate", "duplicateDefault")
+            listOf("notFound", "unknownLocation", "duplicate", "duplicateDefault", "duplicateSerial")
         for (name in names) {
             assertTrue(readme.contains("`$name`"), "fixtures/README.md does not list `$name`")
         }

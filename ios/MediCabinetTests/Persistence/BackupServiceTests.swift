@@ -16,13 +16,13 @@ import Testing
         BackupService(directory: BackupService.defaultDirectory(in: root), clock: clock)
     }
 
-    private var migratorWithPendingV2: DatabaseMigrator {
+    private var migratorWithPendingV3: DatabaseMigrator {
         var migrator = Migrations.migrator
-        migrator.registerMigration("v2") { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") }
+        migrator.registerMigration("v3") { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") }
         return migrator
     }
 
-    /// An on-disk database migrated to v1 and holding one location.
+    /// An on-disk database migrated to the current schema and holding one location.
     private func existingDatabase() throws -> DatabasePool {
         let pool = try AppDatabase.openPool(in: root)
         try Migrations.migrator.migrate(pool)
@@ -57,12 +57,12 @@ import Testing
     @Test func aPendingMigrationOnAnExistingDatabaseIsBackedUpFirst() throws {
         defer { try? FileManager.default.removeItem(at: root) }
         let pool = try existingDatabase()
-        let url = try #require(try service.backupIfNeeded(database: pool, migrator: migratorWithPendingV2))
+        let url = try #require(try service.backupIfNeeded(database: pool, migrator: migratorWithPendingV3))
 
-        #expect(url.lastPathComponent == "pre-migration-20270115-080000-v1.sqlite")
+        #expect(url.lastPathComponent == "pre-migration-20270115-080000-v2.sqlite")
         let backup = try DatabaseQueue(path: url.path)
         #expect(try backup.read { try String.fetchOne($0, sql: "SELECT name FROM location") } == "Kept")
-        #expect(try backup.read { try Migrations.migrator.appliedIdentifiers($0) } == [Migrations.v1])
+        #expect(try backup.read { try Migrations.migrator.appliedIdentifiers($0) } == [Migrations.v1, Migrations.schemaV2])
         // Self-contained: no WAL side files next to the backup.
         let files = try backupFiles()
         #expect(files == [url.lastPathComponent], "found: \(files)")
@@ -71,8 +71,8 @@ import Testing
     @Test func twoBackupsInTheSameSecondDoNotOverwriteEachOther() throws {
         defer { try? FileManager.default.removeItem(at: root) }
         let pool = try existingDatabase()
-        let first = try #require(try service.backupIfNeeded(database: pool, migrator: migratorWithPendingV2))
-        let second = try #require(try service.backupIfNeeded(database: pool, migrator: migratorWithPendingV2))
+        let first = try #require(try service.backupIfNeeded(database: pool, migrator: migratorWithPendingV3))
+        let second = try #require(try service.backupIfNeeded(database: pool, migrator: migratorWithPendingV3))
         #expect(first != second)
         #expect(try backupFiles().count == 2)
     }
@@ -83,7 +83,7 @@ import Testing
         // A regular file where the Backups folder should be.
         try Data("x".utf8).write(to: BackupService.defaultDirectory(in: root))
         #expect(throws: BackupError.self) {
-            try service.backupIfNeeded(database: pool, migrator: migratorWithPendingV2)
+            try service.backupIfNeeded(database: pool, migrator: migratorWithPendingV3)
         }
     }
 
@@ -91,7 +91,7 @@ import Testing
         defer { try? FileManager.default.removeItem(at: root) }
         let dir = BackupService.defaultDirectory(in: root)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let names = (1...7).map { "pre-migration-2027010\($0)-080000-v1.sqlite" }
+        let names = (1...7).map { "pre-migration-2027010\($0)-080000-v2.sqlite" }
         for name in names { try Data().write(to: dir.appendingPathComponent(name)) }
         try Data().write(to: dir.appendingPathComponent("notes.txt"))
 
@@ -105,7 +105,7 @@ import Testing
         try service.prune()   // folder does not exist yet
         let dir = BackupService.defaultDirectory(in: root)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        try Data().write(to: dir.appendingPathComponent("pre-migration-20270101-080000-v1.sqlite"))
+        try Data().write(to: dir.appendingPathComponent("pre-migration-20270101-080000-v2.sqlite"))
         try service.prune()
         #expect(try backupFiles().count == 1)
     }

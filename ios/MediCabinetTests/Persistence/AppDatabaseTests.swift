@@ -8,7 +8,7 @@ import Testing
         let (database, directory) = try AppDatabase.temporary()
         defer { try? FileManager.default.removeItem(at: directory) }
         #expect(FileManager.default.fileExists(atPath: directory.appendingPathComponent(AppDatabase.fileName).path))
-        #expect(try database.writer.read { try Migrations.migrator.appliedIdentifiers($0) } == [Migrations.v1])
+        #expect(try database.writer.read { try Migrations.migrator.appliedIdentifiers($0) } == [Migrations.v1, Migrations.schemaV2])
     }
 
     /// The simulator does not expose Data Protection (the attribute reads back nil), so the

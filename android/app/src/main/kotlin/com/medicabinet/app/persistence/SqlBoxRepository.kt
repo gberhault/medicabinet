@@ -1,6 +1,6 @@
 package com.medicabinet.app.persistence
 
-import androidx.sqlite.db.SupportSQLiteDatabase
+import android.database.sqlite.SQLiteConstraintException
 import com.medicabinet.core.Box
 import com.medicabinet.core.BoxRepository
 import com.medicabinet.core.Clock
@@ -20,33 +20,52 @@ class SqlBoxRepository(
 ) : BoxRepository {
     override suspend fun activeBoxes(): List<Box> = withContext(io) {
         cabinet.database.query(
-            "SELECT ${Columns.BOX} FROM box WHERE removedAt IS NULL ORDER BY createdAt, id"
+            "SELECT ${Columns.BOX} FROM box WHERE removedAt IS NULL AND deletedAt IS NULL ORDER BY createdAt, id"
         ).mapRows {
             toBox()
         }
     }
 
     override suspend fun box(id: UUID): Box? = withContext(io) {
-        cabinet.database.query("SELECT ${Columns.BOX} FROM box WHERE id = ?", arrayOf(id.stored())).mapRows {
-            toBox()
-        }.firstOrNull()
+        cabinet.database.query(
+            "SELECT ${Columns.BOX} FROM box WHERE id = ? AND deletedAt IS NULL",
+            arrayOf(id.stored())
+        ).mapRows { toBox() }.firstOrNull()
+    }
+
+    override suspend fun box(gtin: String, serial: String): Box? = withContext(io) {
+        cabinet.database.query(
+            "SELECT ${Columns.BOX} FROM box WHERE gtin = ? AND serial = ? AND deletedAt IS NULL LIMIT 1",
+            arrayOf(gtin, serial)
+        ).mapRows { toBox() }.firstOrNull()
+    }
+
+    override suspend fun latestBox(gtin: String): Box? = withContext(io) {
+        cabinet.database.query(
+            "SELECT ${Columns.BOX} FROM box WHERE gtin = ? AND deletedAt IS NULL " +
+                "ORDER BY createdAt DESC, id DESC LIMIT 1",
+            arrayOf(gtin)
+        ).mapRows { toBox() }.firstOrNull()
     }
 
     override suspend fun insert(box: Box): Unit = withContext(io) {
         cabinet.transaction { db ->
-            if (boxExists(db, box.id)) throw RepositoryException(RepositoryError.DUPLICATE)
-            requireLocation(db, box)
-            db.execSQL(
-                "INSERT INTO box (${Columns.BOX}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                arrayOf(
-                    box.id.stored(), box.product.gtin, box.product.name, box.category.rawValue,
-                    box.categoryOverridden.stored(), box.locationId.stored(),
-                    *box.expiryColumns(),
-                    box.lot, box.serial, box.isOpened.stored(),
-                    box.removal?.reason?.rawValue, box.removal?.date?.let(StoredDate::write),
-                    StoredDate.write(box.createdAt), StoredDate.write(box.updatedAt)
+            if (BoxSql.exists(db, box.id)) throw RepositoryException(RepositoryError.DUPLICATE)
+            BoxSql.requireLocation(db, box)
+            BoxSql.requireFreeSerial(db, box.product.gtin, box.serial, box.id)
+            writingSerial {
+                db.execSQL(
+                    "INSERT INTO box (${Columns.BOX}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    arrayOf(
+                        box.id.stored(), box.product.gtin, box.product.name, box.category.rawValue,
+                        box.categoryOverridden.stored(), box.locationId.stored(),
+                        *box.expiryColumns(),
+                        box.lot, box.serial, box.isOpened.stored(),
+                        box.removal?.reason?.rawValue, box.removal?.date?.let(StoredDate::write),
+                        StoredDate.write(box.createdAt), StoredDate.write(box.updatedAt)
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -54,19 +73,22 @@ class SqlBoxRepository(
         val now = StoredDate.write(clock.now())
         withContext(io) {
             cabinet.transaction { db ->
-                requireBox(db, box.id)
-                requireLocation(db, box)
-                db.execSQL(
-                    "UPDATE box SET gtin = ?, productName = ?, category = ?, categoryOverridden = ?, locationId = ?, " +
-                        "expiryYear = ?, expiryMonth = ?, expiryDay = ?, expirySortKey = ?, lot = ?, serial = ?, " +
-                        "isOpened = ?, updatedAt = ? WHERE id = ?",
-                    arrayOf(
-                        box.product.gtin, box.product.name, box.category.rawValue, box.categoryOverridden.stored(),
-                        box.locationId.stored(),
-                        *box.expiryColumns(),
-                        box.lot, box.serial, box.isOpened.stored(), now, box.id.stored()
+                BoxSql.requireLive(db, box.id)
+                BoxSql.requireLocation(db, box)
+                BoxSql.requireFreeSerial(db, box.product.gtin, box.serial, box.id)
+                writingSerial {
+                    db.execSQL(
+                        "UPDATE box SET gtin = ?, productName = ?, category = ?, categoryOverridden = ?, " +
+                            "locationId = ?, expiryYear = ?, expiryMonth = ?, expiryDay = ?, expirySortKey = ?, " +
+                            "lot = ?, serial = ?, isOpened = ?, updatedAt = ? WHERE id = ?",
+                        arrayOf(
+                            box.product.gtin, box.product.name, box.category.rawValue, box.categoryOverridden.stored(),
+                            box.locationId.stored(),
+                            *box.expiryColumns(),
+                            box.lot, box.serial, box.isOpened.stored(), now, box.id.stored()
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -75,7 +97,7 @@ class SqlBoxRepository(
         val now = StoredDate.write(clock.now())
         withContext(io) {
             cabinet.transaction { db ->
-                requireBox(db, id)
+                BoxSql.requireLive(db, id)
                 db.execSQL(
                     "UPDATE box SET removalReason = ?, removedAt = ?, updatedAt = ? WHERE id = ?",
                     arrayOf(reason.rawValue, StoredDate.write(at), now, id.stored())
@@ -88,7 +110,7 @@ class SqlBoxRepository(
         val now = StoredDate.write(clock.now())
         withContext(io) {
             cabinet.transaction { db ->
-                requireBox(db, id)
+                BoxSql.requireLive(db, id)
                 db.execSQL(
                     "UPDATE box SET removalReason = NULL, removedAt = NULL, updatedAt = ? WHERE id = ?",
                     arrayOf(now, id.stored())
@@ -97,18 +119,41 @@ class SqlBoxRepository(
         }
     }
 
-    private fun boxExists(db: SupportSQLiteDatabase, id: UUID): Boolean =
-        db.query("SELECT 1 FROM box WHERE id = ?", arrayOf(id.stored())).use { it.moveToFirst() }
-
-    private fun requireBox(db: SupportSQLiteDatabase, id: UUID) {
-        if (!boxExists(db, id)) throw RepositoryException(RepositoryError.NOT_FOUND)
+    override suspend fun delete(id: UUID) {
+        val now = StoredDate.write(clock.now())
+        withContext(io) {
+            cabinet.transaction { db ->
+                BoxSql.requireLive(db, id)
+                db.execSQL("UPDATE box SET deletedAt = ?, updatedAt = ? WHERE id = ?", arrayOf(now, now, id.stored()))
+            }
+        }
     }
 
-    private fun requireLocation(db: SupportSQLiteDatabase, box: Box) {
-        val found = db.query("SELECT 1 FROM location WHERE id = ?", arrayOf(box.locationId.stored())).use {
-            it.moveToFirst()
+    override suspend fun undoDelete(id: UUID) {
+        val now = StoredDate.write(clock.now())
+        withContext(io) {
+            cabinet.transaction { db ->
+                val (gtin, serial) = BoxSql.deletedIdentity(db, id)
+                    ?: throw RepositoryException(RepositoryError.NOT_FOUND)
+                BoxSql.requireFreeSerial(db, gtin, serial, id)
+                writingSerial {
+                    db.execSQL("UPDATE box SET deletedAt = NULL, updatedAt = ? WHERE id = ?", arrayOf(now, id.stored()))
+                }
+            }
         }
-        if (!found) throw RepositoryException(RepositoryError.UNKNOWN_LOCATION)
+    }
+
+    /** The unique index is the backstop of the `requireFreeSerial` check: a race still ends in `duplicateSerial`. */
+    private inline fun writingSerial(write: () -> Unit) {
+        try {
+            write()
+        } catch (error: SQLiteConstraintException) {
+            // Only the serial index maps to duplicateSerial; a CHECK or foreign key violation stays itself.
+            if (error.message.orEmpty().contains("box.serial")) {
+                throw RepositoryException(RepositoryError.DUPLICATE_SERIAL, error)
+            }
+            throw error
+        }
     }
 }
 

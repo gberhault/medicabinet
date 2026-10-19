@@ -156,6 +156,8 @@ object SharedFixtures {
 
     fun schemaV1(): SchemaSnapshot = json.decodeFromString(text("schema-v1.json"))
 
+    fun schemaV2(): SchemaSnapshot = json.decodeFromString(text("schema-v2.json"))
+
     /** Names of the repository contract checks, in order (`fixtures/repository-contract.json`). */
     fun repositoryContractCheckNames(): List<String> =
         json.decodeFromString<NamedCases>(text("repository-contract.json")).cases.map { it.name }
