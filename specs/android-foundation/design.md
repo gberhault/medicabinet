@@ -1,6 +1,6 @@
 # Android foundation — Design
 
-Status: **Draft — awaiting approval** (requirements approved 2026-10-19)
+Status: **Approved 2026-10-19**
 Epic: #31 · Requirements: [`requirements.md`](requirements.md)
 
 The iOS foundation design ([`../foundation/design.md`](../foundation/design.md)) is the
@@ -22,8 +22,7 @@ the platform SQLite through `AndroidSqliteDriver` (no bundled native library, so
 cost). Trade-off: you know Room from Riding; SQLDelight's API is smaller (queries are
 functions generated from named SQL statements).
 
-Issue #36 says "Room"; it would be retitled "SQLDelight persistence…" once this design is
-approved.
+Issue #36 was retitled "SQLDelight persistence…" when this design was approved (2026-10-19).
 
 ## 2. Repository after the restructure (M)
 
