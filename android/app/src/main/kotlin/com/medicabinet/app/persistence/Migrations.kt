@@ -79,5 +79,16 @@ object Migrations {
         """.trimIndent()
     )
 
-    val all: List<Migration> = listOf(v1, v2)
+    /**
+     * `deletedAt` is the tombstone of a location the user deleted; removed and deleted boxes keep pointing at it.
+     * The text of `fixtures/schema-v3.sql`, checked by SchemaTest.
+     */
+    val v3 = Migration(
+        name = "v3",
+        sql = """
+            ALTER TABLE location ADD COLUMN deletedAt DATETIME;
+        """.trimIndent()
+    )
+
+    val all: List<Migration> = listOf(v1, v2, v3)
 }

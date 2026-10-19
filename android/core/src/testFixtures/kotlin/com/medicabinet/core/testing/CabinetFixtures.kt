@@ -126,3 +126,5 @@ fun SharedFixtures.cabinetRows(): CabinetCaseList<CabinetRowsCase> =
 
 fun SharedFixtures.scanRemoval(): CabinetCaseList<ScanRemovalCase> =
     cabinetFixtureJson.decodeFromString(text("scan-removal.json"))
+
+fun SharedFixtures.schemaV3(): SchemaSnapshot = cabinetFixtureJson.decodeFromString(text("schema-v3.json"))

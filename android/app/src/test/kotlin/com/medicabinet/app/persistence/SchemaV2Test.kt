@@ -81,7 +81,7 @@ class SchemaV2Test {
         val db = open()
         assertEquals(listOf("A", "B"), db.boxIds())
         assertEquals(0L, SqlProbe.long(db, "SELECT COUNT(*) FROM box WHERE deletedAt IS NOT NULL"))
-        assertEquals(2L, SqlProbe.long(db, "PRAGMA user_version"))
+        assertEquals(Migrations.all.size.toLong(), SqlProbe.long(db, "PRAGMA user_version"))
     }
 
     @Test

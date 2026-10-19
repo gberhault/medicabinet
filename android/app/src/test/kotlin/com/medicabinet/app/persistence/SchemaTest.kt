@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteException
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.core.app.ApplicationProvider
 import com.medicabinet.core.testing.SharedFixtures
+import com.medicabinet.core.testing.schemaV3
 import java.util.UUID
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -58,8 +59,17 @@ class SchemaTest {
     // --- shape: identical to iOS ---
 
     @Test
-    fun theFullyMigratedDatabaseMatchesTheSharedV2FixtureExactly() {
-        assertEquals(SharedFixtures.schemaV2(), SqlProbe.snapshot(db))
+    fun theFullyMigratedDatabaseMatchesTheSharedV3FixtureExactly() {
+        assertEquals(SharedFixtures.schemaV3(), SqlProbe.snapshot(db))
+    }
+
+    @Test
+    fun aDatabaseMigratedToV2MatchesTheSharedV2Fixture() {
+        CabinetDatabase(
+            ApplicationProvider.getApplicationContext(),
+            name = "v2-${UUID.randomUUID()}.db",
+            migrations = listOf(Migrations.v1, Migrations.v2)
+        ).use { assertEquals(SharedFixtures.schemaV2(), SqlProbe.snapshot(it.database)) }
     }
 
     @Test
@@ -75,6 +85,7 @@ class SchemaTest {
     fun theMigrationSqlEqualsTheSharedSqlFixtures() {
         assertEquals(normalized(SharedFixtures.text("schema-v1.sql")), normalized(Migrations.v1.sql))
         assertEquals(normalized(SharedFixtures.text("schema-v2.sql")), normalized(Migrations.v2.sql))
+        assertEquals(normalized(SharedFixtures.text("schema-v3.sql")), normalized(Migrations.v3.sql))
     }
 
     @Test
@@ -83,6 +94,8 @@ class SchemaTest {
         assertNotEquals(normalized(SharedFixtures.text("schema-v1.sql")), normalized(altered1))
         val altered2 = Migrations.v2.sql.replace("CREATE UNIQUE INDEX", "CREATE INDEX")
         assertNotEquals(normalized(SharedFixtures.text("schema-v2.sql")), normalized(altered2))
+        val altered3 = Migrations.v3.sql.replace("DATETIME", "TEXT")
+        assertNotEquals(normalized(SharedFixtures.text("schema-v3.sql")), normalized(altered3))
     }
 
     /** Whitespace and `--` comment lines are not part of the comparison (same rule as the iOS test). */
@@ -92,7 +105,7 @@ class SchemaTest {
 
     @Test
     fun aFixtureWithAMissingIndexDoesNotMatch() {
-        val fixture = SharedFixtures.schemaV2()
+        val fixture = SharedFixtures.schemaV3()
         val altered = fixture.copy(indexes = fixture.indexes.filterNot { it.name == "box_gtin" })
         assertNotEquals(altered, SqlProbe.snapshot(db))
     }
@@ -101,7 +114,7 @@ class SchemaTest {
     fun theFixtureCoversBothTablesAndEveryLookupIndex() {
         val indexes =
             setOf("location_single_default", "box_gtin", "box_location", "box_expiry", "box_active", "box_serial")
-        for (fixture in listOf(SharedFixtures.schemaV1(), SharedFixtures.schemaV2())) {
+        for (fixture in listOf(SharedFixtures.schemaV1(), SharedFixtures.schemaV2(), SharedFixtures.schemaV3())) {
             assertEquals(setOf("location", "box"), fixture.tables.keys)
             assertEquals(indexes, fixture.indexes.map { it.name }.toSet())
             assertTrue(fixture.tables.getValue("box").columns.any { it.type == "DATETIME" })
@@ -113,6 +126,13 @@ class SchemaTest {
         assertEquals("serial IS NOT NULL AND deletedAt IS NULL", second.where)
         assertEquals(true, second.unique)
         assertEquals("deletedAt", SharedFixtures.schemaV2().tables.getValue("box").columns.last().name)
+        val locationColumns = SharedFixtures.schemaV3().tables.getValue("location").columns
+        assertEquals("deletedAt", locationColumns.last().name)
+        assertEquals(false, locationColumns.last().notNull)
+        assertEquals(
+            listOf("id", "name", "isDefault", "sortOrder", "createdAt", "updatedAt"),
+            SharedFixtures.schemaV2().tables.getValue("location").columns.map { it.name }
+        )
     }
 
     @Test
