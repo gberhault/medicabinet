@@ -74,17 +74,19 @@ by `check-fixtures.py`. A GS separator is written `\u001d` in JSON.
 ```json
 { "name": "full DataMatrix with ]d2 and GS after the lot",
   "payload": "]d2010340093000001417270300101A2B3C\u001d21XYZ123456789",
-  "expect": { "gtin": "03400930000014", "expiry": { "year": 2027, "month": 3, "day": null },
-              "lot": "1A2B3C", "serial": "XYZ123456789",
-              "shape": "]d2 01 17 10(6) GS 21(12)" } }
+  "shape": "]d2 01 17 10(6) GS 21(12)",
+  "expect": { "gtin": "03400930000014", "symbology": "dataMatrix",
+              "expiry": { "year": 2027, "month": 3, "day": null },
+              "lot": "1A2B3C", "serial": "XYZ123456789" } }
 { "name": "AI 17 with month 13 is invalid, never clamped",
   "payload": "010340093000001417271315",
-  "expect": { "gtin": "03400930000014", "expiry": { "invalid": "invalidMonth" },
-              "lot": null, "serial": null, "shape": "01 17" } }
-{ "name": "wrong check digit", "payload": "0103400930000015", "expect": { "error": "invalidGTIN" } }
+  "shape": "01 17",
+  "expect": { "gtin": "03400930000014", "symbology": "dataMatrix",
+              "expiry": { "invalid": "invalidMonth" }, "lot": null, "serial": null } }
+{ "name": "wrong check digit", "payload": "0103400930000015", "shape": "01", "expect": { "error": "invalidGTIN" } }
 ```
 
-- `expiry` is `{year, month, day|null}`, `"missing"`, or `{ "invalid": <ExpiryDate error kind> }`.
+- `expiry` is `{year, month, day|null}`, `"missing"`, or `{ "invalid": <ExpiryDate error kind | invalidFormat> }`. `shape` sits at case level (it exists for error cases too; `empty`, `tooLong(n)` and `invalidCharacters` for the three rejected-before-reading errors).
 - `shape` (P14) tokens: optional prefix (`]d2`, `]Q3`, `]C1`), `FNC1` for a leading GS, each
   AI (fixed-length AIs bare, variable-length AIs with their length `10(6)`), `GS` where present,
   `?(n)` for an unknown AI and the `n` characters left, `EAN13` for a 13-digit payload.

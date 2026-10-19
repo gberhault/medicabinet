@@ -14,11 +14,11 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
 
 ## 1. Parser (#13)
 
-- [ ] **T1 — GS1 fixture** `[shared]` [#13] (P1–P12, P14; §2.1)
+- [x] **T1 — GS1 fixture** `[shared]` [#13] (P1–P12, P14; §2.1)
   `fixtures/gs1-datamatrix.json` with the seed cases of §2.1 (anonymised GTINs with valid
   check digits, invented lots/serials); parse error kinds in `fixtures/README.md`; broken
   copy under `scripts/tests/fixtures-broken/`. *Test:* `check-fixtures.py` green.
-- [ ] **T2 — `GS1Parser`, `GTIN`, shapes in `MediCabinetCore`** `[ios]` [#13] (P1–P14; §3.1)
+- [x] **T2 — `GS1Parser`, `GTIN`, shapes in `MediCabinetCore`** `[ios]` [#13] (P1–P14; §3.1)
   *Tests first:* `GS1ParserFixtureTests` (one per case), `GS1ParserTests` (check digit, AI
   table, duplicated AI), `GS1ParserFuzzTests` (seeded random + every prefix of every fixture
   payload, never crashes), shape never contains a value. Break script covers the new fixture.

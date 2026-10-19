@@ -57,6 +57,62 @@ private struct CasesFile<Case: Decodable>: Decodable {
     let cases: [Case]
 }
 
+/// The expiry a GS1 fixture case expects: a date, `"missing"`, or `{invalid: kind}`.
+public enum GS1ExpectedExpiry: Decodable, Sendable, Equatable {
+    case missing
+    case date(year: Int, month: Int, day: Int?)
+    case invalid(kind: String)
+
+    private enum Keys: String, CodingKey { case year, month, day, invalid }
+
+    public init(from decoder: any Decoder) throws {
+        if let text = try? decoder.singleValueContainer().decode(String.self) {
+            guard text == "missing" else {
+                throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: text))
+            }
+            self = .missing
+            return
+        }
+        let container = try decoder.container(keyedBy: Keys.self)
+        if let kind = try container.decodeIfPresent(String.self, forKey: .invalid) {
+            self = .invalid(kind: kind)
+        } else {
+            self = .date(
+                year: try container.decode(Int.self, forKey: .year),
+                month: try container.decode(Int.self, forKey: .month),
+                day: try container.decodeIfPresent(Int.self, forKey: .day)
+            )
+        }
+    }
+}
+
+/// One case of `fixtures/gs1-datamatrix.json`, the payloads shared with the Android app.
+public struct GS1Case: Decodable, Sendable, CustomStringConvertible {
+    public struct Expect: Decodable, Sendable {
+        public let gtin: String?
+        /// `dataMatrix` | `ean13`
+        public let symbology: String?
+        public let expiry: GS1ExpectedExpiry?
+        public let lot: String?
+        public let serial: String?
+        /// `empty` | `tooLong` | `invalidCharacters` | `missingGTIN` | `invalidGTIN`
+        public let error: String?
+    }
+
+    public let name: String
+    public let payload: String
+    public let shape: String
+    public let expect: Expect
+
+    public var description: String { name }
+}
+
+public struct GS1Fixture: Decodable, Sendable {
+    public let formatVersion: Int
+    public let description: String
+    public let cases: [GS1Case]
+}
+
 /// A fixture file that is only a list of named cases.
 private struct NamedCases: Decodable {
     let cases: [NamedCase]
@@ -87,6 +143,10 @@ public enum SharedFixtures {
         try JSONDecoder().decode(ExpiryDateFixture.self, from: data("expiry-dates.json"))
     }
 
+    public static func gs1Datamatrix() throws -> GS1Fixture {
+        try JSONDecoder().decode(GS1Fixture.self, from: data("gs1-datamatrix.json"))
+    }
+
     /// Names of the repository contract checks, in order (`fixtures/repository-contract.json`).
     public static func repositoryContractCheckNames() throws -> [String] {
         try JSONDecoder().decode(NamedCases.self, from: data("repository-contract.json")).cases.map(\.name)
@@ -96,6 +156,10 @@ public enum SharedFixtures {
     /// fixture-driven suite also has a test asserting the file loads (which fails loudly).
     public static func expiryDateCases() -> [ExpiryDateCase] {
         (try? expiryDates().cases) ?? []
+    }
+
+    public static func gs1Cases() -> [GS1Case] {
+        (try? gs1Datamatrix().cases) ?? []
     }
 
     /// The taxonomy in display order (`fixtures/categories.json`).

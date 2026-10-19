@@ -80,7 +80,7 @@ not type it — and to never invent a date the code does not really hold.*
 6. WHEN AI `17` is `YYMMDD` with `DD = 00`, the expiry SHALL be month-precise (last day of that
    month); otherwise day-precise. The year SHALL be `2000 + YY`.
 7. WHEN AI `17` is present but its month or day is invalid, the expiry SHALL be reported as
-   **invalid** (not missing), with the `ExpiryDate` error kind; it SHALL never be clamped,
+   **invalid** (not missing), with the `ExpiryDate` error kind (`invalidFormat` when AI `17` is not six digits); it SHALL never be clamped,
    corrected or replaced by a nearby date.
 8. WHEN AI `17` is absent — including when it may be hidden inside a variable-length field
    because a GS is missing — the expiry SHALL be reported as **missing**. The parser SHALL
