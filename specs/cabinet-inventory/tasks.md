@@ -17,7 +17,7 @@ iOS and Android UI blocks of each section are independent of each other.
 
 ## 0. Preparation
 
-- [ ] **T0 — Rebase on `develop` with #12** `[shared]`
+- [x] **T0 — Rebase on `develop` with #12** `[shared]`
   Rebase the spec commits on `develop` once #12 is merged; re-read the #12 names used in
   `design.md` (`ScanViewModel`, `ScanPreferences`, `ExpiryField`, `delete` / `undoDelete`)
   and update the design first if any changed. *Check:* `bash scripts/local-ci.sh` green
