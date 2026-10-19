@@ -1,6 +1,6 @@
 # Reference data and automatic classification — Tasks
 
-Status: **Approved 2026-10-19**
+Status: **Approved 2026-10-19 — all tasks done**
 Epic: #7 · Branch: `feature/7-reference-data`
 
 One task = one focused commit (code + tests + this file checked off). Tags: `[shared]`,
@@ -119,7 +119,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
   IPA/APK size and installed size before → after, cold start rerun (iOS launch test, Android
   `android-measure-launch.sh emulator-5554`), recorded in `reports/reference-data/README.md`
   for the PR.
-- [ ] **T18 — Version 0.1.1 on both apps** `[shared]` [#7] (§17)
+- [x] **T18 — Version 0.1.1 on both apps** `[shared]` [#7] (§17)
   iOS `MARKETING_VERSION` 0.1.1, build 2; Android `versionName` 0.1.1, `versionCode` 2;
   changelog entries; `check-version.sh ios|android`; full `bash scripts/local-ci.sh` green;
   coverage stated for the PR. Comment on #12 with the rebase notes of §1.7 and §17.
