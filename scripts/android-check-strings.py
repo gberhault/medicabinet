@@ -3,7 +3,8 @@ define the same keys, none empty, with the same format placeholders.
 
     python3 -I scripts/android-check-strings.py [--res <res dir>]
 
-Strings marked translatable="false" are ignored. Stdlib only.
+Strings marked translatable="false" are ignored. A `<plurals>` entry is checked per quantity (`name[one]`,
+`name[other]`): both languages must define the same quantities, none empty. Stdlib only.
 """
 import argparse
 import pathlib
@@ -15,11 +16,18 @@ PLACEHOLDER = re.compile(r"%(?:\d+\$)?[sdf]")
 
 
 def load(path):
+    """name -> text; a plural is flattened to `name[quantity]` -> text."""
     strings = {}
-    for element in ET.parse(path).getroot().iter("string"):
+    root = ET.parse(path).getroot()
+    for element in root.iter("string"):
         if element.get("translatable") == "false":
             continue
         strings[element.get("name")] = "".join(element.itertext())
+    for element in root.iter("plurals"):
+        if element.get("translatable") == "false":
+            continue
+        for item in element.iter("item"):
+            strings[f"{element.get('name')}[{item.get('quantity')}]"] = "".join(item.itertext())
     return strings
 
 

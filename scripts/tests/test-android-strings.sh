@@ -14,6 +14,7 @@ expect() { # description, pass|fail, message fragment ("" for none), command...
 }
 strings() { python3 -I "$ROOT/scripts/android-check-strings.py" --res "$A/$1"; }
 parity() { python3 -I "$ROOT/scripts/check-string-parity.py" --ios "$P/ios.xcstrings" --android-res "$P/$1"; }
+parity_plural() { python3 -I "$ROOT/scripts/check-string-parity.py" --ios "$P/plural/ios.xcstrings" --android-res "$P/plural/$1"; }
 
 expect "strings: matching fr/en pass"                    pass ""                 strings good
 expect "strings: key missing in English fails"           fail "missing in values-en" strings missing_en
@@ -26,4 +27,10 @@ expect "parity: different wording fails"                 fail "differs"         
 expect "parity: iOS key missing on Android fails"        fail "has no Android string" parity missing_android_key
 expect "parity: Android-only key fails"                  fail "has no iOS key"   parity android_extra_key
 expect "parity: different placeholders fail"             fail "differs"          parity different_placeholder
+expect "strings: matching plurals pass"                  pass ""                 strings plural_good
+expect "strings: a plural quantity missing in English fails" fail "box_count[other]" strings plural_missing_quantity
+expect "strings: different plural placeholders fail"     fail "different placeholders" strings plural_placeholder_mismatch
+expect "parity: same plural wording passes (%lld == %d)" pass ""                 parity_plural ok
+expect "parity: different plural wording fails"          fail "differs"          parity_plural different_wording
+expect "parity: a plural quantity missing on Android fails" fail "has no Android string" parity_plural missing_quantity
 exit $fail
