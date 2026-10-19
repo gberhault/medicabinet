@@ -65,7 +65,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
   `MediCabinetCoreTestSupport`. *Tests first:* `TaxonomyFixtureTests`, `CIP13FixtureTests` (one
   per case), `displayed` for an unknown ID, `ReferenceDataDate` (invalid month/day, 29 Feb on
   leap and common years, garbage). Break script covers both new fixtures. 100 % branch coverage.
-- [ ] **T8 — Kotlin twin in `:core`** `[android]` [#10, #11] (same as T7; §7)
+- [x] **T8 — Kotlin twin in `:core`** `[android]` [#10, #11] (same as T7; §7)
   Package `com.medicabinet.core.reference`; same tests (`@TestFactory` per fixture case), same
   raw values; test fixtures `InMemoryReferenceData` and loaders. Break script.
 

@@ -3,10 +3,23 @@ package com.medicabinet.core
 import java.time.Instant
 import java.util.UUID
 
-/** Stable key of a category (e.g. `pain-fever`); the taxonomy itself arrives with the reference-data epic. */
+/** Stable key of a category (e.g. `pain-fever`); the twelve categories are listed by `reference.Taxonomy`. */
 @JvmInline
 value class CategoryID(val rawValue: String) {
     companion object {
+        val PAIN_FEVER = CategoryID("pain-fever")
+        val COLD_ENT = CategoryID("cold-ent")
+        val DIGESTION = CategoryID("digestion")
+        val ALLERGY = CategoryID("allergy")
+        val SKIN_WOUND = CategoryID("skin-wound")
+        val EYES = CategoryID("eyes")
+        val MUSCLES_JOINTS = CategoryID("muscles-joints")
+        val MOUTH_TEETH = CategoryID("mouth-teeth")
+        val VITAMINS_MINERALS = CategoryID("vitamins-minerals")
+
+        /** Never assigned automatically (BDPM holds no dressings or devices): the user picks it. */
+        val FIRST_AID = CategoryID("first-aid")
+        val OTHER = CategoryID("other")
         val UNCATEGORIZED = CategoryID("uncategorized")
     }
 }
