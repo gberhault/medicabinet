@@ -1,6 +1,6 @@
 # Export and import of the cabinet — Requirements
 
-Status: **Approved 2026-10-19** · amendments to F7 and E6 proposed with the design (awaiting approval)
+Status: **Approved 2026-10-19** (F7 and E6 amended with the design, approved 2026-10-19)
 Epic: #26 · Children: #27, #28, #29 · Branch: `feature/26-export-import` · Platforms: iOS + Android
 
 ## Introduction

@@ -1,6 +1,6 @@
 # Export and import of the cabinet — Design
 
-Status: **Draft — awaiting approval**
+Status: **Approved 2026-10-19**
 Epic: #26 · Requirements: [`requirements.md`](requirements.md) · Platforms: iOS + Android
 
 The archive format is written **once as shared fixtures** (golden files and validation
