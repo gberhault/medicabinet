@@ -82,7 +82,7 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
   outcome, put back, delete / undo delete, duplicate race → `.duplicateSerial`, name
   validation, manual code check digit); iOS app perf test evaluate + add on a 1 000-box GRDB
   cabinet ≤ 100 ms median (§8).
-- [ ] **T14 — Kotlin twin** `[android]` (same)
+- [x] **T14 — Kotlin twin** `[android]` (same)
   Same tests; Robolectric SQLite perf test.
 
 ## 6. iOS scan UI (#14, #15, #16)

@@ -91,8 +91,8 @@ class ModelTest {
             CategoryID.UNCATEGORIZED.rawValue +
             listOf("invalidYear", "invalidMonth", "invalidDay") +
             listOf("notFound", "unknownLocation", "duplicate", "duplicateDefault", "duplicateSerial") +
-                listOf("invalidName", "invalidCode", "add", "complete", "confirmAnother") +
-                listOf("alreadyInCabinet", "removedEarlier")
+            listOf("invalidName", "invalidCode", "add", "complete", "confirmAnother") +
+            listOf("alreadyInCabinet", "removedEarlier")
         for (name in names) {
             assertTrue(readme.contains("`$name`"), "fixtures/README.md does not list `$name`")
         }

@@ -115,7 +115,7 @@ public struct ScanIntake: Sendable {
     @discardableResult
     public func add(_ draft: BoxDraft, location: Location.ID) async throws -> Box {
         guard let name = draft.name?.trimmingCharacters(in: .whitespacesAndNewlines),
-              (1...Self.maxNameLength).contains(name.count)
+              (1...Self.maxNameLength).contains(name.unicodeScalars.count)
         else { throw IntakeError.invalidName }
         let box = Box(
             product: ProductRef(gtin: draft.gtin, name: name), category: draft.category,
