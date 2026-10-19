@@ -19,6 +19,8 @@ Language-neutral test vectors that both test suites run (see [`fixtures/README.m
 | `repository-contract.json` | both repository implementations pass the same named list of contract checks |
 | `categories.json` | the twelve categories, in display order, are identical in both cores and the reference build |
 | `reference-lookup.json` + `reference-sample.sqlite` | GTIN → CIP13 and the product lookup answer identically on both platforms |
+| `text-normalization.json`, `location-names.json` | search matching and location-name rules are identical |
+| `cabinet-rows.json`, `scan-removal.json` | the Cabinet list (grouping, status, order, filters) and removal by scan decide identically |
 | `README.md` | the cross-platform names (error kinds, enum raw values) — both suites assert the code matches |
 
 A wrong fixture fails each platform's suite (`scripts/tests/test-shared-fixtures-break.sh`), iOS and
@@ -72,6 +74,30 @@ new one **on both platforms** (and add its `fixtures/schema-vN.sql`/`.json`). v2
 duplicate serials fails the migration, is restored and keeps working on v1. iOS tracks them in
 GRDB's table, Android in `PRAGMA user_version`. Neither platform ever erases the database on a schema change;
 Android refuses a downgrade.
+
+### Schema versions
+
+| Version | Adds | Fixtures |
+|---------|------|----------|
+| v1 | `location`, `box`, their indexes | `schema-v1.sql`, `schema-v1.json` |
+| v2 | `box.deletedAt` (a box added by mistake), unique serial among boxes that are not deleted | `schema-v2.sql`, `schema-v2.json` |
+| v3 | `location.deletedAt` (a location the user deleted; removed and deleted boxes keep pointing at it) | `schema-v3.sql`, `schema-v3.json` |
+
+`*.sql` is the migration step both platforms run (compared as text); `*.json` is the full schema a freshly
+migrated database must have (compared by introspection).
+
+### Observing changes
+
+Screens follow the data instead of refreshing it. The repositories expose `observeAll()` (locations) and
+`observeCabinet()` (boxes in the cabinet): they emit the current value, then again after every change.
+
+- iOS: GRDB `ValueObservation`, wrapped in an `AsyncThrowingStream`; GRDB stays inside `Persistence/`.
+- Android: `CabinetDatabase.changes` is a counter bumped after every **committed** `transaction {}` (a rollback
+  or a read does not bump it); the repositories re-query on each bump, off the main thread, conflated. All writes
+  must therefore go through `transaction`.
+
+On Android each port is split into role interfaces (`LocationEditing`, `BoxLookups`) that the repository
+interfaces extend, to keep each interface small; the apps still use `LocationRepository` / `BoxRepository`.
 
 ### Backups and failure handling
 
