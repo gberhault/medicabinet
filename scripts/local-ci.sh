@@ -42,6 +42,10 @@ step "localization (fr + en complete)"
 bash scripts/check-strings.sh
 bash scripts/tests/test-check-strings.sh
 
+step "version matches CHANGELOG"
+bash scripts/check-version.sh
+bash scripts/tests/test-gates.sh
+
 step "MediCabinetCore tests"
 (cd Packages/MediCabinetCore && swift test --enable-code-coverage)
 
@@ -59,6 +63,9 @@ xcodebuild -project MediCabinet.xcodeproj -scheme MediCabinet \
   -destination "platform=iOS Simulator,id=$DEST_ID" \
   -enableCodeCoverage YES -resultBundlePath build/ci.xcresult \
   test -quiet
+
+step "coverage gate (>= 80% lines: core and app)"
+bash scripts/coverage-gate.sh
 
 CURRENT_STEP="done"
 echo "✓ local-ci OK"

@@ -85,7 +85,7 @@ for them to measure (T15–T16).
   All keys of design §10 in fr + en, `InfoPlist.xcstrings` (`CFBundleDisplayName`
   MediCabinet); script added to `local-ci.sh`. *Test:* fixture catalog with a missing `en`
   value fails.
-- [ ] **T16 — Coverage gate and version check** [#5] (R7.1, R7.3, R7.4)
+- [x] **T16 — Coverage gate and version check** [#5] (R7.1, R7.3, R7.4)
   `coverage-gate.sh` (core + app ≥ 80% lines), `check-version.sh`, both added to
   `local-ci.sh`. *Tests:* broken fixtures under `scripts/tests/` fail each script.
 - [ ] **T17 — Privacy manifest and logging** [#6] (R9.1–R9.3)
