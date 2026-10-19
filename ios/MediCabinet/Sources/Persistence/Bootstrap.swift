@@ -25,6 +25,8 @@ struct Bootstrap: Sendable {
     var clock: any Clock = SystemClock()
     var defaultLocationName: String
     var backupsToKeep = BackupService.defaultKeepCount
+    /// The bundled reference database (`nil` = not bundled). Only stored here: it is opened on first use, not at launch.
+    var referenceURL: URL?
 
     /// Runs off the main actor.
     func run() async -> BootstrapState {
@@ -70,7 +72,8 @@ struct Bootstrap: Sendable {
         return .ready(AppEnvironment(
             locations: locations,
             boxes: GRDBBoxRepository(database: database, clock: clock),
-            clock: clock
+            clock: clock,
+            reference: GRDBReferenceData(url: referenceURL)
         ))
     }
 

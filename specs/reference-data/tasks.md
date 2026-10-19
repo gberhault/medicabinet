@@ -71,7 +71,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
 
 ## 3. iOS app (#11, #7)
 
-- [ ] **T9 — Bundled reference database and lookup** `[ios]` [#11] (L3–L7, L9, X1, X2; §8, §12)
+- [x] **T9 — Bundled reference database and lookup** `[ios]` [#11] (L3–L7, L9, X1, X2; §8, §12)
   `project.yml` resources; `ReferenceDatabase`, `GRDBReferenceData`; `AppEnvironment.reference`
   built in `Bootstrap` without I/O; `Log.reference`. Settle the `immutable` open (§18).
   *Tests first:* `ReferenceLookupFixtureTests` on `reference-sample.sqlite`; unavailable cases

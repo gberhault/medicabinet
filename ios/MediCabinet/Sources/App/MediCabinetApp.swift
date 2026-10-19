@@ -26,7 +26,8 @@ enum AppLaunch {
             }
             return await Bootstrap(
                 directory: directory,
-                defaultLocationName: String(localized: "location.default.name")
+                defaultLocationName: String(localized: "location.default.name"),
+                referenceURL: Bundle.main.url(forResource: "reference", withExtension: "sqlite")
             ).run()
         } catch {
             return .failed(.storage)

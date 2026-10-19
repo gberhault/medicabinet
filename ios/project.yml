@@ -30,6 +30,9 @@ targets:
     sources:
       - path: MediCabinet/Sources
       - path: MediCabinet/Resources
+      # The BDPM reference database, bundled once for both apps from the repository's reference-data/bundle.
+      - path: ../reference-data/bundle/reference.sqlite
+        buildPhase: resources
     dependencies:
       - package: MediCabinetCore
       - package: GRDB

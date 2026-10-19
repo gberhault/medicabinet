@@ -17,7 +17,7 @@ public struct ReferenceDataDate: Hashable, Sendable {
 }
 
 /// Why the reference data cannot be used. Raw values are shared with the Android app.
-public enum ReferenceUnavailableReason: String, Hashable, Sendable {
+public enum ReferenceUnavailableReason: String, Error, Hashable, Sendable {
     /// The bundled database is not there.
     case missing
     /// It could not be opened, failed its integrity check or has no valid data date.
