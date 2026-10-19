@@ -50,7 +50,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
 - [x] **T8 — detekt and ktlint** [#37] (G1)
   `config/detekt.yml`, empty baselines, ktlint Gradle plugin. *Test:* both green; a
   formatting fixture fails ktlint.
-- [ ] **T9 — `android-local-ci.sh` (first version)** [#37] (G1 partial, G2)
+- [x] **T9 — `android-local-ci.sh` (first version)** [#37] (G1 partial, G2)
   Prerequisites (JDK 17+, SDK lookup) with install hints → assemble → detekt/ktlint →
   architecture → unit tests → androidTest compile; named steps. *Test:* green; stubbed `PATH`
   without `java` fails with the hint.
