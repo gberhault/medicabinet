@@ -56,7 +56,7 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
 - [x] **T8 — `ScanDebouncer`, `ProductResolver`, `IntakePolicy` in Swift** `[ios]` (D1–D5, I1–I6, K1, L2–L4; §3.2–3.4)
   *Tests first:* fixture tests for the three files; debouncer performance test (§8). Break
   script extended.
-- [ ] **T9 — Kotlin twins** `[android]` (same)
+- [x] **T9 — Kotlin twins** `[android]` (same)
   Same tests on `:core`; break script extended.
 
 ## 4. Schema v2 (#40)

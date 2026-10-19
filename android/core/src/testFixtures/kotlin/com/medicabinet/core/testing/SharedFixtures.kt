@@ -63,6 +63,76 @@ data class GS1Case(val name: String, val payload: String, val shape: String, val
 @Serializable
 data class GS1Fixture(val formatVersion: Int, val description: String, val cases: List<GS1Case>)
 
+/** One case of `fixtures/scan-debounce.json`. Times are milliseconds from an arbitrary start. */
+@Serializable
+data class ScanDebounceCase(
+    val name: String,
+    val rescanGapMs: Int,
+    val frames: List<Frame>,
+    val expectScans: List<Scan>
+) {
+    @Serializable
+    data class Frame(val t: Long, val visible: List<String>)
+
+    @Serializable
+    data class Scan(val t: Long, val payload: String)
+
+    override fun toString(): String = name
+}
+
+/** One case of `fixtures/scan-intake.json`. */
+@Serializable
+data class IntakeCase(
+    val name: String,
+    val scan: Scan,
+    val productKnown: Boolean,
+    /** `inCabinet` | `removed` | `null` */
+    val cabinetMatch: String? = null,
+    val sessionHasGTIN: Boolean,
+    val expect: Expect
+) {
+    @Serializable
+    data class Scan(
+        val hasSerial: Boolean,
+        /** `known` | `missing` | `invalid` */
+        val expiry: String
+    )
+
+    @Serializable
+    data class Expect(
+        /** `add` | `complete` | `confirmAnother` | `alreadyInCabinet` | `removedEarlier` */
+        val decision: String,
+        val missing: List<String>? = null,
+        val thenMissing: List<String>? = null,
+        val expiryUnreadable: Boolean? = null
+    )
+
+    override fun toString(): String = name
+}
+
+/** One case of `fixtures/product-resolution.json`. */
+@Serializable
+data class ProductResolutionCase(
+    val name: String,
+    val reference: Reference? = null,
+    val previousBox: Previous? = null,
+    val expect: Expect
+) {
+    @Serializable
+    data class Reference(val name: String, val category: String? = null)
+
+    @Serializable
+    data class Previous(val name: String, val category: String, val categoryOverridden: Boolean)
+
+    @Serializable
+    data class Expect(val name: String? = null, val category: String, val categoryOverridden: Boolean)
+
+    override fun toString(): String = name
+}
+
+@Serializable
+private data class CaseList<T>(val cases: List<T>)
+
 /** Loads the repository's shared fixtures (folder given by the `medicabinet.fixtures` system property). */
 object SharedFixtures {
     private val json = Json { ignoreUnknownKeys = true }
@@ -73,6 +143,14 @@ object SharedFixtures {
     fun text(name: String): String = File(directory, name).readText()
 
     fun expiryDates(): ExpiryDateFixture = json.decodeFromString(text("expiry-dates.json"))
+
+    fun scanDebounceCases(): List<ScanDebounceCase> =
+        json.decodeFromString<CaseList<ScanDebounceCase>>(text("scan-debounce.json")).cases
+
+    fun intakeCases(): List<IntakeCase> = json.decodeFromString<CaseList<IntakeCase>>(text("scan-intake.json")).cases
+
+    fun productResolutionCases(): List<ProductResolutionCase> =
+        json.decodeFromString<CaseList<ProductResolutionCase>>(text("product-resolution.json")).cases
 
     fun gs1Datamatrix(): GS1Fixture = json.decodeFromString(text("gs1-datamatrix.json"))
 
