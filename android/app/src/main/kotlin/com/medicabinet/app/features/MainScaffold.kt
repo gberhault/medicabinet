@@ -13,17 +13,28 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.medicabinet.app.R
 import com.medicabinet.app.features.placeholders.FeaturePlaceholder
+import com.medicabinet.app.features.settings.AboutScreen
+import com.medicabinet.app.features.settings.AboutViewModel
+import com.medicabinet.app.features.settings.AppInfo
+import com.medicabinet.app.features.settings.PackageAppInfo
+import com.medicabinet.app.features.settings.SettingsScreen
+
+private const val SETTINGS_HOME = "settings/home"
+private const val SETTINGS_ABOUT = "settings/about"
 
 private enum class Destination(val route: String, val labelRes: Int, val icon: ImageVector) {
     Scan("scan", R.string.tab_scan, Icons.Outlined.QrCodeScanner),
@@ -34,7 +45,8 @@ private enum class Destination(val route: String, val labelRes: Int, val icon: I
 
 /** Four destinations — Scan, Cabinet, Expiring, Settings — as on iOS. Unbuilt features show an empty state. */
 @Composable
-fun MainScaffold(modifier: Modifier = Modifier) {
+fun MainScaffold(modifier: Modifier = Modifier, appInfo: AppInfo = PackageAppInfo(LocalContext.current)) {
+    val aboutViewModel = remember(appInfo) { AboutViewModel(appInfo) }
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     Scaffold(
@@ -81,7 +93,10 @@ fun MainScaffold(modifier: Modifier = Modifier) {
                     Destination.Expiring.icon
                 )
             }
-            composable(Destination.Settings.route) { Text(stringResource(R.string.tab_settings)) }
+            navigation(route = Destination.Settings.route, startDestination = SETTINGS_HOME) {
+                composable(SETTINGS_HOME) { SettingsScreen(onOpenAbout = { navController.navigate(SETTINGS_ABOUT) }) }
+                composable(SETTINGS_ABOUT) { AboutScreen(aboutViewModel, onBack = { navController.popBackStack() }) }
+            }
         }
     }
 }

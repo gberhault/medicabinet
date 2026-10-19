@@ -24,4 +24,5 @@
     <string name="tab_expiring">Péremptions</string>
     <string name="tab_scan">Scanner</string>
     <string name="tab_settings">Réglages</string>
+    <string name="about_back">Retour</string>
 </resources>

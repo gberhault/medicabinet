@@ -104,7 +104,7 @@ it cannot run the exact iOS DDL, and the user switched Android to plain SQLite �
   `MainScaffold` with four destinations, placeholders; fr/en strings for these screens.
   *Tests:* `BootstrapViewModelTest` (Turbine: loading → ready / failed, Retry); Robolectric
   Compose tests (4 items, each placeholder, error screen per kind, font scale 2.0 + dark).
-- [ ] **T19 — Settings and About** [#34] (A6, I4)
+- [x] **T19 — Settings and About** [#34] (A6, I4)
   `AppInfo` (PackageManager-backed), `AboutViewModel`, `SettingsScreen`, `AboutScreen`.
   *Tests:* view model with fake `AppInfo` in fr and en; Compose test of About.
 
