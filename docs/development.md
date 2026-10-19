@@ -19,6 +19,16 @@ cp ios/Config/Signing.local.xcconfig.sample ios/Config/Signing.local.xcconfig   
 open -a "Android Studio" android        # or: (cd android && ./gradlew :app:assembleDebug)
 ```
 
+### Running Android from Android Studio
+
+1. **Open the `android/` folder** (not the repository root) and let Gradle sync (Android Studio 2026.1 or newer
+   is needed for the Android Gradle plugin 9.x; its bundled JDK is fine).
+2. The shared run configuration **`app`** (committed in `android/.run/`) is already in the run-configuration
+   dropdown. Choose a target in the device dropdown — a Pixel emulator from Device Manager, or a phone — and press Run.
+   The configuration never pins a device, so check the dropdown: a plugged-in personal phone shows up there too.
+3. Two Gradle configurations sit next to it: **Assemble debug APK** and **Unit tests + coverage**
+   (`:core:test` and `:app:jacocoTestReport`).
+
 `ios/Config/Signing.local.xcconfig` is gitignored; the simulator build works without it. The `.xcodeproj` is
 generated from `ios/project.yml` and not committed. Never commit keystores or `local.properties`.
 
