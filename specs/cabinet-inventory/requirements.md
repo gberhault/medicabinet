@@ -1,6 +1,6 @@
 # Cabinet inventory, locations and stock movements — Requirements
 
-Status: **Draft — awaiting review**
+Status: **Approved 2026-10-19**
 Epic: #17 · Children: #18, #19, #20, #21 · Branch: `feature/17-cabinet-inventory` · Platforms: iOS + Android
 
 ## Introduction
@@ -316,11 +316,9 @@ that were in it, and without breaking a future sync.*
   bulk case.
 - Export / import of the new column (#26); multi-phone sync.
 
-## Open points to confirm in the review
+## Resolved in the review (2026-10-19)
 
-1. **Row ordering (C4)**: urgency first (expired rows at the top of each category), as
-   proposed, or alphabetical within a category, leaving urgency to the Expiring tab (#24)?
-2. **Default removal reason (R3)**: last used, else **Used up** — or always start on
-   **Thrown away**, since clearing out expired boxes is the main bulk-removal case?
-3. **Single box skips the list (P2)**: open its detail directly, as proposed, or always show
-   the product's box list for consistent navigation?
+1. **Row ordering (C4)**: urgency first (expired rows at the top of each category), then
+   earliest known expiry, then name.
+2. **Default removal reason (R3)**: the reason last used in Remove mode, else **Used up**.
+3. **Single box skips the list (P2)**: a product row with one box opens its detail directly.
