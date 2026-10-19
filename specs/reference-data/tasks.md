@@ -78,7 +78,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
   (no URL, truncated file, `user_version = 2`, bad `dataDate`) → status and unknown lookups, one
   log line; logging test (no GTIN/name); integration test on the bundled database (DOLIPRANE
   1000 mg comprimé); performance tests (lookup and first open budgets of §12).
-- [ ] **T10 — Category labels** `[ios]` [#10] (C2, C7, C8; §8, §15)
+- [x] **T10 — Category labels** `[ios]` [#10] (C2, C7, C8; §8, §15)
   `CategoryLabel` (unknown ID → "Autres"/"Other"); twelve `category.*` keys fr + en.
   *Tests:* every `categories.json` case has a label in both languages; unknown ID shows `other`;
   `ios-check-strings.sh` green.
@@ -101,7 +101,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
   `AppLog.referenceUnavailable`. *Tests first:* `ReferenceLookupFixtureTest` on the sample;
   unavailable cases as on iOS; logging (reason and class only); integration test on the bundled
   database; performance tests; architecture check still green.
-- [ ] **T14 — Category labels** `[android]` [#10] (C2, C7, C8; §9, §15)
+- [x] **T14 — Category labels** `[android]` [#10] (C2, C7, C8; §9, §15)
   `CategoryLabels`; twelve `category_*` strings fr + en. *Tests:* every fixture case labelled in
   both languages; unknown ID → `other`; `android-check-strings` and `check-string-parity.py` green.
 - [ ] **T15 — About: reference-data section** `[android]` [#7] (A1–A3, L7; §9, §15)
