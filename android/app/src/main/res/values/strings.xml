@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name" translatable="false">MediCabinet</string>
     <string name="about_disclaimer">MediCabinet est un outil d\'inventaire. Il ne donne aucun conseil médical : pour toute question sur un médicament, demandez conseil à un pharmacien ou à un médecin.</string>
-    <string name="about_reference_date">Données du %1$@</string>
+    <string name="about_reference_date">Données du %1$s</string>
     <string name="about_reference_loading">Chargement des données de référence…</string>
     <string name="about_reference_notEndorsed">MediCabinet n\'est ni affilié ni approuvé par l\'ANSM, la HAS ou l\'Assurance Maladie. Les catégories sont proposées par MediCabinet pour ranger l\'armoire.</string>
     <string name="about_reference_open">Ouvre le site de la base de données</string>

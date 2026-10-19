@@ -104,7 +104,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
 - [x] **T14 — Category labels** `[android]` [#10] (C2, C7, C8; §9, §15)
   `CategoryLabels`; twelve `category_*` strings fr + en. *Tests:* every fixture case labelled in
   both languages; unknown ID → `other`; `android-check-strings` and `check-string-parity.py` green.
-- [ ] **T15 — About: reference-data section** `[android]` [#7] (A1–A3, L7; §9, §15)
+- [x] **T15 — About: reference-data section** `[android]` [#7] (A1–A3, L7; §9, §15)
   `AboutViewModel` `StateFlow<ReferenceUiState>`; Compose section; link via `ACTION_VIEW`.
   *Tests:* view-model states with Turbine and `InMemoryReferenceData`; Robolectric Compose test
   in fr and en; `PrivacyTest` still finds no `INTERNET` permission.

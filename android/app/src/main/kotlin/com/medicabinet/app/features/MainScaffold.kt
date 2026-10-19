@@ -26,6 +26,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.medicabinet.app.R
+import com.medicabinet.app.app.LocalAppEnvironment
 import com.medicabinet.app.features.placeholders.FeaturePlaceholder
 import com.medicabinet.app.features.settings.AboutScreen
 import com.medicabinet.app.features.settings.AboutViewModel
@@ -46,7 +47,8 @@ private enum class Destination(val route: String, val labelRes: Int, val icon: I
 /** Four destinations — Scan, Cabinet, Expiring, Settings — as on iOS. Unbuilt features show an empty state. */
 @Composable
 fun MainScaffold(modifier: Modifier = Modifier, appInfo: AppInfo = PackageAppInfo(LocalContext.current)) {
-    val aboutViewModel = remember(appInfo) { AboutViewModel(appInfo) }
+    val reference = LocalAppEnvironment.current?.reference
+    val aboutViewModel = remember(appInfo, reference) { AboutViewModel(appInfo, reference) }
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     Scaffold(

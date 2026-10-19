@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name" translatable="false">MediCabinet</string>
     <string name="about_disclaimer">MediCabinet is an inventory tool. It gives no medical advice: for any question about a medicine, ask a pharmacist or a doctor.</string>
-    <string name="about_reference_date">Data as of %1$@</string>
+    <string name="about_reference_date">Data as of %1$s</string>
     <string name="about_reference_loading">Loading reference data…</string>
     <string name="about_reference_notEndorsed">MediCabinet is not affiliated with or endorsed by ANSM, HAS or the French national health insurance. Categories are suggested by MediCabinet to tidy the cabinet.</string>
     <string name="about_reference_open">Opens the database website</string>
