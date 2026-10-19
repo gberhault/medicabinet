@@ -51,7 +51,10 @@ data class CabinetSummary(
     val deleted: Int,
     /** Boxes in the cabinet with no expiry date. */
     val unknownExpiry: Int
-)
+) {
+    /** False when there is nothing to lose: no box of any kind and no location besides (at most) the default one. */
+    val needsBackup: Boolean get() = locations > 1 || inCabinet + removed + deleted > 0
+}
 
 /** The whole cabinet data: every location and every box, removed and deleted ones included. */
 data class CabinetSnapshot(val locations: List<Location>, val boxes: List<ArchivedBox>) {
@@ -68,8 +71,7 @@ data class CabinetSnapshot(val locations: List<Location>, val boxes: List<Archiv
             )
         }
 
-    /** False only when there is nothing to lose: no box of any kind and a single (default) location. */
-    val needsBackup: Boolean get() = !(boxes.isEmpty() && locations.size == 1)
+    val needsBackup: Boolean get() = summary.needsBackup
 }
 
 /** Who wrote the archive. */

@@ -167,6 +167,10 @@ object SharedFixtures {
 
     fun archiveCodePoints(): ArchiveCodePointFixture = json.decodeFromString(text("archive-code-points.json"))
 
+    /** Names of the archive store contract checks, in order (`fixtures/archive-store-contract.json`). */
+    fun archiveStoreContractCheckNames(): List<String> =
+        json.decodeFromString<NamedCases>(text("archive-store-contract.json")).cases.map { it.name }
+
     fun archiveCaseFixture(): ArchiveCaseFixture = json.decodeFromString(text("archive-cases.json"))
 
     /** The canonical archive of [version], kept forever (`fixtures/archive/v<version>/golden.medicabinet`). */

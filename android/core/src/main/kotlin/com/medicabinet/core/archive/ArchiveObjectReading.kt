@@ -44,7 +44,8 @@ private fun JsonReader.beginObjectOrFail(path: String) {
 /** The index of [field]'s entry, which must be known and not seen before. */
 private fun <Draft> fieldIndex(fields: List<ObjectField<Draft>>, seen: Long, field: FieldPath): Int {
     val index = fields.indexOfFirst { field.isKey(it.key) }
-    if (index < 0 || seen and (1L shl index) != 0L) throw ArchiveException(ArchiveErrorKind.INVALID_STRUCTURE, field.text)
+    val alreadySeen = index >= 0 && seen and (1L shl index) != 0L
+    if (index < 0 || alreadySeen) throw ArchiveException(ArchiveErrorKind.INVALID_STRUCTURE, field.text)
     return index
 }
 

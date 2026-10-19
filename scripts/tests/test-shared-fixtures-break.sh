@@ -40,6 +40,8 @@ if [[ "$WHICH" == ios || "$WHICH" == all ]]; then
     env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter CodePointsFixtureTests
   expect_failure "ios: Swift suite fails on broken archive fixtures" \
     env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter ArchiveFixtureTests
+  expect_failure "ios: Swift suite fails on a broken archive store contract list" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter InMemoryArchiveStoreTests
 fi
 if [[ ("$WHICH" == android || "$WHICH" == all) && -f "$ROOT/android/gradlew" ]]; then
   expect_failure "android: Kotlin suite fails on a broken expiry fixture" \
@@ -68,5 +70,7 @@ if [[ ("$WHICH" == android || "$WHICH" == all) && -f "$ROOT/android/gradlew" ]];
     env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*CodePointsFixtureTest*'"
   expect_failure "android: Kotlin suite fails on broken archive fixtures" \
     env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*ArchiveFixtureTest*'"
+  expect_failure "android: Kotlin suite fails on a broken archive store contract list" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*InMemoryArchiveStoreTest*'"
 fi
 exit $fail

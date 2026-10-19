@@ -64,7 +64,7 @@ independent of each other.
   content, older version kept as source version, nothing to lose → no backup, hook failure →
   unchanged + `backupFailed`, prune after commit only, prune failure ignored, file name at
   day boundaries and in time zones).
-- [ ] **T8 — Kotlin twin of T7** `[android]` [#29] (same)
+- [x] **T8 — Kotlin twin of T7** `[android]` [#29] (same)
   The same tests on `:core` test fixtures (Turbine / coroutines-test where needed).
 
 ## 3. Persistence (#29)
