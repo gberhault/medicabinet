@@ -1,4 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MediCabinet</string>
+    <string name="app_name" translatable="false">MediCabinet</string>
+    <string name="about_disclaimer">MediCabinet est un outil d\'inventaire. Il ne donne aucun conseil médical : pour toute question sur un médicament, demandez conseil à un pharmacien ou à un médecin.</string>
+    <string name="about_version">Version %1$s (%2$s)</string>
+    <string name="bootstrap_error_backup_message">Avant de mettre à jour vos données, MediCabinet doit en faire une copie, mais elle n\'a pas pu être écrite (espace insuffisant ?). Vos données n\'ont pas été modifiées.</string>
+    <string name="bootstrap_error_backup_title">Sauvegarde impossible</string>
+    <string name="bootstrap_error_migration_message">Vos données n\'ont pas pu être mises à jour. Elles ont été remises dans leur état précédent : rien n\'est perdu.</string>
+    <string name="bootstrap_error_migration_title">Mise à jour impossible</string>
+    <string name="bootstrap_error_storage_message">MediCabinet ne peut pas accéder à son espace de stockage (espace insuffisant ?). Vos données n\'ont pas été modifiées.</string>
+    <string name="bootstrap_error_storage_title">Stockage inaccessible</string>
+    <string name="bootstrap_loading">Ouverture de l\'armoire…</string>
+    <string name="bootstrap_retry">Réessayer</string>
+    <string name="location_default_name">Armoire à pharmacie</string>
+    <string name="placeholder_cabinet_message">Vos médicaments, classés par catégorie et par lieu, apparaîtront ici.</string>
+    <string name="placeholder_cabinet_title">L\'armoire arrive bientôt</string>
+    <string name="placeholder_expiring_message">Les médicaments périmés ou bientôt périmés seront listés ici.</string>
+    <string name="placeholder_expiring_title">Le suivi des péremptions arrive bientôt</string>
+    <string name="placeholder_scan_message">Vous pourrez bientôt scanner vos boîtes de médicaments les unes après les autres.</string>
+    <string name="placeholder_scan_title">Le scan arrive bientôt</string>
+    <string name="settings_about">À propos</string>
+    <string name="settings_title">Réglages</string>
+    <string name="tab_cabinet">Armoire</string>
+    <string name="tab_expiring">Péremptions</string>
+    <string name="tab_scan">Scanner</string>
+    <string name="tab_settings">Réglages</string>
 </resources>

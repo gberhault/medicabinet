@@ -98,7 +98,7 @@ it cannot run the exact iOS DDL, and the user switched Android to plain SQLite �
 
 ## 5. App shell (#34)
 
-- [ ] **T18 — Theme, root, error screen, navigation and placeholders** [#34]
+- [x] **T18 — Theme, root, error screen, navigation and placeholders** [#34]
   (A4, A5, A7, A8)
   `MediCabinetTheme`, `BootstrapViewModel` (StateFlow), `RootScreen`, `BootstrapErrorScreen`,
   `MainScaffold` with four destinations, placeholders; fr/en strings for these screens.
