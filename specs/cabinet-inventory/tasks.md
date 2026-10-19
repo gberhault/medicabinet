@@ -29,7 +29,7 @@ iOS and Android UI blocks of each section are independent of each other.
   `fixtures/text-normalization.json`, `fixtures/location-names.json`; error kinds in
   `fixtures/README.md`; broken copies for `test-shared-fixtures-break.sh`.
   *Test:* `check-fixtures.py` green; break script fails on each broken copy.
-- [ ] **T2 — `TextNormalizer`, `LocationName` in Swift** `[ios]` (same; §1.4, §3.1)
+- [x] **T2 — `TextNormalizer`, `LocationName` in Swift** `[ios]` (same; §1.4, §3.1)
   *Tests first:* `TextNormalizerFixtureTests`, `LocationNameFixtureTests` (one per case);
   grapheme counting with emoji and combining marks. 100 % branch coverage.
 - [ ] **T3 — Kotlin twins** `[android]` (same)
