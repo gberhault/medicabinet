@@ -50,14 +50,7 @@ public enum RemovalPolicy {
             let rightSame = rhs.expiry == scanExpiry
             if leftSame != rightSame { return leftSame }
         }
-        switch (lhs.expiry?.sortKey, rhs.expiry?.sortKey) {
-        case let (left?, right?) where left != right: return left < right
-        case (nil, _?): return false
-        case (_?, nil): return true
-        default: break
-        }
-        if lhs.createdAt != rhs.createdAt { return lhs.createdAt < rhs.createdAt }
-        return TextNormalizer.compare(lhs.id.uuidString.lowercased(), rhs.id.uuidString.lowercased()) < 0
+        return BoxOrdering.expiryThenCreation(lhs, rhs)
     }
 }
 

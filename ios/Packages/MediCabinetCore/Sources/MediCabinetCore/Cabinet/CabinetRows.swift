@@ -142,38 +142,18 @@ public enum CabinetRows {
     private static func entry(
         id: ProductRowID, group: [(box: Box, status: ExpiryStatus)], query: String
     ) -> Entry? {
-        let newest = group.map(\.box).max { isOlder($0, than: $1) } ?? group[0].box
+        let newest = group.map(\.box).max { BoxOrdering.isOlder($0, than: $1) } ?? group[0].box
         let normalizedName = TextNormalizer.normalize(newest.product.name)
         guard TextNormalizer.matches(normalizedText: normalizedName, query: query) else { return nil }
 
-        let ordered = group.sorted { boxOrder($0.box, $1.box) }
+        let ordered = group.sorted { BoxOrdering.expiryThenCreation($0.box, $1.box) }
         let mostUrgent = ordered.map(\.status).min { ExpiryUrgency.rank($0) < ExpiryUrgency.rank($1) } ?? .unknown
         let earliest = ordered.compactMap(\.box.expiry).min()
         let row = ProductRow(
             id: id, name: newest.product.name, boxes: ordered.map(\.box), status: mostUrgent, earliestExpiry: earliest)
         return Entry(
             row: row, normalizedName: normalizedName, earliestKey: earliest?.sortKey,
-            firstBoxID: idKey(ordered[0].box))
-    }
-
-    /// Lower-case canonical string: ordered the same way as the JVM twin (never `UUID.compareTo`).
-    private static func idKey(_ box: Box) -> String {
-        box.id.uuidString.lowercased()
-    }
-
-    private static func isOlder(_ lhs: Box, than rhs: Box) -> Bool {
-        if lhs.createdAt != rhs.createdAt { return lhs.createdAt < rhs.createdAt }
-        return TextNormalizer.compare(idKey(lhs), idKey(rhs)) < 0
-    }
-
-    /// Earliest expiry first, unknown last, then creation order, then id.
-    private static func boxOrder(_ lhs: Box, _ rhs: Box) -> Bool {
-        switch (lhs.expiry?.sortKey, rhs.expiry?.sortKey) {
-        case let (left?, right?) where left != right: return left < right
-        case (nil, _?): return false
-        case (_?, nil): return true
-        default: return isOlder(lhs, than: rhs)
-        }
+            firstBoxID: BoxOrdering.idKey(ordered[0].box))
     }
 
     private static func rowOrder(_ lhs: Entry, _ rhs: Entry) -> Bool {
