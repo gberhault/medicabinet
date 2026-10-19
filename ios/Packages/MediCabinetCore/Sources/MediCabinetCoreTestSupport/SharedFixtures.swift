@@ -25,6 +25,15 @@ public struct ExpiryDateFixture: Decodable, Sendable {
     public let cases: [ExpiryDateCase]
 }
 
+/// A fixture file that is only a list of named cases.
+private struct NamedCases: Decodable {
+    let cases: [NamedCase]
+}
+
+private struct NamedCase: Decodable {
+    let name: String
+}
+
 /// Loads the repository's shared fixtures. Set `MEDICABINET_FIXTURES_DIR` to point at another
 /// folder (the gate tests use this to prove a wrong fixture fails the suite).
 public enum SharedFixtures {
@@ -44,6 +53,11 @@ public enum SharedFixtures {
 
     public static func expiryDates() throws -> ExpiryDateFixture {
         try JSONDecoder().decode(ExpiryDateFixture.self, from: data("expiry-dates.json"))
+    }
+
+    /// Names of the repository contract checks, in order (`fixtures/repository-contract.json`).
+    public static func repositoryContractCheckNames() throws -> [String] {
+        try JSONDecoder().decode(NamedCases.self, from: data("repository-contract.json")).cases.map(\.name)
     }
 
     /// For `@Test(arguments:)`, which cannot throw. A missing file yields no cases, so every

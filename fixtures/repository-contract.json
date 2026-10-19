@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1,
+  "description": "Names, in order, of the checks every LocationRepository + BoxRepository implementation must pass (RepositoryContract on each platform). Each platform asserts that its own contract check names equal this list, so the two contracts cannot drift.",
+  "cases": [
+    {
+      "name": "a new store has no locations and no default"
+    },
+    {
+      "name": "locations are returned by sortOrder then name"
+    },
+    {
+      "name": "ensureDefault creates the default once and is idempotent"
+    },
+    {
+      "name": "ensureDefault creates a default next to existing non-default locations"
+    },
+    {
+      "name": "a second default location is rejected"
+    },
+    {
+      "name": "inserting a known location id is rejected"
+    },
+    {
+      "name": "a box round-trips with a day-precise expiry"
+    },
+    {
+      "name": "month precision and unknown expiry round-trip distinctly"
+    },
+    {
+      "name": "markRemoved hides a box from activeBoxes but keeps the record"
+    },
+    {
+      "name": "undoRemoval restores a removed box"
+    },
+    {
+      "name": "update changes fields, bumps updatedAt, keeps createdAt and removal"
+    },
+    {
+      "name": "operations on an unknown box throw notFound"
+    },
+    {
+      "name": "a box in an unknown location or with a known id is rejected"
+    }
+  ]
+}

@@ -21,6 +21,7 @@ Every file is JSON with:
 |------|----------|
 | `expiry-dates.json` | `ExpiryDate` validation, `lastValidDay`, `sortKey`, error kinds |
 | `schema-v1.json` | the tables, columns and indexes every platform's database v1 must have |
+| `repository-contract.json` | names of the repository contract checks both platforms run (the checks themselves are code) |
 
 ## Names that cross platforms
 

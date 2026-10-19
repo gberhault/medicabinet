@@ -10,4 +10,8 @@ import MediCabinetCoreTestSupport
             return (store, store)
         }
     }
+
+    @Test func contractChecksMatchTheSharedList() throws {
+        #expect(RepositoryContract.checks.map(\.name) == (try SharedFixtures.repositoryContractCheckNames()))
+    }
 }

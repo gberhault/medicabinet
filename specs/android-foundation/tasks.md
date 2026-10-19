@@ -67,7 +67,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
   `Location`, `CategoryID`, `ProductRef`, `Box` (+ `Removal`), `RemovalReason`,
   `ExpiryStatus` with the shared raw values. *Tests:* mirror Swift `ModelTests`; raw values
   equal the strings listed in `fixtures/README.md`.
-- [ ] **T13 — Repository ports, in-memory fake, contract suite** [#35] (K6)
+- [x] **T13 — Repository ports, in-memory fake, contract suite** [#35] (K6)
   Ports, `RepositoryError`/`RepositoryException`, `InMemoryCabinetStore`,
   `RepositoryContract` (same 13 checks, same names as Swift) in test fixtures. *Test:*
   contract passes against the fake.
