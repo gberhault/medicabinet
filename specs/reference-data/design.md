@@ -243,7 +243,7 @@ Conditions (all present conditions must hold; inside one condition, any listed v
 | `routesAny` | one of the product's routes equals a listed value |
 | `routesOnly` | every route of the product is in the list |
 | `formAny` | the form contains a listed substring |
-| `substancesAny` | a substance contains a listed token (word-boundary match) |
+| `substancesAny` | a substance contains a listed token at the start of a word |
 | `substancesOnly` | every substance contains one of the listed tokens |
 | `atcAny` | the ATC code starts with a listed prefix |
 | `procedureAny` | the procedure type contains a listed substring |

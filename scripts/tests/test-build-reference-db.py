@@ -160,5 +160,127 @@ class ReaderTests(TempDirCase):
         self.assertEqual(build.normalize("  Paracétamol   Œdème "), "PARACETAMOL ŒDEME")
 
 
+TAXONOMY = build.load_taxonomy(ROOT / "fixtures" / "categories.json")
+
+
+def product(routes="orale", form="comprimé", substances=(), atc="", procedure="Procédure nationale"):
+    return build.Product("60000000", "TEST", form, routes.split(";"), procedure, set(substances), atc)
+
+
+def rules_of(*rules):
+    return build.parse_rules({"rulesVersion": 1, "rules": list(rules)}, TAXONOMY)
+
+
+class ClassifierTests(unittest.TestCase):
+    def classify(self, when, p, category="other"):
+        rules = rules_of({"name": "r", "when": when, "category": category})
+        return build.classify(p, rules)
+
+    def test_taxonomy_comes_from_the_shared_fixture(self):
+        self.assertEqual(len(TAXONOMY.ordered), 12)
+        self.assertNotIn("first-aid", TAXONOMY.assignable)
+        self.assertNotIn("uncategorized", TAXONOMY.assignable)
+
+    def test_routes_any(self):
+        self.assertEqual(self.classify({"routesAny": ["nasale"]}, product(routes="orale;nasale")), "other")
+        self.assertEqual(self.classify({"routesAny": ["nasale"]}, product(routes="orale")), "uncategorized")
+
+    def test_routes_only(self):
+        self.assertEqual(self.classify({"routesOnly": ["orale", "nasale"]}, product(routes="orale;nasale")), "other")
+        self.assertEqual(self.classify({"routesOnly": ["orale"]}, product(routes="orale;nasale")), "uncategorized")
+        self.assertEqual(self.classify({"routesOnly": ["orale"]}, product(routes="")), "uncategorized")
+
+    def test_form_any_is_a_substring_without_accents(self):
+        self.assertEqual(self.classify({"formAny": ["comprimé à sucer"]}, product(form="COMPRIMÉ À SUCER édulcoré")), "other")
+        self.assertEqual(self.classify({"formAny": ["sirop"]}, product(form="comprimé")), "uncategorized")
+
+    def test_substances_any_matches_at_the_start_of_a_word(self):
+        self.assertEqual(self.classify({"substancesAny": ["ascorbi"]}, product(substances=["ACIDE ASCORBIQUE"])), "other")
+        self.assertEqual(self.classify({"substancesAny": ["alginate"]}, product(substances=["SODIUM (ALGINATE DE)"])), "other")
+        self.assertEqual(self.classify({"substancesAny": ["cétirizine"]}, product(substances=["DICHLORHYDRATE DE CÉTIRIZINE"])), "other")
+        # inside a word is not a match: levocetirizine is not cetirizine
+        self.assertEqual(self.classify({"substancesAny": ["cétirizine"]}, product(substances=["LÉVOCÉTIRIZINE"])), "uncategorized")
+
+    def test_substances_any_ignores_case_and_accents(self):
+        self.assertEqual(self.classify({"substancesAny": ["PARACETAMOL"]}, product(substances=["paracétamol"])), "other")
+
+    def test_substances_only(self):
+        when = {"substancesOnly": ["fluorure"]}
+        self.assertEqual(self.classify(when, product(substances=["FLUORURE DE SODIUM"])), "other")
+        self.assertEqual(self.classify(when, product(substances=["FLUORURE DE SODIUM", "CHOLÉCALCIFÉROL"])), "uncategorized")
+        self.assertEqual(self.classify(when, product(substances=[])), "uncategorized")
+
+    def test_atc_any_is_a_prefix_and_needs_an_atc_code(self):
+        self.assertEqual(self.classify({"atcAny": ["B01"]}, product(atc="B01AC06")), "other")
+        self.assertEqual(self.classify({"atcAny": ["B01"]}, product(atc="B03BB01")), "uncategorized")
+        self.assertEqual(self.classify({"atcAny": ["B01"]}, product(atc="")), "uncategorized")
+
+    def test_procedure_any(self):
+        self.assertEqual(self.classify({"procedureAny": ["homéo"]}, product(procedure="Enreg homéo (Proc. Nat.)")), "other")
+        self.assertEqual(self.classify({"procedureAny": ["homéo"]}, product()), "uncategorized")
+
+    def test_all_conditions_of_a_rule_must_hold(self):
+        when = {"routesAny": ["cutanée"], "substancesAny": ["diclofénac"]}
+        self.assertEqual(self.classify(when, product(routes="cutanée", substances=["DICLOFÉNAC"])), "other")
+        self.assertEqual(self.classify(when, product(routes="orale", substances=["DICLOFÉNAC"])), "uncategorized")
+        self.assertEqual(self.classify(when, product(routes="cutanée", substances=["TROLAMINE"])), "uncategorized")
+
+    def test_first_matching_rule_wins(self):
+        rules = rules_of(
+            {"name": "a", "when": {"routesAny": ["orale"]}, "category": "digestion"},
+            {"name": "b", "when": {"routesAny": ["orale"]}, "category": "allergy"},
+        )
+        self.assertEqual(build.classify(product(), rules), "digestion")
+
+    def test_rule_documents_that_are_invalid_fail(self):
+        good = {"name": "r", "when": {"routesAny": ["orale"]}, "category": "eyes"}
+        bad_entries = {
+            "unnamed": {**good, "name": ""},
+            "unknown category": {**good, "category": "painful"},
+            "first-aid refused": {**good, "category": "first-aid"},
+            "uncategorized refused": {**good, "category": "uncategorized"},
+            "unknown condition": {**good, "when": {"routesSome": ["orale"]}},
+            "empty when": {**good, "when": {}},
+            "empty list": {**good, "when": {"routesAny": []}},
+            "non-string value": {**good, "when": {"routesAny": [3]}},
+            "blank value": {**good, "when": {"routesAny": [" "]}},
+        }
+        for label, entry in bad_entries.items():
+            with self.subTest(label), self.assertRaises(build.BuildError):
+                rules_of(entry)
+        with self.assertRaises(build.BuildError):
+            rules_of(good, dict(good))  # duplicated name
+        with self.assertRaises(build.BuildError):
+            build.parse_rules({"rulesVersion": 1, "rules": []}, TAXONOMY)
+        with self.assertRaises(build.BuildError):
+            build.parse_rules({"rulesVersion": 0, "rules": [good]}, TAXONOMY)
+
+    def test_the_committed_rules_file_is_valid(self):
+        rules = build.load_rules(ROOT / "reference-data" / "rules.json", TAXONOMY)
+        self.assertGreaterEqual(rules.version, 1)
+        self.assertTrue(all(r.category in TAXONOMY.assignable for r in rules.rules))
+
+    def test_priorities_of_the_committed_rules(self):
+        rules = build.load_rules(ROOT / "reference-data" / "rules.json", TAXONOMY)
+        cases = [
+            ("eye route beats antihistamine", product(routes="ophtalmique", substances=["CHLORHYDRATE D'AZÉLASTINE"]), "eyes"),
+            ("nose route beats antihistamine", product(routes="nasale", substances=["CHLORHYDRATE D'AZÉLASTINE"]), "cold-ent"),
+            ("pseudoephedrine beats paracetamol", product(substances=["PARACÉTAMOL", "CHLORHYDRATE DE PSEUDOÉPHÉDRINE"]), "cold-ent"),
+            ("antiplatelet ATC beats aspirin", product(substances=["ACÉTYLSALICYLATE DE DL-LYSINE"], atc="B01AC06"), "other"),
+            ("topical NSAID beats skin", product(routes="cutanée", substances=["DICLOFÉNAC DE DIÉTHYLAMINE"]), "muscles-joints"),
+            ("oral NSAID is a painkiller", product(substances=["DICLOFÉNAC SODIQUE"]), "pain-fever"),
+            ("lozenge route beats vitamin C", product(routes="voie buccale autre", form="pastille", substances=["ACIDE ASCORBIQUE"]), "cold-ent"),
+            ("mouthwash", product(routes="voie buccale autre", form="bain de bouche", substances=["HEXÉTIDINE"]), "mouth-teeth"),
+            ("vitamin D with fluoride", product(substances=["CHOLÉCALCIFÉROL", "FLUORURE DE SODIUM"]), "vitamins-minerals"),
+            ("fluoride alone", product(substances=["FLUORURE DE SODIUM"]), "mouth-teeth"),
+            ("homeopathic gel", product(routes="cutanée", procedure="Enreg homéo (Proc. Nat.)", substances=["ARNICA MONTANA POUR PRÉPARATIONS HOMÉOPATHIQUES"]), "other"),
+            ("injectable only", product(routes="intramusculaire;intraveineuse", substances=["MALÉATE DE DEXCHLORPHÉNIRAMINE"]), "other"),
+            ("nothing known", product(substances=["SUBSTANCE INCONNUE"]), "uncategorized"),
+        ]
+        for label, p, expected in cases:
+            with self.subTest(label):
+                self.assertEqual(build.classify(p, rules), expected)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)

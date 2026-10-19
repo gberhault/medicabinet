@@ -25,7 +25,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
   `scripts/tests/reference_sample.py` (cp1252 + UTF-8, CRLF + LF, `œ`, an orphan presentation).
   *Tests first* in `scripts/tests/test-build-reference-db.py`: one per malformed input of §14
   (B3/B4 rows), names unaltered, orphan skipped and counted, `--data-date` must be a real day.
-- [ ] **T3 — Classification engine and rules v1** `[shared]` [#10] (C3–C5; §4.4, §4.5)
+- [x] **T3 — Classification engine and rules v1** `[shared]` [#10] (C3–C5; §4.4, §4.5)
   Profiles, normalization, the seven condition keys, first-match ordering, rules-file
   validation; `reference-data/rules.json` with the initial order of §4.4. *Tests first:* one per
   condition key, ordering (eye route beats antihistamine, pseudoephedrine beats paracetamol,
