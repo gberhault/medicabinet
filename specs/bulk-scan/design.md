@@ -1,6 +1,6 @@
 # Bulk scan intake — Design
 
-Status: **Draft for review**
+Status: **Approved 2026-10-19**
 Epic: #12 · Requirements: [`requirements.md`](requirements.md) · Platforms: iOS + Android
 
 The rules (parsing, debouncing, intake decisions, product resolution) are written **once as

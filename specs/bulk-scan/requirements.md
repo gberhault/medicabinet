@@ -1,6 +1,6 @@
 # Bulk scan intake — Requirements
 
-Status: **Draft for review** — frame and recommendations approved 2026-10-19
+Status: **Approved 2026-10-19**
 Epic: #12 · Children: #13, #14, #15, #16, #40 · Branch: `feature/12-bulk-scan` · Platforms: iOS + Android
 
 ## Introduction

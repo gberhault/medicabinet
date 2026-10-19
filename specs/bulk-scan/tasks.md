@@ -1,6 +1,6 @@
 # Bulk scan intake — Tasks
 
-Status: **Draft for review**
+Status: **Approved 2026-10-19**
 Epic: #12 · Branch: `feature/12-bulk-scan`
 
 One task = one focused commit (code + tests + this file checked off). Tags: `[shared]`,
