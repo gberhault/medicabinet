@@ -100,6 +100,39 @@ public struct CabinetRowsCase: Decodable, Sendable, CustomStringConvertible {
     public var description: String { name }
 }
 
+/// One case of `fixtures/scan-removal.json`.
+public struct ScanRemovalCase: Decodable, Sendable, CustomStringConvertible {
+    public struct Scan: Decodable, Sendable {
+        public let gtin: String
+        public let serial: String?
+        public let expiry: CabinetRowsCase.FixtureExpiry?
+    }
+
+    public struct FixtureBox: Decodable, Sendable {
+        public let id: String
+        public let gtin: String
+        public let serial: String?
+        public let expiry: CabinetRowsCase.FixtureExpiry?
+        /// `inCabinet` | `removed` | `deleted`
+        public let state: String
+        public let createdOrder: Int
+    }
+
+    public struct Expect: Decodable, Sendable {
+        /// `remove` | `choose` | `alreadyRemoved` | `notInCabinet`
+        public let decision: String
+        public let box: String?
+        public let candidates: [String]?
+    }
+
+    public let name: String
+    public let scan: Scan
+    public let cabinet: [FixtureBox]
+    public let expect: Expect
+
+    public var description: String { name }
+}
+
 private struct CabinetCaseList<Element: Decodable>: Decodable {
     let formatVersion: Int
     let cases: [Element]
@@ -134,5 +167,14 @@ extension SharedFixtures {
 
     public static func cabinetRowsCases() -> [CabinetRowsCase] {
         (try? cabinetRows().cases) ?? []
+    }
+
+    public static func scanRemoval() throws -> (formatVersion: Int, cases: [ScanRemovalCase]) {
+        let list = try JSONDecoder().decode(CabinetCaseList<ScanRemovalCase>.self, from: data("scan-removal.json"))
+        return (list.formatVersion, list.cases)
+    }
+
+    public static func scanRemovalCases() -> [ScanRemovalCase] {
+        (try? scanRemoval().cases) ?? []
     }
 }

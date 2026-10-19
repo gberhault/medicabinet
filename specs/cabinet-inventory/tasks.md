@@ -42,7 +42,7 @@ iOS and Android UI blocks of each section are independent of each other.
 - [x] **T6 — Kotlin twins** `[android]` (same)
 - [x] **T7 — Scan-removal fixture** `[shared]` [#21] (R5; §2.4)
   `fixtures/scan-removal.json`; decision names in `fixtures/README.md`; broken copy.
-- [ ] **T8 — `RemovalPolicy`, `ScanRemoval` in Swift** `[ios]` [#21] (R5, R9; §3.3)
+- [x] **T8 — `RemovalPolicy`, `ScanRemoval` in Swift** `[ios]` [#21] (R5, R9; §3.3)
   *Tests first:* `RemovalPolicyFixtureTests` (pure) and `ScanRemovalTests` (second pass of
   the fixture on the in-memory fake; removal uses the clock's date; undo restores).
   Needs `cabinetBoxes(gtin:)` on the fake (added here, contract check in T11).
