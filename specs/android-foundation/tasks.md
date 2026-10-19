@@ -128,7 +128,7 @@ it cannot run the exact iOS DDL, and the user switched Android to plain SQLite �
   `docs/architecture.md` and `docs/development.md` for both platforms, README Android build
   and install, `android/CHANGELOG.md` `## 0.1.0`, `scripts/android-measure-launch.sh` and its
   result in `reports/android-foundation/README.md`.
-- [ ] **T24 — Full root gate and CLAUDE.md refresh** — `bash scripts/local-ci.sh` green
+- [x] **T24 — Full root gate and CLAUDE.md refresh** — `bash scripts/local-ci.sh` green
   (shared + iOS + Android); coverage % for the PR body; Common Task Map and Build & Test
   Commands cover Android.
 - [ ] **T25 — Version confirmation commit** — Android 0.1.0 / 1 and its CHANGELOG match; iOS

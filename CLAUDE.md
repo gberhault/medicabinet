@@ -776,14 +776,18 @@ ios/
   MediCabinetTests/  MediCabinetUITests/
   Packages/MediCabinetCore/      # pure Swift (no UIKit/SwiftUI/VisionKit/GRDB, no Date())
     Sources/MediCabinetCore/  Sources/MediCabinetCoreTestSupport/  Tests/MediCabinetCoreTests/
-android/                         # (added by epic #31)
-  core/                          # :core — pure Kotlin/JVM twin of MediCabinetCore (+ test fixtures)
-  app/                           # :app — Compose app; persistence/ is the only place that touches SQLite (androidx.sqlite)
-  CHANGELOG.md  config/        # detekt / ktlint config and baselines
+android/
+  build.gradle.kts  settings.gradle.kts  gradle/libs.versions.toml  config/detekt/  CHANGELOG.md
+  core/                          # :core — pure Kotlin/JVM twin of MediCabinetCore (no android.*, no wall clock)
+    src/main  src/test  src/testFixtures   # fakes, RepositoryContract, SharedFixtures (the Kotlin twin of the Swift ones)
+  app/                           # :app — Compose app
+    src/main/kotlin/com/medicabinet/app/{app,features,persistence,ui}   # persistence/ is the ONLY place that touches SQLite
+    src/main/res/{values,values-en,xml}   # fr (fallback) / en strings, backup + locale config
+    src/test  src/androidTest            # Robolectric/JUnit 4 incl. Compose UI tests; one instrumented smoke test
 scripts/
   local-ci.sh                    # shared checks + both gates
-  ios-*.sh  android-*.sh         # per-product gate pieces
-  check-version.sh <ios|android>  check-fixtures.py
+  ios-*.sh  android-*.sh         # per-product gate pieces (android-measure-launch.sh takes an adb serial)
+  check-version.sh <ios|android>  check-fixtures.py  check-string-parity.py
   tests/                         # fixtures proving each lint rule / gate fails when it should
 docs/                            # architecture.md, development.md (+ one page per feature)
 specs/<feature-name>/            # requirements.md, design.md, tasks.md
@@ -818,7 +822,7 @@ under `ios/`, Android paths under `android/`; a change to a shared rule touches 
 ```bash
 bash scripts/local-ci.sh                 # mandatory before PR: shared checks + iOS gate + Android gate
 bash scripts/ios-local-ci.sh             # iOS gate only
-bash scripts/android-local-ci.sh         # Android gate only (once epic #31 lands)
+bash scripts/android-local-ci.sh         # Android gate only
 cd ios && xcodegen generate              # regenerate the Xcode project after editing project.yml
 swift test --package-path ios/Packages/MediCabinetCore    # iOS core tests — fast, no simulator
 cd android && ./gradlew :core:test       # Android core tests — fast, no emulator
@@ -826,7 +830,12 @@ bash scripts/ios-lint.sh                 # SwiftLint against the committed basel
 bash scripts/ios-check-strings.sh        # iOS fr + en completeness
 bash scripts/check-version.sh ios        # (or android) version == top changelog entry
 python3 -I scripts/check-fixtures.py     # shared fixtures are valid
+python3 -I scripts/check-string-parity.py   # iOS and Android wording identical
+bash scripts/android-measure-launch.sh emulator-5554   # launch time; ALWAYS pass the serial (see below)
 ```
+
+**Never run `adb install`, `installDebug` or `connectedDebugAndroidTest` against a device the user did not name:** a
+personal phone may be plugged in. Use `ANDROID_SERIAL=emulator-5554` and explicit `-s <serial>`.
 
 Prerequisites and the opt-in launch measurement: [`docs/development.md`](docs/development.md).
 
