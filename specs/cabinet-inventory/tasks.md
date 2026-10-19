@@ -32,7 +32,7 @@ iOS and Android UI blocks of each section are independent of each other.
 - [x] **T2 — `TextNormalizer`, `LocationName` in Swift** `[ios]` (same; §1.4, §3.1)
   *Tests first:* `TextNormalizerFixtureTests`, `LocationNameFixtureTests` (one per case);
   grapheme counting with emoji and combining marks. 100 % branch coverage.
-- [ ] **T3 — Kotlin twins** `[android]` (same)
+- [x] **T3 — Kotlin twins** `[android]` (same)
   `@TestFactory` per case; same error kinds.
 - [ ] **T4 — Cabinet-rows fixture** `[shared]` [#19] (C1–C5, S1, S3, S4, P1; §2.3)
   `fixtures/cabinet-rows.json` with the cases of §2.3; broken copy. *Test:* `check-fixtures.py`.
