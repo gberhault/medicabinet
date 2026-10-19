@@ -14,6 +14,11 @@ excluded:
 opt_in_rules:
   - force_unwrapping
 
+identifier_name:
+  excluded:
+    - id
+    - ok  # ExpiryStatus.ok — the term used throughout the spec
+
 line_length:
   warning: 140
   error: 200

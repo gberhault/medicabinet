@@ -40,7 +40,7 @@ for them to measure (T15–T16).
 - [x] **T6 — `Clock`, `SystemClock`, `FixedClock`** [#3] (R3.7)
   *Tests:* `FixedClock` returns the fixed date; `SystemClock` is non-decreasing across two
   reads.
-- [ ] **T7 — Domain model** [#3] (R3.2, R3.3, R3.6)
+- [x] **T7 — Domain model** [#3] (R3.2, R3.3, R3.6)
   `Location`, `CategoryID` (+ `.uncategorized`), `ProductRef`, `Box` (+ `Removal`),
   `RemovalReason`, `ExpiryStatus`. *Tests:* `BoxTests`, `LocationTests` — identity, nil
   expiry, removal semantics, category key round-trip.
