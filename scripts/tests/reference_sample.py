@@ -88,3 +88,16 @@ def write_snapshot(directory, number=1):
     (directory / "CIS_MITM.txt").write_bytes(tsv(mitm_rows).encode("cp1252"))
     # The presentations file really is UTF-8 with LF line ends.
     (directory / "CIS_CIP_bdpm.txt").write_bytes("".join("\t".join(r) + "\n" for r in cip_rows).encode("utf-8"))
+
+
+def build_sample(build, taxonomy, rules_path, workdir):
+    """Builds the committed sample database: snapshot 1, then snapshot 2 a month later (one product becomes withdrawn).
+    Returns the path of the resulting reference.sqlite. `build` is the loaded scripts/build-reference-db.py module."""
+    workdir = Path(workdir)
+    rules = build.load_rules(rules_path, taxonomy)
+    write_snapshot(workdir / "snapshot1", 1)
+    write_snapshot(workdir / "snapshot2", 2)
+    build.build_bundle(workdir / "snapshot1", "2026-10-18", workdir / "bundle1", rules, taxonomy)
+    build.build_bundle(workdir / "snapshot2", "2026-11-18", workdir / "bundle2", rules, taxonomy,
+                       previous_path=workdir / "bundle1" / build.DATABASE_NAME, accept_drop=True)
+    return workdir / "bundle2" / build.DATABASE_NAME

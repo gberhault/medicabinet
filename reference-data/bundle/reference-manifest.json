@@ -1,0 +1,39 @@
+{
+  "contentSha256": "d3d074c9f0372d97d3a3aa17011fc797d4796d30c42cefafe0e4cc47bcbe2eb0",
+  "counts": {
+    "byCategory": {
+      "allergy": 175,
+      "cold-ent": 337,
+      "digestion": 862,
+      "eyes": 372,
+      "first-aid": 0,
+      "mouth-teeth": 183,
+      "muscles-joints": 123,
+      "other": 11292,
+      "pain-fever": 882,
+      "skin-wound": 597,
+      "uncategorized": 5712,
+      "vitamins-minerals": 361
+    },
+    "presentations": 20896,
+    "withdrawn": 0
+  },
+  "dataDate": "2026-10-18",
+  "formatVersion": 1,
+  "referenceSchemaVersion": 1,
+  "rulesVersion": 1,
+  "sources": {
+    "CIS_CIP_bdpm.txt": {
+      "sha256": "1b7d2c8cba4e467fffb4b65bb8d731dfb21bdcd32393c07c4c7b4ce075840af0"
+    },
+    "CIS_COMPO_bdpm.txt": {
+      "sha256": "90a6e8ee286b6245c3938dd417ac75d1135a61b15ba50cfad70ee6b3bd181b7a"
+    },
+    "CIS_MITM.txt": {
+      "sha256": "300f24c39e84466c617eedce9edfd491870259fd5abd2092b3f8296a3b6245fa"
+    },
+    "CIS_bdpm.txt": {
+      "sha256": "332b95926f76f1a2ab3d70cdf64205397fc13e74b7cc9afad9b625fbb6961640"
+    }
+  }
+}

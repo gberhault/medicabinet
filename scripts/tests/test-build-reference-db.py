@@ -277,6 +277,7 @@ class ClassifierTests(unittest.TestCase):
             ("vitamin D with fluoride", product(substances=["CHOLÉCALCIFÉROL", "FLUORURE DE SODIUM"]), "vitamins-minerals"),
             ("fluoride alone", product(substances=["FLUORURE DE SODIUM"]), "mouth-teeth"),
             ("homeopathic gel", product(routes="cutanée", procedure="Enreg homéo (Proc. Nat.)", substances=["ARNICA MONTANA POUR PRÉPARATIONS HOMÉOPATHIQUES"]), "other"),
+            ("homeopathic substance under a national procedure", product(routes="cutanée", substances=["ARNICA MONTANA POUR PRÉPARATIONS HOMÉOPATHIQUES"]), "other"),
             ("injectable only", product(routes="intramusculaire;intraveineuse", substances=["MALÉATE DE DEXCHLORPHÉNIRAMINE"]), "other"),
             ("nothing known", product(substances=["SUBSTANCE INCONNUE"]), "uncategorized"),
         ]
@@ -685,6 +686,55 @@ class CommandLineTests(TempDirCase):
         self.assertEqual(self.run_main("build", "--bdpm", str(self.tmp / "nothing"), "--data-date", "2026-10-18",
                                        "--out", str(self.tmp / "o")), 1)
         self.assertEqual(self.run_main("verify", "--bundle", str(self.tmp / "nothing")), 1)
+
+
+def reference_cip13(gtin):
+    """The rule of requirement L2, written independently of the platforms' implementations."""
+    if len(gtin) != 14 or not all(c in "0123456789" for c in gtin) or not gtin.startswith("03400"):
+        return None
+    return gtin[1:] if build.has_valid_gs1_check_digit(gtin[1:]) else None
+
+
+class CommittedDataTests(TempDirCase):
+    def test_the_committed_sample_matches_a_fresh_build(self):
+        fresh = sample.build_sample(build, TAXONOMY, SAMPLE_RULES, self.tmp)
+        committed = ROOT / "fixtures" / "reference-sample.sqlite"
+        self.assertEqual(build.content_sha256(*build.read_database(fresh)),
+                         build.content_sha256(*build.read_database(committed)),
+                         "run python3 -I scripts/tests/write-reference-sample.py")
+
+    def test_the_sample_has_a_withdrawn_product(self):
+        rows = build.read_database(ROOT / "fixtures" / "reference-sample.sqlite")[2]
+        self.assertEqual({c for c, r in rows.items() if r.withdrawn_since}, {sample.cip13(10)})
+
+    def test_the_lookup_fixture_agrees_with_the_sample_and_the_conversion_rule(self):
+        rows = build.read_database(ROOT / "fixtures" / "reference-sample.sqlite")[2]
+        cases = json.loads((ROOT / "fixtures" / "reference-lookup.json").read_text(encoding="utf-8"))["cases"]
+        for case in cases:
+            with self.subTest(case["name"]):
+                cip13 = reference_cip13(case["gtin"])
+                self.assertEqual(case["expect"]["cip13"], cip13)
+                row = rows.get(cip13) if cip13 else None
+                expected = {"name": row.name, "category": row.category} if row else None
+                self.assertEqual(case["expect"]["product"], expected)
+
+    def test_the_golden_list_covers_every_category_the_build_assigns(self):
+        golden = build.load_golden(ROOT / "reference-data" / "golden-list.json", TAXONOMY)
+        covered = {c["expect"] for c in golden}
+        self.assertEqual(TAXONOMY.assignable - covered, set())
+        self.assertNotIn("first-aid", covered)
+
+    def test_the_committed_bundle_verifies_and_is_within_budget(self):
+        bundle = ROOT / "reference-data" / "bundle"
+        golden = build.load_golden(ROOT / "reference-data" / "golden-list.json", TAXONOMY)
+        build.verify_bundle(bundle, TAXONOMY, golden)
+        self.assertLessEqual((bundle / build.DATABASE_NAME).stat().st_size, build.MAX_REFERENCE_DB_BYTES)
+
+    def test_the_committed_bundle_is_reproduced_by_its_recorded_rules(self):
+        meta = build.read_database(ROOT / "reference-data" / "bundle" / build.DATABASE_NAME)[0]
+        rules = build.load_rules(ROOT / "reference-data" / "rules.json", TAXONOMY)
+        self.assertEqual(meta["rulesVersion"], str(rules.version),
+                         "rules.json changed its version without a rebuild of reference-data/bundle")
 
 
 if __name__ == "__main__":

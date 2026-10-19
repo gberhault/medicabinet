@@ -45,7 +45,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
   *Tests:* download with a stubbed opener (non-empty dir, `http://`, foreign redirect refused);
   verify on a good bundle, a tampered row, a flipped golden case, a category outside the
   taxonomy, a missing app reference to `reference-data/bundle`.
-- [ ] **T6 — Golden list, sample fixtures and the first real build** `[shared]` [#10, #9] (C6, L5, B9; §5, §6.2, §6.3)
+- [x] **T6 — Golden list, sample fixtures and the first real build** `[shared]` [#10, #9] (C6, L5, B9; §5, §6.2, §6.3)
   New step "shared: reference data" in `scripts/local-ci.sh` and
   `scripts/tests/test-reference-data-break.sh` (moved from T5).
   `reference-data/golden-list.json` from the approved §5 table (one CIP13 per product);
