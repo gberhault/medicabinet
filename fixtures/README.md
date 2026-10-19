@@ -56,6 +56,7 @@ These strings are identical on both platforms (storage values, error kinds, expo
 | Barcode symbologies | `dataMatrix`, `ean13` |
 | Repository errors | `notFound`, `unknownLocation`, `duplicate`, `duplicateDefault`, `duplicateSerial` |
 | Location-name errors | `empty`, `tooLong`, `duplicateName` |
+| Box edit errors | `emptyName`, `nameTooLong` |
 
 ## Adding a fixture
 
