@@ -1,0 +1,22 @@
+{
+  "sourceLanguage": "fr",
+  "strings": {
+    "a": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "One"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

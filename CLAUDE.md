@@ -301,10 +301,11 @@ Before opening a PR (and before the AI treats a branch as PR-ready), run the loc
 bash scripts/local-ci.sh
 ```
 
-It runs: `xcodegen generate` + SwiftLint (`--strict`, new violations only against the
-committed baseline) + `swift test` on `MediCabinetCore` + `xcodebuild test` (unit + UI
-tests) on an iPhone simulator with code coverage + the coverage gate (**80% line**). Do
-**not** open a PR if it fails. Never regenerate the lint baseline or lower a threshold to
+It runs, in order: `xcodegen generate` → SwiftLint (`--strict`, new violations only against
+the committed baseline) → lint-rule fixtures → localization completeness (fr + en) → version
+vs `CHANGELOG.md` → `swift test` on `MediCabinetCore` → `xcodebuild test` (unit + UI tests)
+on an iPhone simulator with code coverage → the coverage gate (**80% line**, for the core
+and for the app). Do **not** open a PR if it fails. Never regenerate the lint baseline or lower a threshold to
 hide a new finding.
 
 ---
@@ -673,56 +674,66 @@ complete until the docs reflect it.
 
 ## Project Structure
 
-To be created by the foundation epic. Target layout (confirm in its design):
-
 ```
-CLAUDE.md / AGENTS.md            # agent instructions (AGENTS.md is a symlink)
-README.md
-CHANGELOG.md
-project.yml                      # XcodeGen — the .xcodeproj is generated
+CLAUDE.md / AGENTS.md            # agent instructions (AGENTS.md and .agents/rules/CLAUDE.md are symlinks)
+README.md  CHANGELOG.md
+project.yml                      # XcodeGen — the .xcodeproj is generated, not committed
 Config/
   Signing.xcconfig               # committed defaults
   Signing.local.xcconfig.sample  # copy to Signing.local.xcconfig (gitignored) with your team
 MediCabinet/
   Sources/
-    App/                         # app entry, dependency wiring
-    Features/                    # Scan/, Inventory/, Expiring/, Settings/, ImportExport/
-    Persistence/                 # store, migrations
-  Resources/                     # Localizable.xcstrings, reference DB, assets, PrivacyInfo.xcprivacy
-MediCabinetTests/
-MediCabinetUITests/
-Packages/MediCabinetCore/        # pure Swift: GS1/, Expiry/, Classification/, Stock/, Archive/
-  Tests/Fixtures/                # DataMatrix payloads, export files per formatVersion
-scripts/
-  local-ci.sh                    # mandatory gate before PR
-  lint.sh                        # SwiftLint against baseline
-  build-reference-db.sh          # BDPM files → bundled reference DB
-docs/
-specs/<feature-name>/
+    App/                         # MediCabinetApp, AppEnvironment, BootstrapModel, RootView, Log
+    Features/                    # MainTabView, Placeholders/, Settings/ (+ future Scan/, Cabinet/, Expiring/)
+    Persistence/                 # the ONLY place that imports GRDB: AppDatabase, Migrations, Records,
+                                 #   GRDB*Repository, BackupService, Bootstrap
+  Resources/                     # Localizable.xcstrings, InfoPlist.xcstrings, Assets, PrivacyInfo.xcprivacy
+MediCabinetTests/                # Swift Testing: persistence/, app/
+MediCabinetUITests/              # XCUITest flows (+ opt-in launch measurement)
+Packages/MediCabinetCore/        # pure Swift (no UIKit/SwiftUI/VisionKit/GRDB, no Date())
+  Sources/MediCabinetCore/       #   ExpiryDate, Clock, Model, Repositories (ports)
+  Sources/MediCabinetCoreTestSupport/   # MutableClock, InMemoryCabinetStore, RepositoryContract
+  Tests/MediCabinetCoreTests/
+scripts/                         # local-ci.sh, lint.sh, check-strings.sh, check-version.sh, coverage-gate.sh
+  tests/                         #   fixtures proving each lint rule / gate fails when it should
+docs/                            # architecture.md, development.md (+ one page per feature)
+specs/<feature-name>/            # requirements.md, design.md, tasks.md
+reports/<feature-name>/          # small intentional reports only
 ```
+
+See [`docs/architecture.md`](docs/architecture.md) for the layers, database, migrations and
+backups. Planned folders (`Features/Scan`, `Cabinet`, `Expiring`, `Archive/` in the core, the
+reference-data build script) appear with their epics.
 
 ### Common Task Map
 
-Fill in as the codebase grows — these are the files a typical change touches.
+Reuse this before searching — these are the files a typical change touches.
 
 | Task | Files |
 |------|-------|
-| Add a setting | _(tbd)_ |
-| Add a category / change classification | _(tbd)_ |
-| Add a persisted field | _(tbd: migration → store → export format → UI)_ |
+| Add a persisted field | `Persistence/Migrations.swift` (new migration, never edit a shipped one) → `Persistence/Records.swift` → core model in `Model.swift` → repository port/impl + `RepositoryContract` check → `docs/architecture.md` |
+| Add a repository method | core `Repositories.swift` (port) → `InMemoryCabinetStore` (fake) → `RepositoryContract.swift` (check) → `Persistence/GRDB*Repository.swift` |
+| Add domain logic (parsing, expiry, classification) | `Packages/MediCabinetCore/Sources/MediCabinetCore/` + tests next to it; inject `Clock`, never call `Date()` |
+| Add a screen / tab | `Features/<Name>/` view + view model → wire in `Features/MainTabView.swift` → strings in `Localizable.xcstrings` (fr + en) → UI test → `docs/<feature>.md` |
+| Add a user-facing string | `MediCabinet/Resources/Localizable.xcstrings` (both languages `translated`) → `bash scripts/check-strings.sh` |
+| Add a launch/bootstrap step or failure | `Persistence/Bootstrap.swift` + `BootstrapFailure` → `App/BootstrapErrorView.swift` strings → `BootstrapTests` |
+| Bump the version | `project.yml` `MARKETING_VERSION` (+ `CURRENT_PROJECT_VERSION` for a distinct build) + `CHANGELOG.md` top entry → `bash scripts/check-version.sh` |
+| Add a lint/architecture rule | `.swiftlint.yml` custom rule + fixture in `scripts/tests/lint/` + case in `scripts/tests/test-lint-rules.sh` |
 
 ---
 
 ## Build & Test Commands
 
-To be finalized by the foundation epic. Must include at least:
-
 ```bash
-bash scripts/local-ci.sh         # mandatory before PR
-xcodegen generate                # regenerate the Xcode project after editing project.yml
-swift test --package-path Packages/MediCabinetCore
-bash scripts/lint.sh
+bash scripts/local-ci.sh                             # mandatory before PR (lint, strings, version, core + app tests, coverage)
+xcodegen generate                                    # regenerate the Xcode project after editing project.yml
+swift test --package-path Packages/MediCabinetCore   # core tests only — fast, no simulator
+bash scripts/lint.sh                                 # SwiftLint against the committed baseline
+bash scripts/check-strings.sh                        # fr + en completeness
+bash scripts/check-version.sh                        # project.yml version == top CHANGELOG entry
 ```
+
+Prerequisites and the opt-in launch measurement: [`docs/development.md`](docs/development.md).
 
 ---
 
