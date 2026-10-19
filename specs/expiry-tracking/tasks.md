@@ -35,7 +35,7 @@ T14, T16) and the Android block (T11, T13, T15, T17) are independent of each oth
   *Tests first:* `ExpiringOverviewFixtureTests`, `ExpiryDigestFixtureTests` (`countCases`,
   `scheduleCases`), `NameOrderTests` (case, accents, ties by id lower-cased); timing assertion
   §9 (1 000 boxes, overview + 12 digests ≤ 50 ms, median of 10). 100 % branch coverage.
-- [ ] **T5 — Kotlin twin** `[android]` [#24, #25] (same; §3.3, §3.4)
+- [x] **T5 — Kotlin twin** `[android]` [#24, #25] (same; §3.3, §3.4)
   Same tests, NFD folding, same timing assertion.
 
 ## 3. Cabinet change observation (#24)
