@@ -51,15 +51,22 @@ Foundation's `folding(options:)` and Java's `Collator` disagree at the edges. Bo
 implement the same steps:
 
 1. Unicode NFD (`decomposedStringWithCanonicalMapping` / `Normalizer.normalize(NFD)`).
-2. Drop non-spacing marks (general category `Mn`).
-3. Fold ligatures and look-alikes: `œ`→`oe`, `æ`→`ae`, `ß`→`ss`, `’` / `‘`→`'`.
-4. Lower-case code point by code point with the root locale (`lowercased()` per scalar /
-   `lowercase(Locale.ROOT)`), so a Turkish phone gives the same result.
-5. Any run of whitespace (incl. U+00A0, U+202F) → one space; trim.
+2. Lower-case code point by code point, locale-independent (Swift `properties.lowercaseMapping`
+   per scalar, Kotlin `Character.toLowerCase(codePoint)`), so a Turkish phone gives the same
+   result and Greek final sigma is not context-dependent. Lowering comes before folding so
+   `Œ`/`ẞ` reach step 4 already lower-cased.
+3. Drop non-spacing marks (general category `Mn`; this also removes the dot `İ` leaves behind).
+4. Fold ligatures and look-alikes: `œ`→`oe`, `æ`→`ae`, `ß`→`ss`, `’` / `‘`→`'`.
+5. Any run of whitespace → one space; trim. *Whitespace* is the Unicode `White_Space` property,
+   written out as an explicit code point set in both cores (U+0009–000D, 0020, 0085, 00A0,
+   1680, 2000–200A, 2028, 2029, 202F, 205F, 3000) because `Character.isWhitespace` in Java
+   excludes the no-break spaces.
 
 `fixtures/text-normalization.json` pins the result. The same function serves search (S1),
 location-name uniqueness (L2) and name ordering (C4: compare normalized names by code point,
-then box id, which is deterministic on both platforms).
+then the box id's lower-case canonical string — never `UUID.compareTo`, which orders signed
+longs — which is deterministic on both platforms). Normalized text is compared by Unicode code
+point (not UTF-16 unit, not locale collation).
 
 ### 1.5 Location deletion: tombstone + move in one write
 
@@ -130,8 +137,11 @@ an emoji (kept).
   "existing": ["Cuisine"], "renaming": "Cuisine", "expect": { "name": "CUISINE" } }
 ```
 
-Errors: `empty`, `tooLong` (> 50 characters, counted as user-perceived characters /
-grapheme clusters, the same on both platforms), `duplicateName`.
+Errors: `empty`, `tooLong` (> 50 Unicode code points after trimming), `duplicateName`.
+Length is counted in code points, not grapheme clusters: SQLite's `length()` (the v1 `CHECK`,
+≤ 100) counts code points, so a code-point limit of 50 can never fail the database check,
+and `BreakIterator` versions differ on emoji sequences. The same rule counts box names
+(1…200 code points, B2) — the v1 `productName` check is also in code points.
 
 ### 2.3 `fixtures/cabinet-rows.json` (C1–C5, S1, S3, S4, P1)
 
@@ -213,7 +223,7 @@ public enum LocationNameError: Error, Equatable, Sendable {
 }
 
 public enum LocationName {
-    public static let maxLength = 50                      // grapheme clusters
+    public static let maxLength = 50                      // Unicode code points
     /// Trims; checks length and uniqueness against `existing` (excluding `renaming`).
     public static func validate(_ raw: String, existing: [String], renaming current: String? = nil)
         throws(LocationNameError) -> String
