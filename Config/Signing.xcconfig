@@ -1,0 +1,6 @@
+// Shared signing defaults (committed). The team ID is local-only — see Signing.local.xcconfig.sample.
+#include? "Signing.local.xcconfig"
+
+CODE_SIGN_STYLE = Automatic
+// DEVELOPMENT_TEAM is deliberately unset here so Xcode uses Signing.local.xcconfig (or your UI choice).
+// The simulator build works without it.

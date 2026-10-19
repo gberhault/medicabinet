@@ -1,0 +1,8 @@
+// Copy once per Mac:
+//   cp Config/Signing.local.xcconfig.sample Config/Signing.local.xcconfig
+//
+// Then set DEVELOPMENT_TEAM to the team Xcode shows under:
+//   Settings → Accounts → your Apple ID → Team
+// This file is gitignored — never commit your team ID.
+DEVELOPMENT_TEAM = YOURTEAMID
+CODE_SIGN_STYLE = Automatic

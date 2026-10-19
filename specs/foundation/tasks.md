@@ -16,7 +16,7 @@ for them to measure (T15–T16).
 - [x] **T1 — Core package skeleton** [#3] (R3.1)
   `Packages/MediCabinetCore` with `Package.swift` (tools 6.0, iOS 17 / macOS 14), empty
   library, one smoke test. *Test:* `swift test` passes.
-- [ ] **T2 — XcodeGen project and signing config** [#2] (R1.1–R1.4)
+- [x] **T2 — XcodeGen project and signing config** [#2] (R1.1–R1.4)
   `project.yml` (design §2: `com.medicabinet.app`, display name MediCabinet, 0.1.0 / 1),
   `Config/Signing.xcconfig`, `Signing.local.xcconfig.sample`, app/unit/UI targets, GRDB pinned
   exactly, core linked. Minimal `MediCabinetApp` with a placeholder view.
