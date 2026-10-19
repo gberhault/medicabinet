@@ -101,13 +101,22 @@ struct SchemaSnapshot: Codable, Equatable, Sendable {
         #expect(try migrated(upTo: Migrations.v1) == fixture("schema-v1.json"))
     }
 
-    @Test func theFullyMigratedDatabaseMatchesTheSharedV2Fixture() throws {
-        #expect(try migrated() == fixture("schema-v2.json"))
+    @Test func aDatabaseMigratedToV2MatchesTheSharedV2Fixture() throws {
+        #expect(try migrated(upTo: Migrations.schemaV2) == fixture("schema-v2.json"))
     }
 
-    /// `fixtures/schema-v1.sql` and `schema-v2.sql` are the text both platforms must run (whitespace and `--` comments ignored).
+    @Test func theFullyMigratedDatabaseMatchesTheSharedV3Fixture() throws {
+        #expect(try migrated() == fixture("schema-v3.json"))
+    }
+
+    /// `fixtures/schema-v1.sql`, `schema-v2.sql` and `schema-v3.sql` are the text both platforms must run
+    /// (whitespace and `--` comments ignored).
     @Test func theMigrationSqlEqualsTheSharedSqlFixtures() throws {
-        for (sql, file) in [(Migrations.v1SQL, "schema-v1.sql"), (Migrations.schemaV2SQL, "schema-v2.sql")] {
+        let steps = [
+            (Migrations.v1SQL, "schema-v1.sql"), (Migrations.schemaV2SQL, "schema-v2.sql"),
+            (Migrations.schemaV3SQL, "schema-v3.sql")
+        ]
+        for (sql, file) in steps {
             let fixture = try #require(String(bytes: SharedFixtures.data(file), encoding: .utf8))
             #expect(Self.normalized(sql) == Self.normalized(fixture), "\(file)")
         }
@@ -120,6 +129,9 @@ struct SchemaSnapshot: Codable, Equatable, Sendable {
         let second = try #require(String(bytes: SharedFixtures.data("schema-v2.sql"), encoding: .utf8))
         let altered2 = Migrations.schemaV2SQL.replacingOccurrences(of: "CREATE UNIQUE INDEX", with: "CREATE INDEX")
         #expect(Self.normalized(altered2) != Self.normalized(second))
+        let third = try #require(String(bytes: SharedFixtures.data("schema-v3.sql"), encoding: .utf8))
+        let altered3 = Migrations.schemaV3SQL.replacingOccurrences(of: "DATETIME", with: "TEXT")
+        #expect(Self.normalized(altered3) != Self.normalized(third))
     }
 
     private static func normalized(_ sql: String) -> String {
@@ -131,19 +143,19 @@ struct SchemaSnapshot: Codable, Equatable, Sendable {
     }
 
     @Test func aFixtureWithAMissingIndexDoesNotMatch() throws {
-        var altered = try fixture("schema-v2.json")
+        var altered = try fixture("schema-v3.json")
         altered.indexes.removeAll { $0.name == "box_gtin" }
         #expect(try migrated() != altered)
     }
 
     @Test func aFixtureWithAChangedColumnDoesNotMatch() throws {
-        var altered = try fixture("schema-v2.json")
+        var altered = try fixture("schema-v3.json")
         altered.tables["box"]?.columns[0].notNull.toggle()
         #expect(try migrated() != altered)
     }
 
     @Test func theFixturesCoverBothTablesAndEveryLookupIndex() throws {
-        for name in ["schema-v1.json", "schema-v2.json"] {
+        for name in ["schema-v1.json", "schema-v2.json", "schema-v3.json"] {
             let snapshot = try fixture(name)
             #expect(Set(snapshot.tables.keys) == ["location", "box"])
             #expect(Set(snapshot.indexes.map(\.name)) == [
@@ -157,5 +169,9 @@ struct SchemaSnapshot: Codable, Equatable, Sendable {
         #expect(second.indexes.first { $0.name == "box_serial" }?.where == "serial IS NOT NULL AND deletedAt IS NULL")
         #expect(second.indexes.first { $0.name == "box_serial" }?.unique == true)
         #expect(second.tables["box"]?.columns.last?.name == "deletedAt")
+        let third = try fixture("schema-v3.json")
+        #expect(third.tables["location"]?.columns.last?.name == "deletedAt")
+        #expect(third.tables["location"]?.columns.last?.notNull == false)
+        #expect(second.tables["location"]?.columns.map(\.name) == ["id", "name", "isDefault", "sortOrder", "createdAt", "updatedAt"])
     }
 }

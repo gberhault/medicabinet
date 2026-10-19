@@ -5,6 +5,9 @@ import GRDB
 enum Migrations {
     static let v1 = "v1"
     static let schemaV2 = "v2"
+    static let schemaV3 = "v3"
+    /// Every migration, in the order they run.
+    static let identifiers = [v1, schemaV2, schemaV3]
 
     /// The v1 schema SQL; `fixtures/schema-v1.sql` holds the same text and a test compares them.
     static let v1SQL = """
@@ -56,6 +59,12 @@ enum Migrations {
         CREATE UNIQUE INDEX box_serial ON box(gtin, serial) WHERE serial IS NOT NULL AND deletedAt IS NULL;
         """
 
+    /// The v3 migration step; `fixtures/schema-v3.sql` holds the same text and a test compares them.
+    /// `deletedAt` is the tombstone of a location the user deleted; removed and deleted boxes keep pointing at it.
+    static let schemaV3SQL = """
+        ALTER TABLE location ADD COLUMN deletedAt DATETIME;
+        """
+
     static var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         migrator.registerMigration(v1) { db in
@@ -63,6 +72,9 @@ enum Migrations {
         }
         migrator.registerMigration(schemaV2) { db in
             try db.execute(sql: schemaV2SQL)
+        }
+        migrator.registerMigration(schemaV3) { db in
+            try db.execute(sql: schemaV3SQL)
         }
         return migrator
     }
