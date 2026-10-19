@@ -37,13 +37,17 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
   withdraws, reinstates, renames, recategorizes; `withdrawnSince` kept on a third build; older
   data date fails; 95 % guard and `--accept-drop`; determinism (two builds, identical manifest
   and hash); lowered budget fails; output directory untouched on every failure.
-- [ ] **T5 — `download`, `verify` and the gate** `[shared]` [#9] (B12–B14; §4.1, §10)
-  `download` (HTTPS, fixed host, empty directory, size cap) and `verify`; new step "shared:
-  reference data" in `scripts/local-ci.sh`; `scripts/tests/test-reference-data-break.sh`.
+- [x] **T5 — `download`, `verify` and the gate** `[shared]` [#9] (B12–B14; §4.1, §10)
+  `download` (HTTPS, fixed host, empty directory, size cap), `verify` (with `--apps ios,android`,
+  enforced progressively as each app starts bundling the data) and the command line. The gate
+  step in `scripts/local-ci.sh` and `test-reference-data-break.sh` move to T6, when a committed
+  bundle exists to verify.
   *Tests:* download with a stubbed opener (non-empty dir, `http://`, foreign redirect refused);
   verify on a good bundle, a tampered row, a flipped golden case, a category outside the
   taxonomy, a missing app reference to `reference-data/bundle`.
 - [ ] **T6 — Golden list, sample fixtures and the first real build** `[shared]` [#10, #9] (C6, L5, B9; §5, §6.2, §6.3)
+  New step "shared: reference data" in `scripts/local-ci.sh` and
+  `scripts/tests/test-reference-data-break.sh` (moved from T5).
   `reference-data/golden-list.json` from the approved §5 table (one CIP13 per product);
   `fixtures/reference-sample.sqlite` built from the sample inputs (plus a later sample snapshot
   for a withdrawn row) and `fixtures/reference-lookup.json` (cases of §6.2); download the

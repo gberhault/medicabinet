@@ -8,6 +8,7 @@ Standard library only, one file: `python3 -I` does not put this directory on sys
 could not be imported. The BDPM files are untrusted input: any unexpected shape stops the build and nothing
 is written.
 """
+import argparse
 import datetime
 import hashlib
 import json
@@ -17,6 +18,8 @@ import sqlite3
 import sys
 import tempfile
 import unicodedata
+import urllib.parse
+import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -32,11 +35,12 @@ BDPM_FILES = {
 }
 MAX_NAME_LENGTH = 255  # the longest name BDPM publishes
 MAX_REPORTED_PROBLEMS = 20
+MAX_DOWNLOAD_BYTES = 50_000_000
+DOWNLOAD_TIMEOUT_SECONDS = 60
 
 CIS_PATTERN = re.compile(r"[0-9]{8}")
 CIP13_PATTERN = re.compile(r"3400[0-9]{9}")
 ATC_PATTERN = re.compile(r"[A-Z][0-9]{2}([A-Z]{1,2}([0-9]{2})?)?")
-FRENCH_DATE_PATTERN = re.compile(r"([0-9]{2})/([0-9]{2})/([0-9]{4})")
 ISO_DATE_PATTERN = re.compile(r"([0-9]{4})-([0-9]{2})-([0-9]{2})")
 CONTROL_CHARACTERS = re.compile(r"[\x00-\x1f\x7f]")
 
@@ -521,4 +525,189 @@ def check_golden(rows, cases):
         raise BuildError(problems)
 
 
-# --- END OF STAGE T4 ---
+def load_golden(path, taxonomy):
+    """The golden list's cases; raises BuildError when the file is not well formed."""
+    path = Path(path)
+    if not path.is_file():
+        raise BuildError(f"{path}: golden list is missing")
+    cases = json.loads(path.read_text(encoding="utf-8")).get("cases")
+    problems, names = [], set()
+    if not isinstance(cases, list) or not cases:
+        raise BuildError(f"{path}: 'cases' must be a non-empty list")
+    for case in cases:
+        name = case.get("name") if isinstance(case, dict) else None
+        if not isinstance(name, str) or not name or name in names:
+            problems.append(f"golden case {name!r}: name is missing or duplicated")
+            continue
+        names.add(name)
+        if not isinstance(case.get("cip13"), str) or not CIP13_PATTERN.fullmatch(case["cip13"]):
+            problems.append(f"golden '{name}': invalid CIP13")
+        if case.get("expect") not in taxonomy.ordered:
+            problems.append(f"golden '{name}': expected category is not in the taxonomy")
+    if problems:
+        raise BuildError(problems)
+    return cases
+
+
+class SafeRedirects(urllib.request.HTTPRedirectHandler):
+    """Follows redirects only within the BDPM host, over HTTPS."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        check_download_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def check_download_url(url):
+    parts = urllib.parse.urlsplit(url)
+    if parts.scheme != "https" or parts.hostname != BDPM_HOST:
+        raise BuildError(f"refusing to download from {url}: only https://{BDPM_HOST} is allowed")
+
+
+def fetch(url, opener, limit=MAX_DOWNLOAD_BYTES):
+    check_download_url(url)
+    with opener.open(url, timeout=DOWNLOAD_TIMEOUT_SECONDS) as response:
+        data = response.read(limit + 1)
+    if len(data) > limit:
+        raise BuildError(f"{url}: larger than {limit} bytes, refusing to keep it")
+    return data
+
+
+def download(directory, opener=None):
+    """Fetches the four BDPM files into an empty directory and returns {name: sha256}. Never builds."""
+    directory = Path(directory)
+    if directory.exists() and (not directory.is_dir() or any(directory.iterdir())):
+        raise BuildError(f"{directory}: the download directory must be empty or not exist yet")
+    opener = opener or urllib.request.build_opener(SafeRedirects)
+    fetched = {name: fetch(f"https://{BDPM_HOST}/download/file/{name}", opener) for name in BDPM_FILES}
+    directory.mkdir(parents=True, exist_ok=True)
+    for name, data in fetched.items():
+        (directory / name).write_bytes(data)
+    return {name: hashlib.sha256(data).hexdigest() for name, data in fetched.items()}
+
+
+APP_REFERENCES = {
+    "ios": "ios/project.yml",
+    "android": "android/app/build.gradle.kts",
+}
+BUNDLE_PATH_IN_APPS = "reference-data/bundle"
+
+
+def verify_bundle(bundle_dir, taxonomy, golden, root=ROOT, apps=()):
+    """Checks a committed bundle (requirements B14, C4, C6); raises BuildError listing every problem."""
+    bundle_dir = Path(bundle_dir)
+    problems = []
+    database, manifest_path = bundle_dir / DATABASE_NAME, bundle_dir / MANIFEST_NAME
+    for path in (database, manifest_path):
+        if not path.is_file():
+            problems.append(f"{path}: file is missing")
+    if problems:
+        raise BuildError(problems)
+
+    meta, version, rows = read_database(database)
+    if version != REFERENCE_SCHEMA_VERSION:
+        problems.append(f"user_version is {version}, expected {REFERENCE_SCHEMA_VERSION}")
+    if parse_iso_date(meta.get("dataDate", "")) is None:
+        problems.append("meta.dataDate is missing or not a date")
+    if not meta.get("rulesVersion", "").isdigit():
+        problems.append("meta.rulesVersion is missing or not an integer")
+    connection = connect_read_only(database)
+    try:
+        check = connection.execute("PRAGMA integrity_check").fetchone()[0]
+    finally:
+        connection.close()
+    if check != "ok":
+        problems.append(f"integrity_check failed: {check}")
+
+    allowed = taxonomy.assignable | {UNCATEGORIZED}
+    for cip13, row in rows.items():
+        if row.category not in allowed:
+            problems.append(f"{cip13}: category '{row.category}' is not one the build may assign")
+            if len(problems) > MAX_REPORTED_PROBLEMS:
+                break
+
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        manifest = {}
+        problems.append(f"{manifest_path}: cannot read as JSON ({error})")
+    if manifest:
+        if manifest.get("contentSha256") != content_sha256(meta, version, rows):
+            problems.append("the database does not match contentSha256 of its manifest")
+        if manifest.get("dataDate") != meta.get("dataDate"):
+            problems.append("manifest dataDate differs from the database")
+        if str(manifest.get("rulesVersion")) != meta.get("rulesVersion"):
+            problems.append("manifest rulesVersion differs from the database")
+        if manifest.get("referenceSchemaVersion") != version:
+            problems.append("manifest referenceSchemaVersion differs from the database")
+        counts = manifest.get("counts", {})
+        if counts.get("presentations") != len(rows) or counts.get("withdrawn") != sum(
+                1 for r in rows.values() if r.withdrawn_since is not None):
+            problems.append("manifest counts differ from the database")
+        if counts.get("byCategory") != count_by_category(rows, taxonomy):
+            problems.append("manifest counts by category differ from the database")
+
+    try:
+        check_golden(rows, golden)
+    except BuildError as error:
+        problems += error.problems
+
+    for app in apps:
+        config = Path(root) / APP_REFERENCES[app]
+        if not config.is_file() or BUNDLE_PATH_IN_APPS not in config.read_text(encoding="utf-8"):
+            problems.append(f"{APP_REFERENCES[app]} does not bundle {BUNDLE_PATH_IN_APPS}")
+    if problems:
+        raise BuildError(problems)
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    commands = parser.add_subparsers(dest="command", required=True)
+    shared = argparse.ArgumentParser(add_help=False)
+    shared.add_argument("--rules", default=ROOT / "reference-data" / "rules.json")
+    shared.add_argument("--taxonomy", default=ROOT / "fixtures" / "categories.json")
+    shared.add_argument("--golden", default=ROOT / "reference-data" / "golden-list.json")
+
+    fetch_cmd = commands.add_parser("download", help="fetch the BDPM files into an empty directory")
+    fetch_cmd.add_argument("directory")
+    build_cmd = commands.add_parser("build", parents=[shared], help="build the reference database")
+    build_cmd.add_argument("--bdpm", required=True, help="directory holding the four BDPM files")
+    build_cmd.add_argument("--data-date", required=True, help="latest publication date of the files, YYYY-MM-DD")
+    build_cmd.add_argument("--previous", help="previous reference database (default: the committed bundle)")
+    build_cmd.add_argument("--out", default=ROOT / "reference-data" / "bundle")
+    build_cmd.add_argument("--accept-drop", action="store_true", help="accept a snapshot with far fewer presentations")
+    verify_cmd = commands.add_parser("verify", parents=[shared], help="check the committed bundle")
+    verify_cmd.add_argument("--bundle", default=ROOT / "reference-data" / "bundle")
+    verify_cmd.add_argument("--apps", default="", help="comma-separated apps that must bundle it: ios,android")
+    arguments = parser.parse_args(argv)
+
+    try:
+        if arguments.command == "download":
+            for name, digest in download(arguments.directory).items():
+                print(f"{digest}  {name}")
+            print("Read the publication dates on the BDPM download page: the build needs --data-date.")
+            return 0
+        taxonomy = load_taxonomy(arguments.taxonomy)
+        golden = load_golden(arguments.golden, taxonomy)
+        if arguments.command == "build":
+            previous = arguments.previous
+            if previous is None and (Path(arguments.out) / DATABASE_NAME).is_file():
+                previous = Path(arguments.out) / DATABASE_NAME
+            report = build_bundle(arguments.bdpm, arguments.data_date, arguments.out, load_rules(arguments.rules, taxonomy),
+                                  taxonomy, previous, arguments.accept_drop, golden)
+            print(format_report(report))
+            return 0
+        apps = [a for a in arguments.apps.split(",") if a]
+        unknown = [a for a in apps if a not in APP_REFERENCES]
+        if unknown:
+            raise BuildError(f"unknown app(s): {', '.join(unknown)}")
+        verify_bundle(arguments.bundle, taxonomy, golden, ROOT, apps)
+        print("Reference bundle OK")
+        return 0
+    except BuildError as error:
+        for problem in error.problems:
+            print(f"error: {problem}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

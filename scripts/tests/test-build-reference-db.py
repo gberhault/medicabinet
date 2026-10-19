@@ -473,5 +473,219 @@ class BuildTests(TempDirCase):
         self.assertFalse((self.tmp / "other").exists())
 
 
+class FakeResponse:
+    def __init__(self, data):
+        self.data = data
+
+    def read(self, limit=-1):
+        return self.data if limit < 0 else self.data[:limit]
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+class FakeOpener:
+    def __init__(self, data=b"payload"):
+        self.data, self.urls = data, []
+
+    def open(self, url, timeout=None):
+        self.urls.append(url)
+        return FakeResponse(self.data)
+
+
+class DownloadTests(TempDirCase):
+    def test_fetches_the_four_files_over_https_from_the_bdpm_host(self):
+        opener = FakeOpener(b"abc")
+        digests = build.download(self.tmp / "dl", opener)
+        self.assertEqual(sorted(digests), sorted(build.BDPM_FILES))
+        self.assertEqual(digests["CIS_bdpm.txt"], "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+        self.assertEqual(sorted(opener.urls), sorted(
+            f"https://base-donnees-publique.medicaments.gouv.fr/download/file/{n}" for n in build.BDPM_FILES))
+        self.assertEqual((self.tmp / "dl" / "CIS_bdpm.txt").read_bytes(), b"abc")
+
+    def test_accepts_an_existing_empty_directory(self):
+        (self.tmp / "empty").mkdir()
+        build.download(self.tmp / "empty", FakeOpener())
+
+    def test_refuses_a_non_empty_directory_and_downloads_nothing(self):
+        (self.tmp / "full").mkdir()
+        (self.tmp / "full" / "x").write_text("x")
+        opener = FakeOpener()
+        with self.assertRaises(build.BuildError):
+            build.download(self.tmp / "full", opener)
+        self.assertEqual(opener.urls, [])
+
+    def test_refuses_plain_http_and_foreign_hosts(self):
+        for url in ("http://base-donnees-publique.medicaments.gouv.fr/x", "https://example.com/x",
+                    "https://base-donnees-publique.medicaments.gouv.fr.evil.test/x", "ftp://base-donnees-publique.medicaments.gouv.fr/x"):
+            with self.subTest(url), self.assertRaises(build.BuildError):
+                build.fetch(url, FakeOpener())
+
+    def test_refuses_a_redirect_to_another_host_or_to_http(self):
+        handler = build.SafeRedirects()
+        request = build.urllib.request.Request("https://base-donnees-publique.medicaments.gouv.fr/a")
+        for target in ("https://example.com/a", "http://base-donnees-publique.medicaments.gouv.fr/a"):
+            with self.subTest(target), self.assertRaises(build.BuildError):
+                handler.redirect_request(request, None, 302, "Found", {}, target)
+        redirected = handler.redirect_request(request, None, 302, "Found", {}, "https://base-donnees-publique.medicaments.gouv.fr/b")
+        self.assertEqual(redirected.full_url, "https://base-donnees-publique.medicaments.gouv.fr/b")
+
+    def test_refuses_a_file_over_the_size_cap(self):
+        with self.assertRaisesRegex(build.BuildError, "larger than"):
+            build.fetch("https://base-donnees-publique.medicaments.gouv.fr/x", FakeOpener(b"x" * 11), limit=10)
+        self.assertEqual(build.fetch("https://base-donnees-publique.medicaments.gouv.fr/x", FakeOpener(b"x" * 10), limit=10), b"x" * 10)
+
+    def test_a_failed_download_writes_nothing(self):
+        class Failing(FakeOpener):
+            def open(self, url, timeout=None):
+                if url.endswith("CIS_MITM.txt"):
+                    raise build.BuildError("boom")
+                return super().open(url, timeout)
+
+        with self.assertRaises(build.BuildError):
+            build.download(self.tmp / "dl", Failing())
+        self.assertFalse((self.tmp / "dl").exists())
+
+
+class VerifyTests(TempDirCase):
+    GOLDEN = [{"name": "paracetamol", "cip13": sample.cip13(1), "expect": "pain-fever"}]
+
+    def make_bundle(self):
+        rules = build.load_rules(SAMPLE_RULES, TAXONOMY)
+        out = self.tmp / "bundle"
+        build.build_bundle(self.snapshot_dir(), "2026-10-18", out, rules, TAXONOMY, golden=self.GOLDEN)
+        return out
+
+    def verify(self, bundle, golden=None, **kwargs):
+        build.verify_bundle(bundle, TAXONOMY, self.GOLDEN if golden is None else golden, **kwargs)
+
+    def problems_of(self, bundle, **kwargs):
+        with self.assertRaises(build.BuildError) as raised:
+            self.verify(bundle, **kwargs)
+        return raised.exception.problems
+
+    def update(self, bundle, sql, *args):
+        connection = sqlite3.connect(bundle / build.DATABASE_NAME)
+        connection.execute(sql, args)
+        connection.commit()
+        connection.close()
+
+    def test_a_good_bundle_passes(self):
+        self.verify(self.make_bundle())
+
+    def test_a_missing_file_fails(self):
+        bundle = self.make_bundle()
+        (bundle / build.MANIFEST_NAME).unlink()
+        self.assertTrue(any("file is missing" in p for p in self.problems_of(bundle)))
+
+    def test_a_tampered_row_fails(self):
+        bundle = self.make_bundle()
+        self.update(bundle, "UPDATE presentation SET name = 'TAMPERED' WHERE cip13 = ?", sample.cip13(2))
+        self.assertTrue(any("contentSha256" in p for p in self.problems_of(bundle)))
+
+    def test_a_flipped_golden_case_fails(self):
+        bundle = self.make_bundle()
+        flipped = [{**self.GOLDEN[0], "expect": "eyes"}]
+        self.assertTrue(any("expected eyes" in p for p in self.problems_of(bundle, golden=flipped)))
+
+    def test_a_category_outside_the_taxonomy_fails(self):
+        bundle = self.make_bundle()
+        self.update(bundle, "UPDATE presentation SET category = 'painful' WHERE cip13 = ?", sample.cip13(2))
+        self.assertTrue(any("'painful'" in p for p in self.problems_of(bundle)))
+
+    def test_first_aid_is_never_assigned_by_the_build(self):
+        bundle = self.make_bundle()
+        self.update(bundle, "UPDATE presentation SET category = 'first-aid' WHERE cip13 = ?", sample.cip13(2))
+        self.assertTrue(any("'first-aid'" in p for p in self.problems_of(bundle)))
+
+    def test_uncategorized_rows_are_allowed(self):
+        rows = self.rows_of(self.make_bundle())
+        self.assertIn("uncategorized", {r.category for r in rows.values()})
+
+    def rows_of(self, bundle):
+        return build.read_database(bundle / build.DATABASE_NAME)[2]
+
+    def test_a_wrong_schema_version_fails(self):
+        bundle = self.make_bundle()
+        connection = sqlite3.connect(bundle / build.DATABASE_NAME)
+        connection.execute("PRAGMA user_version = 2")
+        connection.close()
+        self.assertTrue(any("user_version is 2" in p for p in self.problems_of(bundle)))
+
+    def test_a_manifest_that_disagrees_fails(self):
+        bundle = self.make_bundle()
+        path = bundle / build.MANIFEST_NAME
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        manifest["counts"]["presentations"] += 1
+        manifest["dataDate"] = "2026-01-01"
+        path.write_text(json.dumps(manifest), encoding="utf-8")
+        problems = self.problems_of(bundle)
+        self.assertTrue(any("counts differ" in p for p in problems))
+        self.assertTrue(any("dataDate differs" in p for p in problems))
+
+    def test_an_unreadable_manifest_fails(self):
+        bundle = self.make_bundle()
+        (bundle / build.MANIFEST_NAME).write_text("{not json", encoding="utf-8")
+        self.assertTrue(any("cannot read as JSON" in p for p in self.problems_of(bundle)))
+
+    def test_apps_must_reference_the_bundle_when_asked(self):
+        bundle = self.make_bundle()
+        root = self.tmp / "repo"
+        (root / "ios").mkdir(parents=True)
+        (root / "android" / "app").mkdir(parents=True)
+        (root / "ios" / "project.yml").write_text("resources: ../reference-data/bundle/reference.sqlite")
+        (root / "android" / "app" / "build.gradle.kts").write_text("// nothing here")
+        self.verify(bundle, root=root, apps=["ios"])
+        self.assertTrue(any("android/app/build.gradle.kts does not bundle" in p
+                            for p in self.problems_of(bundle, root=root, apps=["ios", "android"])))
+        self.assertTrue(any("does not bundle" in p for p in self.problems_of(bundle, root=self.tmp / "nowhere", apps=["ios"])))
+
+    def test_golden_list_must_be_well_formed(self):
+        def write(cases):
+            path = self.tmp / "golden.json"
+            path.write_text(json.dumps({"cases": cases}), encoding="utf-8")
+            return path
+
+        ok = {"name": "a", "cip13": sample.cip13(1), "expect": "eyes"}
+        self.assertEqual(len(build.load_golden(write([ok]), TAXONOMY)), 1)
+        for label, cases in {
+            "duplicate": [ok, ok],
+            "bad cip13": [{**ok, "cip13": "123"}],
+            "bad category": [{**ok, "expect": "painful"}],
+            "empty": [],
+        }.items():
+            with self.subTest(label), self.assertRaises(build.BuildError):
+                build.load_golden(write(cases), TAXONOMY)
+        with self.assertRaises(build.BuildError):
+            build.load_golden(self.tmp / "absent.json", TAXONOMY)
+
+
+class CommandLineTests(TempDirCase):
+    def run_main(self, *args):
+        with unittest.mock.patch("sys.stderr"), unittest.mock.patch("sys.stdout"):
+            return build.main(list(args))
+
+    def test_build_then_verify_through_the_command_line(self):
+        golden = self.tmp / "golden.json"
+        golden.write_text(json.dumps({"cases": [{"name": "a", "cip13": sample.cip13(1), "expect": "pain-fever"}]}), encoding="utf-8")
+        common = ["--rules", str(SAMPLE_RULES), "--golden", str(golden)]
+        out = self.tmp / "bundle"
+        self.assertEqual(self.run_main("build", "--bdpm", str(self.snapshot_dir()), "--data-date", "2026-10-18",
+                                       "--out", str(out), *common), 0)
+        self.assertEqual(self.run_main("verify", "--bundle", str(out), *common), 0)
+        # --out is the previous database by default: a chained build reads it
+        self.assertEqual(self.run_main("build", "--bdpm", str(self.snapshot_dir(2)), "--data-date", "2026-09-01",
+                                       "--out", str(out), *common), 1)  # older than the previous build
+        self.assertEqual(self.run_main("verify", "--bundle", str(out), "--apps", "windows", *common), 1)
+
+    def test_failures_exit_with_status_1(self):
+        self.assertEqual(self.run_main("build", "--bdpm", str(self.tmp / "nothing"), "--data-date", "2026-10-18",
+                                       "--out", str(self.tmp / "o")), 1)
+        self.assertEqual(self.run_main("verify", "--bundle", str(self.tmp / "nothing")), 1)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)
