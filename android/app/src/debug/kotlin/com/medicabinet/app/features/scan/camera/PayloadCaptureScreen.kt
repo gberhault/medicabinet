@@ -86,7 +86,7 @@ internal fun PayloadCaptureScreen(scanner: CodeScanner, modifier: Modifier = Mod
                 Text("Allow camera")
             }
         } else {
-            scanner.Preview(Modifier.fillMaxWidth().height(260.dp)) { failed = true }
+            scanner.Preview(Modifier.fillMaxWidth().height(260.dp), onFailure = { failed = true })
             if (failed) Text("Camera failed to start", modifier = Modifier.padding(16.dp))
         }
         LazyColumn { items(shapes) { Text(it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) } }

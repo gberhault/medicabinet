@@ -3,8 +3,11 @@ package com.medicabinet.app.features
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.medicabinet.app.features.scan.testEnvironment
+import com.medicabinet.app.features.scan.testScanServices
 import com.medicabinet.app.ui.theme.MediCabinetTheme
 import org.junit.Rule
 import org.junit.Test
@@ -22,7 +25,7 @@ class MainScaffoldTest {
     val compose = createComposeRule()
 
     private fun show(dark: Boolean = false) = compose.setContent {
-        MediCabinetTheme(darkTheme = dark) { MainScaffold() }
+        MediCabinetTheme(darkTheme = dark) { MainScaffold(testEnvironment(), scanServices = testScanServices()) }
     }
 
     @Test
@@ -34,7 +37,7 @@ class MainScaffoldTest {
     @Test
     fun scanIsTheStartDestinationAndEachUnbuiltFeatureExplainsItself() {
         show()
-        compose.onNodeWithText("Scanning is coming soon").assertIsDisplayed()
+        compose.onNodeWithText("Allow the camera").assertIsDisplayed()
         compose.onNodeWithText("Cabinet").performClick()
         compose.onNodeWithText("Your cabinet is coming soon").assertIsDisplayed()
         compose.onNodeWithText("Expiring").performClick()
@@ -62,10 +65,10 @@ class MainScaffoldFrenchTest {
 
     @Test
     fun theSameDestinationsAreShownInFrench() {
-        compose.setContent { MediCabinetTheme { MainScaffold() } }
+        compose.setContent { MediCabinetTheme { MainScaffold(testEnvironment(), scanServices = testScanServices()) } }
         listOf("Scanner", "Armoire", "Péremptions", "Réglages").forEach {
             compose.onNodeWithText(it).assertIsDisplayed()
         }
-        compose.onNodeWithText("Le scan arrive bientôt").assertIsDisplayed()
+        compose.onNodeWithTag("scan.permission.allow").assertIsDisplayed()
     }
 }

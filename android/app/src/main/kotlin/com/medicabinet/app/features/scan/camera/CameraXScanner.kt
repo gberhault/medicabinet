@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.medicabinet.core.Clock
 import java.io.Closeable
@@ -46,11 +47,19 @@ class CameraXScanner(private val clock: Clock) :
     override val snapshots: Flow<VisibleCodes> get() = frames
 
     @Composable
-    override fun Preview(modifier: Modifier, onFailure: (CodeScannerError) -> Unit) {
+    override fun Preview(modifier: Modifier, onFailure: (CodeScannerError) -> Unit, onStarted: () -> Unit) {
         val context = LocalContext.current
         val lifecycleOwner = LocalLifecycleOwner.current
         val previewView = remember { PreviewView(context) }
         DisposableEffect(lifecycleOwner) {
+            val streaming = Observer<PreviewView.StreamState> {
+                if (it ==
+                    PreviewView.StreamState.STREAMING
+                ) {
+                    onStarted()
+                }
+            }
+            previewView.previewStreamState.observe(lifecycleOwner, streaming)
             val providerFuture = ProcessCameraProvider.getInstance(context)
             providerFuture.addListener({
                 try {
@@ -66,7 +75,10 @@ class CameraXScanner(private val clock: Clock) :
                     onFailure(CodeScannerError.FAILED_TO_START)
                 }
             }, ContextCompat.getMainExecutor(context))
-            onDispose { if (providerFuture.isDone) providerFuture.get().unbindAll() }
+            onDispose {
+                previewView.previewStreamState.removeObserver(streaming)
+                if (providerFuture.isDone) providerFuture.get().unbindAll()
+            }
         }
         AndroidView(factory = { previewView }, modifier = modifier)
     }

@@ -23,10 +23,10 @@ interface CodeScanner {
 
     /**
      * The live camera view. The camera runs only while this is in the composition and the lifecycle is at least
-     * started, so it stops when the user leaves the screen or the app.
+     * started, so it stops when the user leaves the screen or the app. [onStarted] fires once frames are streaming.
      */
     @Composable
-    fun Preview(modifier: Modifier, onFailure: (CodeScannerError) -> Unit)
+    fun Preview(modifier: Modifier, onFailure: (CodeScannerError) -> Unit, onStarted: () -> Unit = {})
 }
 
 /** What the scanner decoded, as the text the GS1 parser expects: the symbology identifier (`]d2`) then the data. */
