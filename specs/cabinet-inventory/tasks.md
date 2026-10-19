@@ -53,9 +53,10 @@ iOS and Android UI blocks of each section are independent of each other.
 
 ## 2. Schema v3 and repositories (#18, #19)
 
-- [ ] **T11 — Schema v3 fixtures and contract names** `[shared]` (V1, V3, V4; §2.5, §4)
-  `fixtures/schema-v3.sql`, `fixtures/schema-v3.json`; new checks appended to
-  `repository-contract.json`; repository error names in `fixtures/README.md`; broken copies.
+- [x] **T11 — Schema v3 fixtures and contract names** `[shared]` (V1, V3, V4; §2.5, §4)
+  `fixtures/schema-v3.sql`, `fixtures/schema-v3.json`; repository error names in `fixtures/README.md`.
+  The new check names are appended to `repository-contract.json` in T12, together with the checks (a name
+  without its check would fail both suites).
 - [ ] **T12 — Core ports, in-memory fake and contract checks** `[ios]` `[android]` (V3, V4, L2–L10, C6; §4.2)
   Port additions and `RepositoryError` cases in both cores; `InMemoryCabinetStore` gains
   location tombstones, moves, reorder, observation (`AsyncThrowingStream` / `Flow`);
