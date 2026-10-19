@@ -44,7 +44,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
   minSdk 26, target/compile 36, 0.1.0 / 1), SQLDelight plugin applied with an empty
   database, minimal `MainActivity`. *Test:* `./gradlew :app:assembleDebug :core:test` from a
   clean checkout; one JVM smoke test per module.
-- [ ] **T7 — Android architecture checker** [#37] (G4, G5, K1, P6)
+- [x] **T7 — Android architecture checker** [#37] (G4, G5, K1, P6)
   `scripts/android-check-architecture.py` with the five rules of design §7; fixtures under
   `scripts/tests/android-architecture/` (one failing file per rule + a clean one).
 - [ ] **T8 — detekt and ktlint** [#37] (G1)

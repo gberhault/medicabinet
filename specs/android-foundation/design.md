@@ -114,9 +114,9 @@ Cross-platform names (S6): expiry errors `invalidYear|invalidMonth|invalidDay`;
 | Setting | Value |
 |---------|-------|
 | Gradle / AGP / Kotlin | Same versions as Riding's catalog at implementation time (AGP 9.3.1, Kotlin 2.2.21), pinned in `libs.versions.toml` |
-| JVM | Gradle runs on the installed JDK 21; bytecode `jvmTarget` 17 (as Riding) |
+| JVM | Gradle runs on the installed JDK 21 (no JDK 17 needed); bytecode and `sourceCompatibility` 17 (as Riding) |
 | `applicationId` / namespace | `com.medicabinet.app` |
-| SDK | `minSdk 26`, `compileSdk 36`, `targetSdk 36` |
+| SDK | `minSdk 26`, `compileSdk 36`, `targetSdk 36` (AGP installs Platform 36 on first build; licences already accepted) |
 | Version | `versionName "0.1.0"`, `versionCode 1` |
 | Modules | `:core` (`kotlin("jvm")` + `java-test-fixtures`), `:app` (`com.android.application`, Compose) |
 | Dependencies (app) | Compose BOM + Material 3, `activity-compose`, `lifecycle-viewmodel-compose`, `navigation-compose`, SQLDelight `android-driver` + `coroutines-extensions`, `kotlinx-coroutines-android` |
@@ -338,9 +338,10 @@ iOS strings.
 
 ## 14. Risks
 
-- **SQLDelight 2.4 + AGP 9** compatibility is not yet proven on this machine; T-task for the
-  scaffold builds it first — if it fails, stop and revisit this design (fallback: Room with
-  Kotlin-side validation, which weakens P1 and needs your OK).
+- **SQLDelight 2.4 + AGP 9** — proven in T6 (2026-10-19): it builds, with one quirk. SQLDelight's
+  Gradle plugin pins `org.jetbrains:annotations` to 13.0, which conflicts with AGP 9.3.1 when both
+  sit on the root build classpath, so the plugin is declared **only in `:app`** (AGP stays in the
+  root with `apply false`; `:app` applies it by id). No fallback needed.
 - **Auto Backup and WAL:** the backup agent copies files while the app is stopped; a
   checkpoint on app stop reduces the window. Restore tested manually once with
   `adb shell bmgr`.
