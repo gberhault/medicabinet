@@ -48,7 +48,7 @@ independent of each other.
   round-trip), `ArchiveFuzzTests` (truncations and mutations of the golden file), "error
   description holds no value", core performance (§9: encode / decode 1 000 boxes, maximum
   file). Break script covers the new fixtures. 100 % branch coverage.
-- [ ] **T5 — Kotlin twin of T4** `[android]` [#27] (same)
+- [x] **T5 — Kotlin twin of T4** `[android]` [#27] (same)
   The same tests and budgets; break script.
 
 ## 2. Ports and the transfer use case (#29)

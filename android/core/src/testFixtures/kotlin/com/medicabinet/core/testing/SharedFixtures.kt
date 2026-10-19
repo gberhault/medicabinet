@@ -167,6 +167,13 @@ object SharedFixtures {
 
     fun archiveCodePoints(): ArchiveCodePointFixture = json.decodeFromString(text("archive-code-points.json"))
 
+    fun archiveCaseFixture(): ArchiveCaseFixture = json.decodeFromString(text("archive-cases.json"))
+
+    /** The canonical archive of [version], kept forever (`fixtures/archive/v<version>/golden.medicabinet`). */
+    fun goldenArchive(version: Int = 1): ByteArray = File(directory, "archive/v$version/golden.medicabinet").readBytes()
+
+    fun goldenArchiveExists(version: Int): Boolean = File(directory, "archive/v$version/golden.medicabinet").exists()
+
     fun schemaV1(): SchemaSnapshot = json.decodeFromString(text("schema-v1.json"))
 
     fun schemaV2(): SchemaSnapshot = json.decodeFromString(text("schema-v2.json"))

@@ -66,5 +66,7 @@ if [[ ("$WHICH" == android || "$WHICH" == all) && -f "$ROOT/android/gradlew" ]];
     env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*ExpiryDigestFixtureTest*'"
   expect_failure "android: Kotlin suite fails on a broken code-point fixture" \
     env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*CodePointsFixtureTest*'"
+  expect_failure "android: Kotlin suite fails on broken archive fixtures" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*ArchiveFixtureTest*'"
 fi
 exit $fail

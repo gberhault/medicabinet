@@ -35,4 +35,6 @@ internal class FieldPath(private val prefix: String, private val key: String) {
     constructor(key: String) : this("", key)
 
     val text: String get() = if (prefix.isEmpty()) key else "$prefix.$key"
+
+    fun isKey(name: String): Boolean = key == name
 }

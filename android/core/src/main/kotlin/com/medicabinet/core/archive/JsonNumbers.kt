@@ -29,6 +29,12 @@ internal fun JsonReader.lexNumber(): LexedNumber {
     return LexedNumber(isInteger = true, value = text.toLongOrNull())
 }
 
+/**
+ * A number as an integer, or `null` when it has a fraction or exponent or does not fit a Long. Syntax faults still
+ * throw. For a value whose type the caller handles itself (the archive's `formatVersion`).
+ */
+internal fun JsonReader.readIntegerIfRepresentable(): Long? = lexNumber().value
+
 private fun isDigit(byte: Int): Boolean = byte in DIGIT_ZERO..DIGIT_NINE
 
 /** One or more digits. */
