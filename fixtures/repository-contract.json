@@ -67,6 +67,9 @@
     },
     {
       "name": "undoDelete is rejected when the serial was taken meanwhile"
+    },
+    {
+      "name": "cabinetBoxes returns only boxes in the cabinet with that gtin, oldest first"
     }
   ]
 }

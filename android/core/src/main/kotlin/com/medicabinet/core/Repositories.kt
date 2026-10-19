@@ -54,6 +54,9 @@ interface BoxRepository {
     /** Most recently created non-deleted box with this GTIN. */
     suspend fun latestBox(gtin: String): Box?
 
+    /** Boxes in the cabinet (not removed, not deleted) with this GTIN, oldest first (`createdAt`, then id). */
+    suspend fun cabinetBoxes(gtin: String): List<Box>
+
     /**
      * Throws [RepositoryError.DUPLICATE] for a known id (deleted or not), [RepositoryError.UNKNOWN_LOCATION] for a
      * missing location and [RepositoryError.DUPLICATE_SERIAL] when another non-deleted box has the same GTIN and

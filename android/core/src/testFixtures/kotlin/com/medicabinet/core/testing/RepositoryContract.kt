@@ -58,7 +58,7 @@ object RepositoryContract {
     internal const val GTIN = "03400930000001"
     private const val SERIAL_LENGTH = 12
 
-    val checks: List<Check> get() = locationChecks + boxChecks + deletionChecks
+    val checks: List<Check> get() = locationChecks + boxChecks + deletionChecks + cabinetChecks
 
     internal fun require(condition: Boolean, message: String) {
         if (!condition) throw ContractFailure(message)

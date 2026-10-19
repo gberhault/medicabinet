@@ -33,6 +33,13 @@ struct GRDBBoxRepository: BoxRepository {
         }
     }
 
+    func cabinetBoxes(gtin: String) async throws -> [Box] {
+        try await database.writer.read { db in
+            try BoxRecord.filter(Column("gtin") == gtin && Column("removedAt") == nil && Column("deletedAt") == nil)
+                .order(Column("createdAt"), Column("id")).fetchAll(db).map { try $0.model() }
+        }
+    }
+
     func insert(_ box: Box) async throws {
         try await database.writer.write { db in
             if try BoxRecord.fetchOne(db, key: box.id.uuidString) != nil { throw RepositoryError.duplicate }

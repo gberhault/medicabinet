@@ -33,6 +33,8 @@ public protocol BoxRepository: Sendable {
     func box(gtin: String, serial: String) async throws -> Box?
     /// Most recently created non-deleted box with this GTIN.
     func latestBox(gtin: String) async throws -> Box?
+    /// Boxes in the cabinet (not removed, not deleted) with this GTIN, oldest first (`createdAt`, then id).
+    func cabinetBoxes(gtin: String) async throws -> [Box]
     /// Throws `.duplicate` for a known id (deleted or not), `.unknownLocation` for a missing location and
     /// `.duplicateSerial` when another non-deleted box has the same GTIN and serial.
     func insert(_ box: Box) async throws

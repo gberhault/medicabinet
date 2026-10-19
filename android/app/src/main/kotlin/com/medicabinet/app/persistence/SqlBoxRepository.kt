@@ -48,6 +48,14 @@ class SqlBoxRepository(
         ).mapRows { toBox() }.firstOrNull()
     }
 
+    override suspend fun cabinetBoxes(gtin: String): List<Box> = withContext(io) {
+        cabinet.database.query(
+            "SELECT ${Columns.BOX} FROM box WHERE gtin = ? AND removedAt IS NULL AND deletedAt IS NULL " +
+                "ORDER BY createdAt, id",
+            arrayOf(gtin)
+        ).mapRows { toBox() }
+    }
+
     override suspend fun insert(box: Box): Unit = withContext(io) {
         cabinet.transaction { db ->
             if (BoxSql.exists(db, box.id)) throw RepositoryException(RepositoryError.DUPLICATE)
@@ -142,21 +150,21 @@ class SqlBoxRepository(
             }
         }
     }
-
-    /** The unique index is the backstop of the `requireFreeSerial` check: a race still ends in `duplicateSerial`. */
-    private inline fun writingSerial(write: () -> Unit) {
-        try {
-            write()
-        } catch (error: SQLiteConstraintException) {
-            // Only the serial index maps to duplicateSerial; a CHECK or foreign key violation stays itself.
-            if (error.message.orEmpty().contains("box.serial")) {
-                throw RepositoryException(RepositoryError.DUPLICATE_SERIAL, error)
-            }
-            throw error
-        }
-    }
 }
 
 /** year, month, day, sortKey — NULL when the expiry is unknown (never defaulted); day is NULL for month precision. */
 private fun Box.expiryColumns(): Array<Any?> =
     arrayOf(expiry?.year?.toLong(), expiry?.month?.toLong(), expiry?.day?.toLong(), expiry?.sortKey)
+
+/** The unique index is the backstop of the `requireFreeSerial` check: a race still ends in `duplicateSerial`. */
+private inline fun writingSerial(write: () -> Unit) {
+    try {
+        write()
+    } catch (error: SQLiteConstraintException) {
+        // Only the serial index maps to duplicateSerial; a CHECK or foreign key violation stays itself.
+        if (error.message.orEmpty().contains("box.serial")) {
+            throw RepositoryException(RepositoryError.DUPLICATE_SERIAL, error)
+        }
+        throw error
+    }
+}

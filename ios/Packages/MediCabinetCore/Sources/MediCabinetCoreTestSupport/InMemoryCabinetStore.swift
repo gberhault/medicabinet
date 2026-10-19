@@ -56,6 +56,11 @@ public actor InMemoryCabinetStore: LocationRepository, BoxRepository {
             .max { ($0.createdAt, $0.id.uuidString) < ($1.createdAt, $1.id.uuidString) }
     }
 
+    public func cabinetBoxes(gtin: String) async throws -> [Box] {
+        boxes.values.filter { $0.isInCabinet && !deleted.contains($0.id) && $0.product.gtin == gtin }
+            .sorted { ($0.createdAt, $0.id.uuidString) < ($1.createdAt, $1.id.uuidString) }
+    }
+
     public func insert(_ box: Box) async throws {
         guard boxes[box.id] == nil else { throw RepositoryError.duplicate }
         guard locations[box.locationID] != nil else { throw RepositoryError.unknownLocation }

@@ -57,6 +57,11 @@ class InMemoryCabinetStore(private val clock: Clock) :
         live().filter { it.product.gtin == gtin }.maxWithOrNull(compareBy({ it.createdAt }, { it.id.toString() }))
     }
 
+    override suspend fun cabinetBoxes(gtin: String): List<Box> = mutex.withLock {
+        live().filter { it.isInCabinet && it.product.gtin == gtin }
+            .sortedWith(compareBy({ it.createdAt }, { it.id.toString() }))
+    }
+
     override suspend fun insert(box: Box) = mutex.withLock {
         if (boxes.containsKey(box.id)) throw RepositoryException(RepositoryError.DUPLICATE)
         if (!locations.containsKey(box.locationId)) throw RepositoryException(RepositoryError.UNKNOWN_LOCATION)
