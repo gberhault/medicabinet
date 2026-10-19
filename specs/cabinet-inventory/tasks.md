@@ -36,7 +36,7 @@ iOS and Android UI blocks of each section are independent of each other.
   `@TestFactory` per case; same error kinds.
 - [x] **T4 — Cabinet-rows fixture** `[shared]` [#19] (C1–C5, S1, S3, S4, P1; §2.3)
   `fixtures/cabinet-rows.json` with the cases of §2.3; broken copy. *Test:* `check-fixtures.py`.
-- [ ] **T5 — `CabinetRows`, `CabinetFilter`, `ProductRow`, `ExpiryUrgency` in Swift** `[ios]` (same; §1.1, §1.2, §3.2)
+- [x] **T5 — `CabinetRows`, `CabinetFilter`, `ProductRow`, `ExpiryUrgency` in Swift** `[ios]` (same; §1.1, §1.2, §3.2)
   *Tests first:* `CabinetRowsFixtureTests`; perf test 1 000 boxes ≤ 100 ms median of 10
   (§8). 100 % branch coverage.
 - [ ] **T6 — Kotlin twins** `[android]` (same)
