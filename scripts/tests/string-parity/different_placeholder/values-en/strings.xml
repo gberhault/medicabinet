@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_scan">Scan</string>
+    <string name="about_version">Version %1$s (%2$s)</string>
+    <string name="msg_apostrophe">The cabinet</string>
+    <string name="app_name" translatable="false">MediCabinet</string>
+    <string name="about_back">Back</string>
+</resources>

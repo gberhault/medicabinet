@@ -110,7 +110,7 @@ it cannot run the exact iOS DDL, and the user switched Android to plain SQLite �
 
 ## 6. Localization, privacy, remaining gates (#37, #38)
 
-- [ ] **T20 — String checks and per-app language** [#38] (I1)
+- [x] **T20 — String checks and per-app language** [#38] (I1)
   `android-check-strings.py` (key parity, empty values, placeholders) and
   `check-string-parity.py` (Android ↔ iOS wording), fixtures for both;
   `locales_config.xml` + `android:localeConfig`.

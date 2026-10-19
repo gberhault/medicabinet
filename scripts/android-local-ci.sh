@@ -45,6 +45,10 @@ step "assemble debug app"
 step "detekt + ktlint (against baselines)"
 "${GRADLE[@]}" detekt ktlintCheck
 
+step "localization (fr + en complete)"
+python3 -I "$ROOT/scripts/android-check-strings.py"
+bash "$ROOT/scripts/tests/test-android-strings.sh"
+
 step "architecture rules"
 python3 -I "$ROOT/scripts/android-check-architecture.py" --root "$ROOT"
 bash "$ROOT/scripts/tests/test-android-architecture.sh"

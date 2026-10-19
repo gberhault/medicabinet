@@ -18,6 +18,9 @@ if [[ "$WHICH" == all || "$WHICH" == shared ]]; then
   python3 -I scripts/check-fixtures.py
   bash scripts/tests/test-check-fixtures.sh
 
+  step "shared: iOS and Android say the same thing"
+  python3 -I scripts/check-string-parity.py
+
   step "shared: version checker self-test"
   bash scripts/tests/test-check-version.sh
 fi
