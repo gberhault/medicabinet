@@ -25,7 +25,7 @@ iOS and Android UI blocks of each section are independent of each other.
 
 ## 1. Shared rules (#18, #19, #21)
 
-- [ ] **T1 — Text and location-name fixtures** `[shared]` [#18, #19] (S1, S2, L2, L3, L11, C4; §2.1, §2.2)
+- [x] **T1 — Text and location-name fixtures** `[shared]` [#18, #19] (S1, S2, L2, L3, L11, C4; §2.1, §2.2)
   `fixtures/text-normalization.json`, `fixtures/location-names.json`; error kinds in
   `fixtures/README.md`; broken copies for `test-shared-fixtures-break.sh`.
   *Test:* `check-fixtures.py` green; break script fails on each broken copy.

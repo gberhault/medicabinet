@@ -33,6 +33,8 @@ Every file is JSON with:
 | `schema-v2.json` | the tables, columns and indexes of a database migrated to v2 (`schema-v1.json` is the v1-only state) |
 | `schema-v1.json` | the tables, columns and indexes every platform's database v1 must have |
 | `repository-contract.json` | names of the repository contract checks both platforms run (the checks themselves are code) |
+| `text-normalization.json` | `TextNormalizer`: `normalize` (accent/case/ligature/whitespace folding) and `matches` (search: every query word is a substring) — also the comparison for location-name uniqueness and name ordering |
+| `location-names.json` | `LocationName.validate`: trim, 1…50 code points, no duplicate (normalized) name among the other locations |
 
 ## Names that cross platforms
 
@@ -52,6 +54,7 @@ These strings are identical on both platforms (storage values, error kinds, expo
 | Intake missing fields | `name`, `expiry` |
 | Barcode symbologies | `dataMatrix`, `ean13` |
 | Repository errors | `notFound`, `unknownLocation`, `duplicate`, `duplicateDefault`, `duplicateSerial` |
+| Location-name errors | `empty`, `tooLong`, `duplicateName` |
 
 ## Adding a fixture
 

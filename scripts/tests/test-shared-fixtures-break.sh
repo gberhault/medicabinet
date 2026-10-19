@@ -26,6 +26,10 @@ if [[ "$WHICH" == ios || "$WHICH" == all ]]; then
     expect_failure "ios: Swift suite fails on a broken fixture ($suite)" \
       env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter "$suite"
   done
+  for suite in TextNormalizerFixtureTests LocationNameFixtureTests; do
+    expect_failure "ios: Swift suite fails on a broken fixture ($suite)" \
+      env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter "$suite"
+  done
 fi
 if [[ ("$WHICH" == android || "$WHICH" == all) && -f "$ROOT/android/gradlew" ]]; then
   expect_failure "android: Kotlin suite fails on a broken expiry fixture" \
@@ -37,6 +41,10 @@ if [[ ("$WHICH" == android || "$WHICH" == all) && -f "$ROOT/android/gradlew" ]];
   expect_failure "android: Kotlin suite fails on a broken GS1 fixture" \
     env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*GS1ParserFixtureTest*'"
   for suite in ScanDebouncerFixtureTest IntakePolicyFixtureTest ProductResolverFixtureTest; do
+    expect_failure "android: Kotlin suite fails on a broken fixture ($suite)" \
+      env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*$suite*'"
+  done
+  for suite in TextNormalizerFixtureTest LocationNameFixtureTest; do
     expect_failure "android: Kotlin suite fails on a broken fixture ($suite)" \
       env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*$suite*'"
   done

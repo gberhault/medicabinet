@@ -1,0 +1,149 @@
+{
+  "formatVersion": 1,
+  "description": "LocationName.validate: trim, 1...50 Unicode code points, and no other location (not deleted) with the same normalized name. `existing` lists the other locations' names; `renaming` is the current name of the location being renamed (excluded from the duplicate check). Error check order: empty, tooLong, duplicateName.",
+  "cases": [
+    {
+      "name": "a name is trimmed and kept as typed",
+      "input": "  Salle de bain  ",
+      "existing": [],
+      "expect": {
+        "name": "Salle de bain"
+      }
+    },
+    {
+      "name": "empty is rejected",
+      "input": "",
+      "existing": [],
+      "expect": {
+        "error": "empty"
+      }
+    },
+    {
+      "name": "spaces only is rejected",
+      "input": " \t ",
+      "existing": [],
+      "expect": {
+        "error": "empty"
+      }
+    },
+    {
+      "name": "a no-break space only is rejected",
+      "input": " ",
+      "existing": [],
+      "expect": {
+        "error": "empty"
+      }
+    },
+    {
+      "name": "a name that normalizes to nothing is rejected as empty",
+      "input": "́",
+      "existing": [],
+      "expect": {
+        "error": "empty"
+      }
+    },
+    {
+      "name": "exactly 50 code points is accepted",
+      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "existing": [],
+      "expect": {
+        "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "name": "51 code points is too long",
+      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "existing": [],
+      "expect": {
+        "error": "tooLong"
+      }
+    },
+    {
+      "name": "length is counted after trimming",
+      "input": " aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ",
+      "existing": [],
+      "expect": {
+        "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "name": "50 emoji (100 UTF-16 units) are accepted",
+      "input": "💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊",
+      "existing": [],
+      "expect": {
+        "name": "💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊"
+      }
+    },
+    {
+      "name": "51 emoji are too long",
+      "input": "💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊💊",
+      "existing": [],
+      "expect": {
+        "error": "tooLong"
+      }
+    },
+    {
+      "name": "duplicate after accent, case and space folding",
+      "input": " cuísine ",
+      "existing": [
+        "Cuisine",
+        "Salle de bain"
+      ],
+      "expect": {
+        "error": "duplicateName"
+      }
+    },
+    {
+      "name": "inner spaces collapse for the comparison",
+      "input": "Salle  de bain",
+      "existing": [
+        "Salle de bain"
+      ],
+      "expect": {
+        "error": "duplicateName"
+      }
+    },
+    {
+      "name": "a different name is accepted",
+      "input": "Cuisine 2",
+      "existing": [
+        "Cuisine"
+      ],
+      "expect": {
+        "name": "Cuisine 2"
+      }
+    },
+    {
+      "name": "renaming to its own name with another case is allowed",
+      "input": "CUISINE",
+      "existing": [
+        "Cuisine",
+        "Salle de bain"
+      ],
+      "renaming": "Cuisine",
+      "expect": {
+        "name": "CUISINE"
+      }
+    },
+    {
+      "name": "renaming to another location's name is rejected",
+      "input": "salle de bain",
+      "existing": [
+        "Cuisine",
+        "Salle de bain"
+      ],
+      "renaming": "Cuisine",
+      "expect": {
+        "error": "duplicateName"
+      }
+    },
+    {
+      "name": "inner spaces are kept as typed",
+      "input": "Salle  de  bain",
+      "existing": [],
+      "expect": {
+        "name": "Salle  de  bain"
+      }
+    }
+  ]
+}
