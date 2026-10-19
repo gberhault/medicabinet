@@ -37,7 +37,7 @@ for them to measure (T15–T16).
 - [x] **T5 — `ExpiryDate` and `ExpiryDateError`** [#3] (R3.4, R3.5)
   *Tests first:* `ExpiryDateTests` — day vs month precision, last valid day of every month,
   Feb 28/29 (2028), invalid month 0/13, day 0/32, Apr 31, year outside 2000…2099.
-- [ ] **T6 — `Clock`, `SystemClock`, `FixedClock`** [#3] (R3.7)
+- [x] **T6 — `Clock`, `SystemClock`, `FixedClock`** [#3] (R3.7)
   *Tests:* `FixedClock` returns the fixed date; `SystemClock` is non-decreasing across two
   reads.
 - [ ] **T7 — Domain model** [#3] (R3.2, R3.3, R3.6)
