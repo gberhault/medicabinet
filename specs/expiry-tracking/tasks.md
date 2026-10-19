@@ -20,7 +20,7 @@ T14, T16) and the Android block (T11, T13, T15, T17) are independent of each oth
   §2.1–2.3; `fixtures/README.md` (files and cross-platform names, §2.4); a broken copy of each
   under `scripts/tests/fixtures-broken/`. *Test:* `check-fixtures.py` green and the break
   script fails on each broken copy.
-- [ ] **T2 — `CalendarDay`, `ExpiryWindow`, `ExpiryRule` in `MediCabinetCore`** `[ios]` [#23] (S1–S9, S11, W1, W4; §1.2, §3.1, §3.2)
+- [x] **T2 — `CalendarDay`, `ExpiryWindow`, `ExpiryRule` in `MediCabinetCore`** `[ios]` [#23] (S1–S9, S11, W1, W4; §1.2, §3.1, §3.2)
   *Tests first:* `ExpiryRuleFixtureTests` (one per case, plus `todayCases`),
   `CalendarDayTests` (epoch-day round trip for every day 2000–2099, `adding`,
   `firstOfNextMonth`, `make` errors, `parse`), `ExpiryWindowTests` (stored 30/60/90, nil,
