@@ -128,7 +128,8 @@ way I think about it, so that I find a medicine in seconds and see what is no lo
    text and icon. WHEN no box of the row has a known expiry, the row SHALL say "expiry
    unknown". A row SHALL never show `ok` while one of its boxes has an unknown expiry.
 4. Within a category, rows SHALL be ordered by row status (urgency order), then earliest
-   known expiry (rows with none last), then name (locale-aware, accent-insensitive).
+   known expiry (rows with none last), then name compared as normalized text (accent- and
+   case-insensitive, identical on both platforms).
 5. Grouping, row status and ordering SHALL live in both cores and pass every case of
    `fixtures/cabinet-rows.json` on both platforms.
 6. The list SHALL update by itself when boxes change elsewhere (a scan, a removal, an import),
