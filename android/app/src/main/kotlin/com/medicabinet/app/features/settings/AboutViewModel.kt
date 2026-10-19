@@ -10,8 +10,10 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 
 /** What About shows about the bundled BDPM data: loading, its date, or that it is unavailable. */
 sealed interface ReferenceUiState {
@@ -24,30 +26,29 @@ sealed interface ReferenceUiState {
 
 /**
  * The values About shows. The version line itself is formatted by the screen from `about_version` (fr/en). The
- * reference data status is asked of [reference] (which opens the database if it was not yet) when About is created;
+ * reference data status is asked of [reference] (which opens the database if it was not yet) only when the About
+ * screen collects [referenceState]: creating this view model, which the main scaffold does at launch, touches nothing.
  * `null` means there is no environment, so unavailable.
  */
 class AboutViewModel(info: AppInfo, reference: ReferenceDataSource? = null) : ViewModel() {
     val version: String = info.version
     val build: String = info.build
 
-    private val mutableReference = MutableStateFlow<ReferenceUiState>(ReferenceUiState.Loading)
-    val referenceState: StateFlow<ReferenceUiState> = mutableReference
+    val referenceState: StateFlow<ReferenceUiState> = if (reference == null) {
+        MutableStateFlow(ReferenceUiState.Unavailable)
+    } else {
+        flow { emit(uiStateOf(reference.status())) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ReferenceUiState.Loading)
+    }
 
-    init {
-        if (reference == null) {
-            mutableReference.value = ReferenceUiState.Unavailable
-        } else {
-            viewModelScope.launch {
-                mutableReference.value = when (val status = reference.status()) {
-                    is ReferenceStatus.Available -> ReferenceUiState.Available(status.dataDate)
-                    is ReferenceStatus.Unavailable -> ReferenceUiState.Unavailable
-                }
-            }
-        }
+    private fun uiStateOf(status: ReferenceStatus): ReferenceUiState = when (status) {
+        is ReferenceStatus.Available -> ReferenceUiState.Available(status.dataDate)
+        is ReferenceStatus.Unavailable -> ReferenceUiState.Unavailable
     }
 
     companion object {
+        private const val STOP_TIMEOUT_MILLIS = 5_000L
+
         /** Where the data comes from (the licence asks for the source to be cited). */
         const val REFERENCE_ADDRESS = "base-donnees-publique.medicaments.gouv.fr"
 

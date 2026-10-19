@@ -115,7 +115,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
   `docs/reference-data.md` (update procedure, rules format, schema, manifest, golden list),
   `docs/architecture.md`, `fixtures/README.md`, `CLAUDE.md` (architecture amendment, project
   structure, two Common Task Map rows), `docs/README.md` index.
-- [ ] **T17 — Size and launch measurements** `[shared]` [#7] (X3, X8; §3.2, §12)
+- [x] **T17 — Size and launch measurements** `[shared]` [#7] (X3, X8; §3.2, §12)
   IPA/APK size and installed size before → after, cold start rerun (iOS launch test, Android
   `android-measure-launch.sh emulator-5554`), recorded in `reports/reference-data/README.md`
   for the PR.

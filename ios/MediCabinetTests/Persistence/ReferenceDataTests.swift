@@ -119,6 +119,18 @@ import Testing
         #expect(await environment.reference.status() == .unavailable(.missing))
     }
 
+    @Test func bootstrapNeverOpensTheReferenceData() async throws {
+        let copy = try sampleCopy()
+        let state = await Bootstrap(
+            directory: directory.appendingPathComponent("cabinet-lazy", isDirectory: true),
+            defaultLocationName: "Armoire", referenceURL: copy
+        ).run()
+        guard case .ready(let environment) = state else { Issue.record("expected ready, got \(state)"); return }
+        // Had launch opened the database, deleting the file now would change nothing: it is first opened here.
+        try FileManager.default.removeItem(at: copy)
+        #expect(await environment.reference.status() == .unavailable(.missing))
+    }
+
     // MARK: the bundled file (L9)
 
     private var bundledURL: URL? { Bundle.main.url(forResource: "reference", withExtension: "sqlite") }

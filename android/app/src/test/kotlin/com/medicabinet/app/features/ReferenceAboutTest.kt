@@ -16,6 +16,7 @@ import com.medicabinet.app.features.settings.ReferenceUiState
 import com.medicabinet.app.ui.theme.MediCabinetTheme
 import com.medicabinet.core.SystemClock
 import com.medicabinet.core.reference.ReferenceDataDate
+import com.medicabinet.core.reference.ReferenceDataSource
 import com.medicabinet.core.reference.ReferenceStatus
 import com.medicabinet.core.reference.ReferenceUnavailableReason
 import com.medicabinet.core.testing.InMemoryCabinetStore
@@ -24,6 +25,7 @@ import java.util.Locale
 import kotlin.test.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -54,6 +56,17 @@ private fun environment(status: ReferenceStatus): AppEnvironment {
     return AppEnvironment(store, store, SystemClock, InMemoryReferenceData(status = status))
 }
 
+/** Counts how often the reference data is asked for its status. */
+private class CountingReferenceData(private val inner: ReferenceDataSource) : ReferenceDataSource by inner {
+    var statusCalls = 0
+        private set
+
+    override suspend fun status(): ReferenceStatus {
+        statusCalls++
+        return inner.status()
+    }
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReferenceAboutViewModelTest {
     @Before
@@ -62,18 +75,41 @@ class ReferenceAboutViewModelTest {
     @After
     fun resetMain() = Dispatchers.resetMain()
 
+    private suspend fun loaded(viewModel: AboutViewModel) =
+        viewModel.referenceState.first { it !is ReferenceUiState.Loading }
+
     @Test
-    fun showsTheDataDateOnceKnown() = runTest {
+    fun showsLoadingThenTheDataDate() = runTest {
         val viewModel = AboutViewModel(info, InMemoryReferenceData(status = ReferenceStatus.Available(dataDate)))
-        viewModel.referenceState.test { assertEquals(ReferenceUiState.Available(dataDate), awaitItem()) }
+        viewModel.referenceState.test {
+            val first = awaitItem()
+            val last = if (first is ReferenceUiState.Loading) awaitItem() else first
+            assertEquals(ReferenceUiState.Available(dataDate), last)
+        }
     }
 
     @Test
     fun showsUnavailableWhateverTheReason() = runTest {
         for (reason in ReferenceUnavailableReason.entries) {
             val viewModel = AboutViewModel(info, InMemoryReferenceData(status = ReferenceStatus.Unavailable(reason)))
-            assertEquals(ReferenceUiState.Unavailable, viewModel.referenceState.value, reason.name)
+            assertEquals(ReferenceUiState.Unavailable, loaded(viewModel), reason.name)
         }
+    }
+
+    @Test
+    fun creatingTheViewModelDoesNotTouchTheReferenceData() {
+        val reference = CountingReferenceData(InMemoryReferenceData(status = ReferenceStatus.Available(dataDate)))
+        AboutViewModel(info, reference)
+        assertEquals(0, reference.statusCalls)
+    }
+
+    @Test
+    fun theReferenceDataIsAskedOnceWhateverTheNumberOfCollectors() = runTest {
+        val reference = CountingReferenceData(InMemoryReferenceData(status = ReferenceStatus.Available(dataDate)))
+        val viewModel = AboutViewModel(info, reference)
+        loaded(viewModel)
+        loaded(viewModel)
+        assertEquals(1, reference.statusCalls)
     }
 
     @Test
@@ -139,6 +175,24 @@ class ReferenceAboutScreenTest {
         val address = compose.onNodeWithText("base-donnees-publique.medicaments.gouv.fr").performScrollTo()
         address.performClick()
         address.assertIsDisplayed()
+    }
+
+    @Test
+    fun launchNeverTouchesTheReferenceDataAndAboutIsWhatOpensIt() {
+        val reference = CountingReferenceData(InMemoryReferenceData(status = ReferenceStatus.Available(dataDate)))
+        val store = InMemoryCabinetStore(SystemClock)
+        val environment = AppEnvironment(store, store, SystemClock, reference)
+        compose.setContent {
+            MediCabinetTheme {
+                CompositionLocalProvider(LocalAppEnvironment provides environment) { MainScaffold(appInfo = info) }
+            }
+        }
+        compose.onNodeWithText("Settings").performClick()
+        compose.waitForIdle()
+        assertEquals(0, reference.statusCalls, "the main scaffold and Settings must not open the reference data")
+        compose.onNodeWithText("About").performClick()
+        compose.assertShown("Data as of October 18, 2026")
+        assertEquals(1, reference.statusCalls)
     }
 
     @Test
