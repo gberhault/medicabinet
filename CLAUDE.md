@@ -358,9 +358,10 @@ Never regenerate a lint/detekt baseline or lower a threshold to hide a new findi
   `xcodebuild test` (unit + UI) on an iPhone simulator with coverage → coverage gate
   (**80% lines**, core and app).
 - **Android** (`android-local-ci.sh`): debug build → detekt + ktlint (baselines) →
-  architecture rules → unit tests (`:core`, `:app` incl. Robolectric Compose UI) →
-  SQLDelight migration verification → coverage gate (**80% lines**, core and app) → string
-  checks → version vs `android/CHANGELOG.md` → instrumented tests compile.
+  architecture rules → a wrong shared fixture fails the Kotlin suite → unit tests (`:core`,
+  `:app` incl. Robolectric Compose UI, schema and migration tests) → coverage gate (**80%
+  lines**, core and app) → string checks → version vs `android/CHANGELOG.md` → instrumented
+  tests compile.
 
 ---
 
@@ -777,7 +778,7 @@ ios/
     Sources/MediCabinetCore/  Sources/MediCabinetCoreTestSupport/  Tests/MediCabinetCoreTests/
 android/                         # (added by epic #31)
   core/                          # :core — pure Kotlin/JVM twin of MediCabinetCore (+ test fixtures)
-  app/                           # :app — Compose app; persistence/ is the only place that touches SQLDelight
+  app/                           # :app — Compose app; persistence/ is the only place that touches SQLite (androidx.sqlite)
   CHANGELOG.md  config/        # detekt / ktlint config and baselines
 scripts/
   local-ci.sh                    # shared checks + both gates
@@ -801,7 +802,7 @@ under `ios/`, Android paths under `android/`; a change to a shared rule touches 
 | Task | Files |
 |------|-------|
 | Add a rule that must match on both platforms | `fixtures/<name>.json` first (+ `fixtures/README.md`) → Swift core + test using `SharedFixtures` → Kotlin `:core` + test using `SharedFixtures` → `scripts/tests/test-shared-fixtures-break.sh` |
-| Add a persisted field | `fixtures/schema-v1.json` (or a new schema fixture) → iOS `Persistence/Migrations.swift` + `Records.swift` + core `Model.swift` → Android `.sq`/`.sqm` migration + mapper + core `Model.kt` → repository port/impl + `RepositoryContract` check on both → `docs/architecture.md` |
+| Add a persisted field | `fixtures/schema-v1.json` (or a new schema fixture) → iOS `Persistence/Migrations.swift` + `Records.swift` + core `Model.swift` → Android `persistence/Migrations.kt` (append a step, same SQL as iOS) + `Rows.kt` + core `Model.kt` → repository port/impl + `RepositoryContract` check on both → `docs/architecture.md` |
 | Add a repository method | core ports (`Repositories.swift` / `Repositories.kt`) → in-memory fake → `RepositoryContract` check → `GRDB*Repository.swift` / `Sql*Repository.kt` |
 | Add domain logic (parsing, expiry, classification) | both cores, tests next to the code; inject `Clock`, never call `Date()` / `Instant.now()` |
 | Add a screen / tab | iOS `Features/<Name>/` + `MainTabView.swift`; Android `features/<name>/` + `MainScaffold` → strings (fr + en, both platforms) → UI tests → `docs/<feature>.md` |
@@ -846,5 +847,6 @@ Change these only with the user's explicit agreement (challenge-first applies).
 | **Minimum OS** | **iOS 17**; **Android 8.0 (API 26)**. | iOS: VisionKit `DataScannerViewController` and modern SwiftUI. Android: `java.time` and adaptive APIs without desugaring. |
 | **Fallback language** | **French** on both platforms (English is the second shipped language). | A phone set to another language shows French. |
 | **Export file** | **One versioned JSON archive, no password** (`.medicabinet`; opens from Files/Mail on iOS, shared/opened through the Android document picker and share sheet). | Not a raw DB copy, so old files import across schema changes and across platforms. The UI warns that the file contains health data before sharing. Encryption is a possible later opt-in. |
-| **Persistence** | iOS: **SQLite via GRDB** (MIT). Android: **SQLite via SQLDelight** (Apache-2.0). | Both run the **same v1 SQL schema** with explicit versioned migrations (Room cannot express the CHECK constraints and partial indexes; see `specs/android-foundation/design.md`). No SwiftData / Core Data / Room. |
+| **Persistence** | **SQLite on every platform, same DDL.** iOS: GRDB (MIT). Android: plain `androidx.sqlite` with hand-written SQL (Apache-2.0). | Both run the **identical v1 SQL**, checked by `fixtures/schema-v1.json`, with explicit versioned migrations. No ORM or code generator that cannot express the iOS schema: Room lacks CHECK constraints and partial indexes; SQLDelight rejects the `DATETIME` type (tried and dropped, see `specs/android-foundation/design.md` §1). No SwiftData / Core Data. |
+| **Sync (future)** | **Not built now.** When wanted: a small self-hosted service on the user's Raspberry Pi with the **same SQLite schema**; phones push and pull changed rows, last write wins per row with a server-assigned version (never trust phone clocks alone). | Keep the model sync-ready: stable UUIDs, `updatedAt` on every row, soft removal, and **tombstones (a `deletedAt` marker) instead of hard deletes** for anything a user can delete. The export archive format (epic #26) is designed to double as the sync payload. Avoid Realm/Atlas Device Sync (shut down 2025) and cloud backends (privacy). PowerSync is the off-the-shelf fallback to re-evaluate in the sync spec. Sync amends the no-network rule in its own spec. |
 | **Identifiers** | Bundle ID / `applicationId` **`com.medicabinet.app`**, display name **MediCabinet** (both platforms). | — |

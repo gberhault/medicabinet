@@ -7,22 +7,33 @@ The iOS foundation design ([`../foundation/design.md`](../foundation/design.md))
 reference: this document only states how each part is done on Android, what changes in the
 repository, and where the two platforms are tied together by shared fixtures.
 
-## 1. Key decision — SQLDelight instead of Room
+## 1. Key decision — plain SQLite (`androidx.sqlite`), the exact iOS DDL
+
+*Revised 2026-10-19 during implementation (the first version of this design chose SQLDelight).*
 
 Requirement P1 asks for the **same invariants as iOS v1**. iOS enforces them in SQL (CHECK
 constraints, a partial unique index for the single default location, `ON DELETE RESTRICT`).
-Room cannot express these: entity annotations have no CHECK support, `@Index` has no `WHERE`
+**Room** cannot express these: entity annotations have no CHECK support, `@Index` has no `WHERE`
 clause, and Room's open-time schema validation rejects indexes it did not create itself.
-Enforcing the rules only in Kotlin would make Android weaker than iOS.
 
-**SQLDelight 2.4.1** (Apache-2.0, actively maintained) generates typed Kotlin from plain SQL:
-the Android `v1` schema is **the same `CREATE` statements as iOS v1**, migrations are `.sqm`
-SQL files, and `verifyMigrations` checks that migrations reproduce the current schema. It uses
-the platform SQLite through `AndroidSqliteDriver` (no bundled native library, so no APK size
-cost). Trade-off: you know Room from Riding; SQLDelight's API is smaller (queries are
-functions generated from named SQL statements).
+**SQLDelight** was chosen first and dropped in T14: its SQLite dialect rejects the `DATETIME`
+type name iOS v1 uses (Android would have needed `TEXT` plus a fixture alias), its Gradle plugin
+conflicts with AGP 9 on the root classpath, and its `AS Boolean`/`AS Int` columns need adapters —
+most of its benefit gone, workarounds left.
 
-Issue #36 was retitled "SQLDelight persistence…" when this design was approved (2026-10-19).
+**Decision (user, 2026-10-19): plain SQLite through `androidx.sqlite`** (`sqlite-framework`
+2.7.1, Apache-2.0): `SupportSQLiteOpenHelper` on the platform SQLite (no bundled native library).
+
+- The v1 schema is **the iOS v1 SQL, character for character** (`Migrations.kt`), so
+  `fixtures/schema-v1.json` matches both platforms exactly, with no alias.
+- Migrations are an ordered list of SQL steps; the schema version is `PRAGMA user_version`
+  (iOS tracks applied migrations in GRDB's table; each platform uses its native mechanism).
+- Hand-written SQL in the repositories, the same style as GRDB on iOS. A SQL typo shows up at
+  run time, not compile time — the repository contract and schema tests cover every statement.
+- The same SQL can run unchanged on a future Raspberry Pi sync service (see CLAUDE.md, Product
+  decisions → Sync).
+
+Issue #36 is titled "Plain SQLite persistence, pre-migration backup and bootstrap".
 
 ## 2. Repository after the restructure (M)
 
@@ -119,7 +130,7 @@ Cross-platform names (S6): expiry errors `invalidYear|invalidMonth|invalidDay`;
 | SDK | `minSdk 26`, `compileSdk 36`, `targetSdk 36` (AGP installs Platform 36 on first build; licences already accepted) |
 | Version | `versionName "0.1.0"`, `versionCode 1` |
 | Modules | `:core` (`kotlin("jvm")` + `java-test-fixtures`), `:app` (`com.android.application`, Compose) |
-| Dependencies (app) | Compose BOM + Material 3, `activity-compose`, `lifecycle-viewmodel-compose`, `navigation-compose`, SQLDelight `android-driver` + `coroutines-extensions`, `kotlinx-coroutines-android` |
+| Dependencies (app) | Compose BOM + Material 3, `activity-compose`, `lifecycle-viewmodel-compose`, `navigation-compose`, `androidx.sqlite:sqlite-framework`, `kotlinx-coroutines-android` |
 | Dependencies (core) | `kotlinx-coroutines-core` only; tests: JUnit 5, `kotlin-test`, `kotlinx-serialization-json` (test fixtures) |
 | Signing | Debug keystore from the SDK; no release config committed (A3) |
 
@@ -131,10 +142,9 @@ com.medicabinet.app
   MainActivity                  # setContent { MediCabinetTheme { RootScreen(...) } }
   app/        AppEnvironment, BootstrapViewModel, RootScreen, BootstrapErrorScreen, AppInfo, AppLog
   features/   MainScaffold (NavigationBar), placeholders/, settings/ (SettingsScreen, AboutScreen, AboutViewModel)
-  persistence/  AppDatabase, SqlLocationRepository, SqlBoxRepository, BackupService, Bootstrap
+  persistence/  Migrations (v1 = iOS v1 SQL), CabinetDatabase (open helper), Rows, StoredDate,
+              SqlLocationRepository, SqlBoxRepository, BackupService, Bootstrap
   ui/theme/   MediCabinetTheme (Material 3, dynamic colour off, light + dark)
-src/main/sqldelight/com/medicabinet/app/persistence/
-  Location.sq  Box.sq           # CREATE statements (identical to iOS v1) + named queries
 ```
 
 ### 4.2 App shell (A4–A8)
@@ -202,32 +212,31 @@ keeps `createdAt` and `removal`). `java.time.Instant` is truncated to millisecon
   the device: file-based encryption (credential-encrypted storage, readable after the first
   unlock — the equivalent of iOS `completeUntilFirstUserAuthentication`) is required on
   devices launching with Android 10+; older devices use file-based or full-disk encryption.
-- **Schema v1:** `Location.sq` / `Box.sq` contain the iOS v1 `CREATE TABLE` / `CREATE INDEX`
-  statements (CHECKs, partial unique index, `ON DELETE RESTRICT`) with **one difference found in T14**:
-  SQLDelight's SQLite dialect rejects the `DATETIME` type name, so Android declares those columns
-  `TEXT`. Both platforms store the same ISO-8601 text (`yyyy-MM-dd HH:mm:ss.SSS`, UTC), so only the
-  declared type name differs. `fixtures/schema-v1.json` records it under `typeAliases` and the Android
-  comparison maps the expected type through it; the iOS comparison stays exact. iOS v1 is not touched
-  (a shipped migration is never edited). Foreign keys are
-  enabled on every connection (`PRAGMA foreign_keys = ON` in the driver callback `onOpen`).
-  WAL is enabled. Future migrations: `src/main/sqldelight/migrations/<N>.sqm`; schema
-  snapshots `.db` committed under `app/src/main/sqldelight/databases/`; `verifySqlDelightMigration`
-  runs in the Android gate.
+- **Schema v1:** `Migrations.v1` holds the iOS v1 `CREATE TABLE` / `CREATE INDEX` statements
+  verbatim (`DATETIME` columns, CHECKs, partial unique index, `ON DELETE RESTRICT`).
+  `CabinetDatabase` wraps a `SupportSQLiteOpenHelper` whose callback, on every connection, turns
+  foreign keys on and enables WAL (`onConfigure`); creates the schema by running every migration
+  (`onCreate`); and runs the pending ones (`onUpgrade`). The platform open helper runs
+  `onCreate`/`onUpgrade` in one transaction and sets `user_version` at the end, so a failing
+  migration leaves the database unchanged. The open helper never drops data (no destructive path
+  exists in the code; `onDowngrade` throws). Future migrations append to `Migrations.all`; a test
+  proves that upgrading step by step from every earlier version yields the same schema as a fresh
+  install.
 - **Repositories:** `SqlLocationRepository`, `SqlBoxRepository` implement the core ports on
-  `Dispatchers.IO`, check existence inside one `transaction {}` (same checks as GRDB), map rows
+  `Dispatchers.IO`, check existence inside one transaction (same checks as GRDB), map rows
   to core types and throw `PersistenceException.CorruptRow` on unreadable rows (never repaired).
 - **Pending-migration detection (before opening):** if `cabinet.db` exists, open it briefly
   with the framework `SQLiteDatabase` (read-write, no version change), read
   `PRAGMA user_version`, run `PRAGMA wal_checkpoint(TRUNCATE)`, close. `0 < user_version <
-  Schema.version` → migrations pending.
+  Migrations.all.size` → migrations pending.
 - **BackupService:** with the database closed and checkpointed, copy `cabinet.db` (single
   self-contained file after the checkpoint) to
   `backups/pre-migration-<UTC yyyyMMdd-HHmmss>-v<user_version>.db`; unique names on
   collision; prune to the newest 5 by file name; any failure → `BackupException`. (SQLite's
   `VACUUM INTO` would avoid the checkpoint but needs SQLite 3.27, absent on Android 8–10.)
 - **Bootstrap** (`suspend fun run(): BootstrapState` on `Dispatchers.IO`): detect → back up
-  (failure → `Failed(BACKUP)`, no migration) → open the driver, which runs `Schema.create` /
-  `Schema.migrate` inside the open helper's transaction (failure → close driver, delete
+  (failure → `Failed(BACKUP)`, no migration) → open `CabinetDatabase`, which creates or migrates
+  inside the open helper's transaction (failure → close it, delete
   `cabinet.db`, `-wal`, `-shm`, copy the backup back → `Failed(MIGRATION)`) →
   `ensureDefault(localized name)` → prune → `Ready(AppEnvironment)`. Any other I/O failure →
   `Failed(STORAGE)`. Never deletes the database except to replace it with its backup.
@@ -247,13 +256,11 @@ as on iOS):
 4. `python3 -I scripts/android-check-architecture.py` (+ its fixture test)
 5. `./gradlew :core:test :app:testDebugUnitTest` (JUnit 5 in core; JUnit 4 + Robolectric +
    Compose UI tests in app)
-6. `./gradlew verifySqlDelightMigration`
-7. `./gradlew jacocoReport` → `scripts/android-coverage-gate.py` (≥ 80% lines for `:core`
-   main sources and for `:app`, excluding generated SQLDelight code, Compose previews and
-   `R`/`BuildConfig`)
-8. `python3 -I scripts/android-check-strings.py` (+ fixture test)
-9. `bash scripts/check-version.sh android`
-10. `./gradlew :app:compileDebugAndroidTestKotlin` (instrumented tests compile; running them
+6. `./gradlew jacocoReport` → `scripts/android-coverage-gate.py` (≥ 80% lines for `:core`
+   main sources and for `:app`, excluding Compose previews and `R`/`BuildConfig`)
+7. `python3 -I scripts/android-check-strings.py` (+ fixture test)
+8. `bash scripts/check-version.sh android`
+9. `./gradlew :app:compileDebugAndroidTestKotlin` (instrumented tests compile; running them
     needs an emulator and is optional, as in Riding)
 
 **Architecture rules** (`android-check-architecture.py`, regex over `.kt` files + manifest,
@@ -262,9 +269,9 @@ same approach and limits as the iOS SwiftLint custom rules, fixtures under
 
 | Rule | Fails on |
 |------|----------|
-| `core_forbidden_imports` | `import android.`, `androidx.`, `app.cash.sqldelight.` in `:core` |
+| `core_forbidden_imports` | `import android.` or `androidx.` in `:core` |
 | `core_no_wall_clock` | `Instant.now(`, `System.currentTimeMillis(`, `LocalDate.now(`, `Clock.system` in `:core` main, except `SystemClock.kt` |
-| `sql_confined_to_persistence` | `app.cash.sqldelight` / `android.database` imports outside `persistence/` |
+| `sql_confined_to_persistence` | `androidx.sqlite` / `android.database` imports outside `persistence/` |
 | `no_network` | `java.net.URL`, `HttpURLConnection`, `okhttp3`, `retrofit2`, `ktor` imports; `android.permission.INTERNET` in any manifest |
 | `log_through_applog` | `android.util.Log` outside `AppLog.kt` |
 
@@ -325,7 +332,7 @@ checkpoint) before the driver opens.
 | A8 | `BootstrapViewModelTest` (Turbine) + `BootstrapErrorScreen` Compose test per failure kind, Retry calls run again | unit + UI |
 | K1–K6 | `:core` JUnit 5 tests mirroring the Swift suites; `RepositoryContract` against `InMemoryCabinetStore` | unit |
 | P1 | `SchemaTest` vs `fixtures/schema-v1.json`; constraint tests mirroring iOS `MigrationTests` | integration (Robolectric) |
-| P2 | `verifySqlDelightMigration`; architecture review: no destructive path in code | CI |
+| P2 | `MigrationsTest`: step-by-step upgrade from every version equals a fresh install; `onDowngrade` throws; no destructive path in code | integration |
 | P3–P5, P9 | `BackupServiceTest`, `BootstrapTest` (first launch, upgrade with a test schema v2, backup failure, migration failure restores, first-launch failure then Retry) | integration |
 | P6 | Thread assertion test; architecture rule | unit + script |
 | P7, P10 | `RepositoryContract` against `SqlLocationRepository` / `SqlBoxRepository` | integration |
@@ -343,10 +350,8 @@ iOS strings.
 
 ## 14. Risks
 
-- **SQLDelight 2.4 + AGP 9** — proven in T6 (2026-10-19): it builds, with one quirk. SQLDelight's
-  Gradle plugin pins `org.jetbrains:annotations` to 13.0, which conflicts with AGP 9.3.1 when both
-  sit on the root build classpath, so the plugin is declared **only in `:app`** (AGP stays in the
-  root with `apply false`; `:app` applies it by id). No fallback needed.
+- **Hand-written SQL** fails at run time, not compile time: every statement is exercised by the
+  repository contract, schema and storage tests; a new query without a test is a review blocker.
 - **Auto Backup and WAL:** the backup agent copies files while the app is stopped; a
   checkpoint on app stop reduces the window. Restore tested manually once with
   `adb shell bmgr`.

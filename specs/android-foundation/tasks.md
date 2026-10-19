@@ -8,8 +8,8 @@ brackets; requirement IDs refer to [`requirements.md`](requirements.md), section
 [`design.md`](design.md).
 
 Order: restructure and shared fixtures first, so iOS is never broken and both cores are tested
-against the same files from the start. The Android scaffold (T6) proves SQLDelight builds with
-AGP 9 **before** anything depends on it — if it does not, stop and revisit the design (§14).
+against the same files from the start. (T6 proved SQLDelight builds with AGP 9; T14 then showed
+it cannot run the exact iOS DDL, and the user switched Android to plain SQLite — design §1.)
 
 ## 1. Monorepo and shared fixtures (#32, #33)
 
@@ -39,7 +39,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
 ## 2. Android scaffold and gates (#34, #37)
 
 - [x] **T6 — Gradle project with `:core` and `:app`** [#34] (A1–A3)
-  Wrapper, `libs.versions.toml` (Riding's AGP/Kotlin, SQLDelight 2.4.1, Compose BOM),
+  Wrapper, `libs.versions.toml` (Riding's AGP/Kotlin, SQLDelight 2.4.1 — later replaced, see T14 —, Compose BOM),
   `:core` (JVM + test fixtures), `:app` (namespace/applicationId `com.medicabinet.app`,
   minSdk 26, target/compile 36, 0.1.0 / 1), SQLDelight plugin applied with an empty
   database, minimal `MainActivity`. *Test:* `./gradlew :app:assembleDebug :core:test` from a
@@ -74,15 +74,18 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
 
 ## 4. Persistence (#36)
 
-- [x] **T14 — SQLDelight schema v1 and driver** [#36] (P1, P2, P8)
-  `Location.sq` / `Box.sq` = iOS v1 statements + named queries; driver with foreign keys and
-  WAL; database in internal storage. *Tests first (Robolectric):* `SchemaTest` vs
-  `fixtures/schema-v1.json`; constraint tests mirroring iOS `MigrationTests`; `EXPLAIN QUERY
-  PLAN` index use; paths under internal storage; `verifySqlDelightMigration` green.
-- [x] **T15 — SQL repositories** [#36] (P6, P7, P10)
-  `SqlLocationRepository`, `SqlBoxRepository` on `Dispatchers.IO`, transactional checks,
-  `CorruptRow` on unreadable rows. *Tests:* `RepositoryContract` against them; stored
-  representation (text UUIDs, expiry parts + sort key, removal kept); corrupt row reported.
+- [ ] **T14 — SQLite schema v1 (exact iOS DDL) and open helper** [#36] (P1, P2, P8)
+  Remove SQLDelight (plugin, `.sq`, `1.db`, dependencies, the `DATETIME` fixture alias);
+  `Migrations` (v1 = iOS v1 SQL verbatim), `CabinetDatabase` on `androidx.sqlite` with foreign keys
+  and WAL; database in internal storage. *Tests first (Robolectric):* `SchemaTest` vs
+  `fixtures/schema-v1.json` (exact, no alias); constraint tests mirroring iOS `MigrationTests`;
+  `EXPLAIN QUERY PLAN` index use; paths under internal storage; `MigrationsTest` (step-by-step
+  upgrade equals fresh install, downgrade refused).
+- [ ] **T15 — SQL repositories** [#36] (P6, P7, P10)
+  `SqlLocationRepository`, `SqlBoxRepository` with hand-written SQL on `Dispatchers.IO`,
+  transactional checks, `CorruptRow` on unreadable rows. *Tests:* `RepositoryContract` against
+  them; stored representation (text UUIDs, UTC text dates, expiry parts + sort key, removal kept);
+  corrupt row reported.
 - [ ] **T16 — `BackupService`** [#36] (P3)
   Detection (user_version + checkpoint), copy, naming, prune to 5. *Tests first:* new DB → no
   copy; up to date → no copy; pending → one self-contained copy that opens and holds the rows;
@@ -117,8 +120,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
   test, backup-rules test (database + `backups/` included).
 - [ ] **T22 — Coverage gate, Android version check, full gate wiring** [#37] (G1, G3, I5)
   Jacoco report for `:core` and `:app` (generated code excluded), `android-coverage-gate.py`
-  (≥ 80% lines each) + fixtures; `check-version.sh android` and `verifySqlDelightMigration` in
-  `android-local-ci.sh`; Android gate and string parity added to `local-ci.sh`.
+  (≥ 80% lines each) + fixtures; `check-version.sh android` in `android-local-ci.sh`; Android gate and string parity added to `local-ci.sh`.
 
 ## 7. Docs and wrap-up (#38)
 
