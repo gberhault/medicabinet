@@ -116,37 +116,18 @@ object CabinetRows {
         box.product.gtin?.let { ProductKey.Gtin(it) } ?: ProductKey.Name(TextNormalizer.normalize(box.product.name))
 
     private fun entry(id: ProductRowId, group: List<Pair<Box, ExpiryStatus>>, query: String): Entry? {
-        val newest = group.map { it.first }.maxWithOrNull(CREATION_ORDER)
+        val newest = group.map { it.first }.maxWithOrNull(BoxOrdering.CREATION)
         val normalizedName = newest?.let { TextNormalizer.normalize(it.product.name) }
         if (newest == null || normalizedName == null || !TextNormalizer.matchesNormalized(normalizedName, query)) {
             return null
         }
-        val ordered = group.sortedWith { left, right -> BOX_ORDER.compare(left.first, right.first) }
+        val ordered = group.sortedWith { left, right ->
+            BoxOrdering.EXPIRY_THEN_CREATION.compare(left.first, right.first)
+        }
         val mostUrgent = ordered.map { it.second }.minByOrNull { ExpiryUrgency.rank(it) } ?: ExpiryStatus.UNKNOWN
         val earliest = ordered.mapNotNull { it.first.expiry }.minOrNull()
         val row = ProductRow(id, newest.product.name, ordered.map { it.first }, mostUrgent, earliest)
-        return Entry(row, normalizedName, earliest?.sortKey, idKey(ordered.first().first))
-    }
-
-    /** Lower-case canonical string: ordered the same way as the Swift twin (never `UUID.compareTo`). */
-    private fun idKey(box: Box): String = box.id.toString().lowercase()
-
-    /** Oldest first: creation time, then id. */
-    private val CREATION_ORDER = Comparator<Box> { left, right ->
-        val byTime = left.createdAt.compareTo(right.createdAt)
-        if (byTime != 0) byTime else TextNormalizer.compare(idKey(left), idKey(right))
-    }
-
-    /** Earliest expiry first, unknown last, then creation order, then id. */
-    private val BOX_ORDER = Comparator<Box> { left, right ->
-        val leftKey = left.expiry?.sortKey
-        val rightKey = right.expiry?.sortKey
-        when {
-            leftKey != null && rightKey != null && leftKey != rightKey -> leftKey.compareTo(rightKey)
-            leftKey == null && rightKey != null -> 1
-            leftKey != null && rightKey == null -> -1
-            else -> CREATION_ORDER.compare(left, right)
-        }
+        return Entry(row, normalizedName, earliest?.sortKey, BoxOrdering.idKey(ordered.first().first))
     }
 
     private val ROW_ORDER = Comparator<Entry> { left, right ->

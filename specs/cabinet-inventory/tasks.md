@@ -46,7 +46,7 @@ iOS and Android UI blocks of each section are independent of each other.
   *Tests first:* `RemovalPolicyFixtureTests` (pure) and `ScanRemovalTests` (second pass of
   the fixture on the in-memory fake; removal uses the clock's date; undo restores).
   Needs `cabinetBoxes(gtin:)` on the fake (added here, contract check in T11).
-- [ ] **T9 — Kotlin twins** `[android]` [#21] (same)
+- [x] **T9 — Kotlin twins** `[android]` [#21] (same)
 - [x] **T10 — `BoxEdit` in both cores** `[ios]` `[android]` [#20] (B2; §3.4)
   *Tests first:* trim, 1…200, unknown expiry kept, location change; one commit per platform
   (T10a iOS, T10b Android).

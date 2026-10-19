@@ -81,6 +81,34 @@ data class CabinetRowsCase(
     override fun toString(): String = name
 }
 
+/** One case of `fixtures/scan-removal.json`. */
+@Serializable
+data class ScanRemovalCase(val name: String, val scan: Scan, val cabinet: List<FixtureBox>, val expect: Expect) {
+    @Serializable
+    data class Scan(val gtin: String, val serial: String? = null, val expiry: CabinetRowsCase.FixtureExpiry? = null)
+
+    @Serializable
+    data class FixtureBox(
+        val id: String,
+        val gtin: String,
+        val serial: String? = null,
+        val expiry: CabinetRowsCase.FixtureExpiry? = null,
+        /** `inCabinet` | `removed` | `deleted` */
+        val state: String,
+        val createdOrder: Int
+    )
+
+    @Serializable
+    data class Expect(
+        /** `remove` | `choose` | `alreadyRemoved` | `notInCabinet` */
+        val decision: String,
+        val box: String? = null,
+        val candidates: List<String>? = null
+    )
+
+    override fun toString(): String = name
+}
+
 @Serializable
 data class CabinetCaseList<T>(val formatVersion: Int, val description: String, val cases: List<T>)
 
@@ -95,3 +123,6 @@ fun SharedFixtures.locationNames(): CabinetCaseList<LocationNameCase> =
 
 fun SharedFixtures.cabinetRows(): CabinetCaseList<CabinetRowsCase> =
     cabinetFixtureJson.decodeFromString(text("cabinet-rows.json"))
+
+fun SharedFixtures.scanRemoval(): CabinetCaseList<ScanRemovalCase> =
+    cabinetFixtureJson.decodeFromString(text("scan-removal.json"))
