@@ -81,7 +81,7 @@ it cannot run the exact iOS DDL, and the user switched Android to plain SQLite �
   `fixtures/schema-v1.json` (exact, no alias); constraint tests mirroring iOS `MigrationTests`;
   `EXPLAIN QUERY PLAN` index use; paths under internal storage; `MigrationsTest` (step-by-step
   upgrade equals fresh install, downgrade refused).
-- [ ] **T15 — SQL repositories** [#36] (P6, P7, P10)
+- [x] **T15 — SQL repositories** [#36] (P6, P7, P10)
   `SqlLocationRepository`, `SqlBoxRepository` with hand-written SQL on `Dispatchers.IO`,
   transactional checks, `CorruptRow` on unreadable rows. *Tests:* `RepositoryContract` against
   them; stored representation (text UUIDs, UTC text dates, expiry parts + sort key, removal kept);
