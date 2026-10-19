@@ -2,6 +2,7 @@ package com.medicabinet.app.persistence
 
 import android.database.sqlite.SQLiteConstraintException
 import com.medicabinet.core.Box
+import com.medicabinet.core.BoxLookups
 import com.medicabinet.core.BoxRepository
 import com.medicabinet.core.Clock
 import com.medicabinet.core.RemovalReason
@@ -17,45 +18,8 @@ class SqlBoxRepository(
     private val cabinet: CabinetDatabase,
     private val clock: Clock,
     private val io: CoroutineDispatcher = Dispatchers.IO
-) : BoxRepository {
-    override suspend fun activeBoxes(): List<Box> = withContext(io) {
-        cabinet.database.query(
-            "SELECT ${Columns.BOX} FROM box WHERE removedAt IS NULL AND deletedAt IS NULL ORDER BY createdAt, id"
-        ).mapRows {
-            toBox()
-        }
-    }
-
-    override suspend fun box(id: UUID): Box? = withContext(io) {
-        cabinet.database.query(
-            "SELECT ${Columns.BOX} FROM box WHERE id = ? AND deletedAt IS NULL",
-            arrayOf(id.stored())
-        ).mapRows { toBox() }.firstOrNull()
-    }
-
-    override suspend fun box(gtin: String, serial: String): Box? = withContext(io) {
-        cabinet.database.query(
-            "SELECT ${Columns.BOX} FROM box WHERE gtin = ? AND serial = ? AND deletedAt IS NULL LIMIT 1",
-            arrayOf(gtin, serial)
-        ).mapRows { toBox() }.firstOrNull()
-    }
-
-    override suspend fun latestBox(gtin: String): Box? = withContext(io) {
-        cabinet.database.query(
-            "SELECT ${Columns.BOX} FROM box WHERE gtin = ? AND deletedAt IS NULL " +
-                "ORDER BY createdAt DESC, id DESC LIMIT 1",
-            arrayOf(gtin)
-        ).mapRows { toBox() }.firstOrNull()
-    }
-
-    override suspend fun cabinetBoxes(gtin: String): List<Box> = withContext(io) {
-        cabinet.database.query(
-            "SELECT ${Columns.BOX} FROM box WHERE gtin = ? AND removedAt IS NULL AND deletedAt IS NULL " +
-                "ORDER BY createdAt, id",
-            arrayOf(gtin)
-        ).mapRows { toBox() }
-    }
-
+) : BoxRepository,
+    BoxLookups by SqlBoxLookups(cabinet, io) {
     override suspend fun insert(box: Box): Unit = withContext(io) {
         cabinet.transaction { db ->
             if (BoxSql.exists(db, box.id)) throw RepositoryException(RepositoryError.DUPLICATE)

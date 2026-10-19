@@ -19,7 +19,10 @@ internal object BoxSql {
     }
 
     fun requireLocation(db: SupportSQLiteDatabase, box: Box) {
-        val found = db.query("SELECT 1 FROM location WHERE id = ?", arrayOf(box.locationId.stored())).use {
+        val found = db.query(
+            "SELECT 1 FROM location WHERE id = ? AND deletedAt IS NULL",
+            arrayOf(box.locationId.stored())
+        ).use {
             it.moveToFirst()
         }
         if (!found) throw RepositoryException(RepositoryError.UNKNOWN_LOCATION)

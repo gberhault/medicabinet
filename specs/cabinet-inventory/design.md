@@ -70,7 +70,7 @@ point (not UTF-16 unit, not locale collation).
 
 ### 1.5 Location deletion: tombstone + move in one write
 
-`delete(id:movingBoxesTo:)` runs in one transaction. It checks that the location is not the
+`deleteLocation(id:movingBoxesTo:)` runs in one transaction. It checks that the location is not the
 default and not already deleted, and that the destination exists and is not deleted. It
 moves the location's boxes **in the cabinet** (not removed, not deleted) to the destination,
 stamping `updatedAt`, then stamps `location.deletedAt` / `updatedAt`. Removed and deleted
@@ -374,8 +374,8 @@ extension LocationRepository {
     func cabinetBoxCount(in id: Location.ID) async throws -> Int
     /// One transaction. `.defaultLocation`; `.notFound`; `.unknownLocation` (destination missing,
     /// deleted or equal to id); `.locationNotEmpty` when boxes are in it and `destination` is nil.
-    func delete(id: Location.ID, movingBoxesTo destination: Location.ID?) async throws
-    func undoDelete(id: Location.ID) async throws                           // .notFound, .duplicateName
+    func deleteLocation(id: Location.ID, movingBoxesTo destination: Location.ID?) async throws
+    func undoDeleteLocation(id: Location.ID) async throws                   // .notFound, .duplicateName
     func observeAll() -> AsyncThrowingStream<[Location], any Error>
 }
 
@@ -496,7 +496,7 @@ android/app/src/main/kotlin/com/medicabinet/app/features/scan/   (from #12, exte
    `.duplicateSerial` → message "Impossible de restaurer : une autre boîte a ce numéro".
 5. **Delete "Voiture" holding 4 boxes**: `cabinetBoxCount` = 4 → `DeleteLocationSheet`
    (destination = default) → `delete(id, movingBoxesTo:)` (one transaction) → list
-   re-emits. An empty location → `delete(id, nil)` → **Undo** → `undoDelete`.
+   re-emits. An empty location → `deleteLocation(id, nil)` → **Undo** → `undoDeleteLocation`.
 6. **Remove by scan, serial match**: frame → debouncer → `parse` → `ScanRemoval.handle`
    (`box(gtin:serial:)` → `RemovalPolicy` → `markRemoved`) → `.removed(box)` → removal
    haptic, card with **Undo**, session list +1. Target < 300 ms.

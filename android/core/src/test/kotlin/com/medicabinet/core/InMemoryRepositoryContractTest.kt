@@ -31,7 +31,16 @@ class InMemoryRepositoryContractTest {
     @Test
     fun repositoryErrorsUseThePlatformNeutralNames() {
         assertEquals(
-            listOf("notFound", "unknownLocation", "duplicate", "duplicateDefault", "duplicateSerial"),
+            listOf(
+                "notFound",
+                "unknownLocation",
+                "duplicate",
+                "duplicateDefault",
+                "duplicateSerial",
+                "duplicateName",
+                "defaultLocation",
+                "locationNotEmpty"
+            ),
             RepositoryError.entries.map { it.rawValue }
         )
     }

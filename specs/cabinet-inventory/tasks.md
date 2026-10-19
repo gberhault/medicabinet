@@ -57,17 +57,17 @@ iOS and Android UI blocks of each section are independent of each other.
   `fixtures/schema-v3.sql`, `fixtures/schema-v3.json`; repository error names in `fixtures/README.md`.
   The new check names are appended to `repository-contract.json` in T12, together with the checks (a name
   without its check would fail both suites).
-- [ ] **T12 — Core ports, in-memory fake and contract checks** `[ios]` `[android]` (V3, V4, L2–L10, C6; §4.2)
+- [x] **T12 — Core ports, in-memory fake and contract checks** `[ios]` `[android]` (V3, V4, L2–L10, C6; §4.2)
   Port additions and `RepositoryError` cases in both cores; `InMemoryCabinetStore` gains
   location tombstones, moves, reorder, observation (`AsyncThrowingStream` / `Flow`);
   `RepositoryContract` gains the §4.2 checks. *Tests:* contract on the fake, names equal the
-  fixture list (T12a iOS, T12b Android).
-- [ ] **T13 — iOS v3 migration and GRDB repositories** `[ios]` (V1–V4, C6; §1.3, §1.5, §4)
+  fixture list (one commit: both platforms share the contract names).
+- [x] **T13 — iOS v3 migration and GRDB repositories** `[ios]` (V1–V4, C6; §1.3, §1.5, §4)
   `Migrations.v3`; `GRDBLocationRepository` / `GRDBBoxRepository` additions;
   `ValueObservation` streams. *Tests:* `SchemaFixtureTests` v3 (and v2 for a v2-only
   database), `MigrationsTests` v2 → v3 with data, contract on GRDB, bootstrap upgrade test,
   observation perf ≤ 50 ms (§8).
-- [ ] **T14 — Android v3 migration and SQL repositories** `[android]` (same; §1.3)
+- [x] **T14 — Android v3 migration and SQL repositories** `[android]` (same; §1.3)
   `Migrations.v3`; `CabinetDatabase.changes`; `SqlLocationRepository` / `SqlBoxRepository`
   additions. *Tests:* `SchemaTest` v3/v2, `MigrationsTest`, `SqlRepositoryTest` contract,
   `BootstrapTest` upgrade, "one emission per transaction", observation perf.

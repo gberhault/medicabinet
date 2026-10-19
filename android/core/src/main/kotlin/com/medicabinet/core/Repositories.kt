@@ -2,6 +2,7 @@ package com.medicabinet.core
 
 import java.time.Instant
 import java.util.UUID
+import kotlinx.coroutines.flow.Flow
 
 /** [rawValue] is the platform-neutral name shared with iOS (`fixtures/README.md`). */
 enum class RepositoryError(val rawValue: String) {
@@ -11,16 +12,65 @@ enum class RepositoryError(val rawValue: String) {
     DUPLICATE_DEFAULT("duplicateDefault"),
 
     /** Another box that is not deleted already has this GTIN and serial. */
-    DUPLICATE_SERIAL("duplicateSerial")
+    DUPLICATE_SERIAL("duplicateSerial"),
+
+    /** Another location that is not deleted has the same name once accents, case and spacing are ignored. */
+    DUPLICATE_NAME("duplicateName"),
+
+    /** The default location cannot be deleted. */
+    DEFAULT_LOCATION("defaultLocation"),
+
+    /** The location still holds boxes in the cabinet and no destination was given. */
+    LOCATION_NOT_EMPTY("locationNotEmpty")
 }
 
 class RepositoryException(val error: RepositoryError, cause: Throwable? = null) : Exception(error.rawValue, cause)
 
 /**
+ * What the user does with the list of locations: add, rename, reorder, choose the default, delete and undo.
+ * Locations that are *deleted* (tombstoned by [deleteLocation]) are invisible to every operation of the repositories,
+ * except [undoDeleteLocation]. A role interface of [LocationRepository] (the detekt limit on functions per interface).
+ */
+interface LocationEditing {
+    /**
+     * Adds a location after the others. The name is validated by `LocationName`: throws `LocationNameException`
+     * (empty, too long) or [RepositoryError.DUPLICATE_NAME].
+     */
+    suspend fun create(name: String): Location
+
+    /** Throws [RepositoryError.NOT_FOUND] (unknown or deleted), [RepositoryError.DUPLICATE_NAME], or the name error. */
+    suspend fun rename(id: UUID, name: String)
+
+    /**
+     * [ids] must be exactly the locations that are not deleted, in the wanted order (else
+     * [RepositoryError.NOT_FOUND]); `sortOrder` becomes the index. Only locations whose position changed are stamped.
+     */
+    suspend fun reorder(ids: List<UUID>)
+
+    /** Throws [RepositoryError.NOT_FOUND]. Afterwards exactly one location is the default. */
+    suspend fun setDefault(id: UUID)
+
+    /**
+     * Tombstones the location and, in the same transaction, moves its boxes in the cabinet to [movingBoxesTo].
+     * Removed and deleted boxes keep pointing at it. Throws [RepositoryError.NOT_FOUND] (unknown or already
+     * deleted), [RepositoryError.DEFAULT_LOCATION], [RepositoryError.UNKNOWN_LOCATION] (destination missing,
+     * deleted or the location itself), [RepositoryError.LOCATION_NOT_EMPTY] (boxes in the cabinet and no
+     * destination).
+     */
+    suspend fun deleteLocation(id: UUID, movingBoxesTo: UUID?)
+
+    /**
+     * Restores a deleted location in its former place. Throws [RepositoryError.NOT_FOUND] when it is not deleted
+     * and [RepositoryError.DUPLICATE_NAME] when its name was taken meanwhile.
+     */
+    suspend fun undoDeleteLocation(id: UUID)
+}
+
+/**
  * Repositories stamp `updatedAt` from their injected [Clock] on every write after insert;
  * callers never set it.
  */
-interface LocationRepository {
+interface LocationRepository : LocationEditing {
     /** Ordered by `sortOrder`, then name. */
     suspend fun all(): List<Location>
 
@@ -34,14 +84,16 @@ interface LocationRepository {
 
     /** Returns the default location, creating it with [name] when none exists. Idempotent. */
     suspend fun ensureDefault(name: String): Location
+
+    /** Boxes in the cabinet (not removed, not deleted) in this location; 0 for an unknown location. */
+    suspend fun cabinetBoxCount(id: UUID): Int
+
+    /** The locations (as [all]) now, then after every change. */
+    fun observeAll(): Flow<List<Location>>
 }
 
-/**
- * A *deleted* box is one added by mistake (never used up or thrown away): kept as a tombstone for the future
- * sync and export, and invisible to every operation below except [undoDelete]. A *removed* box is a stock
- * movement and stays visible to [box].
- */
-interface BoxRepository {
+/** The reads of [BoxRepository] (a role interface: the detekt limit on functions per interface). */
+interface BoxLookups {
     /** Boxes still in the cabinet (`removal == null`, not deleted). */
     suspend fun activeBoxes(): List<Box>
 
@@ -57,10 +109,20 @@ interface BoxRepository {
     /** Boxes in the cabinet (not removed, not deleted) with this GTIN, oldest first (`createdAt`, then id). */
     suspend fun cabinetBoxes(gtin: String): List<Box>
 
+    /** The boxes in the cabinet (as [activeBoxes]) now, then after every change. */
+    fun observeCabinet(): Flow<List<Box>>
+}
+
+/**
+ * A *deleted* box is one added by mistake (never used up or thrown away): kept as a tombstone for the future
+ * sync and export, and invisible to every operation below except [undoDelete]. A *removed* box is a stock
+ * movement and stays visible to [box].
+ */
+interface BoxRepository : BoxLookups {
     /**
      * Throws [RepositoryError.DUPLICATE] for a known id (deleted or not), [RepositoryError.UNKNOWN_LOCATION] for a
-     * missing location and [RepositoryError.DUPLICATE_SERIAL] when another non-deleted box has the same GTIN and
-     * serial.
+     * missing or deleted location and [RepositoryError.DUPLICATE_SERIAL] when another non-deleted box has the same
+     * GTIN and serial.
      */
     suspend fun insert(box: Box)
 

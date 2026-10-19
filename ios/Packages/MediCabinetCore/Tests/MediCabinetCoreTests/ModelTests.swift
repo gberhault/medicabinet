@@ -60,6 +60,8 @@ import MediCabinetCoreTestSupport
         let names = RemovalReason.allCases.map(\.rawValue) + ExpiryStatus.allCases.map(\.rawValue)
             + [CategoryID.uncategorized.rawValue, "invalidYear", "invalidMonth", "invalidDay"]
             + ["notFound", "unknownLocation", "duplicate", "duplicateDefault", "duplicateSerial"]
+            + ["duplicateName", "defaultLocation", "locationNotEmpty", "emptyName", "nameTooLong"]
+            + ["remove", "choose", "alreadyRemoved", "notInCabinet"]
             + ["invalidName", "invalidCode", "add", "complete", "confirmAnother", "alreadyInCabinet", "removedEarlier"]
         for name in names {
             #expect(readme.contains("`\(name)`"), "fixtures/README.md does not list `\(name)`")

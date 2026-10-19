@@ -70,6 +70,42 @@
     },
     {
       "name": "cabinetBoxes returns only boxes in the cabinet with that gtin, oldest first"
+    },
+    {
+      "name": "deleted locations disappear from all and defaultLocation"
+    },
+    {
+      "name": "create places a location last and rejects a normalized duplicate name"
+    },
+    {
+      "name": "rename rejects a duplicate name and allows a case change of its own name"
+    },
+    {
+      "name": "reorder sets sortOrder and rejects an incomplete id list"
+    },
+    {
+      "name": "setDefault leaves exactly one default"
+    },
+    {
+      "name": "the default location cannot be deleted"
+    },
+    {
+      "name": "deleting a location with cabinet boxes needs a destination"
+    },
+    {
+      "name": "delete moving boxes moves only boxes in the cabinet and tombstones the location"
+    },
+    {
+      "name": "undoDelete restores an empty deleted location unless its name was taken"
+    },
+    {
+      "name": "boxes cannot be inserted into or moved to a deleted location"
+    },
+    {
+      "name": "observeCabinet emits after each write and excludes removed and deleted boxes"
+    },
+    {
+      "name": "observeAll emits after location changes"
     }
   ]
 }
