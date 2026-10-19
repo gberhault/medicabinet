@@ -90,7 +90,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
 
 ## 4. Android app (#11, #7)
 
-- [ ] **T12 — Assets and installer** `[android]` [#11] (L8, X2; §1.5, §9)
+- [x] **T12 — Assets and installer** `[android]` [#11] (L8, X2; §1.5, §9)
   Assets source `../../reference-data/bundle` in `app/build.gradle.kts` (AGP 9 DSL);
   `ReferenceAssets`, `ReferenceInstaller`. *Tests first (Robolectric):* first install, unchanged
   hash skips the copy, changed hash replaces, fault-injected interrupted copy leaves no file and

@@ -28,4 +28,5 @@ with tempfile.TemporaryDirectory() as work:
     taxonomy = build.load_taxonomy(ROOT / "fixtures" / "categories.json")
     database = sample.build_sample(build, taxonomy, HERE / "reference-data" / "sample-rules.json", work)
     shutil.copyfile(database, ROOT / "fixtures" / "reference-sample.sqlite")
-print("wrote fixtures/reference-sample.sqlite")
+    shutil.copyfile(database.parent / build.MANIFEST_NAME, ROOT / "fixtures" / "reference-sample-manifest.json")
+print("wrote fixtures/reference-sample.sqlite and fixtures/reference-sample-manifest.json")

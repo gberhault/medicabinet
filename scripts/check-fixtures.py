@@ -7,6 +7,9 @@ import json
 import pathlib
 import sys
 
+# Build manifests (reference-sample-manifest.json) are generated output in the build script's own format, not case lists.
+MANIFEST_SUFFIX = "-manifest.json"
+
 
 def check(path):
     problems = []
@@ -35,7 +38,7 @@ def check(path):
 
 
 def main(argv):
-    paths = argv or sorted(str(p) for p in pathlib.Path("fixtures").glob("*.json"))
+    paths = argv or sorted(str(p) for p in pathlib.Path("fixtures").glob("*.json") if not p.name.endswith(MANIFEST_SUFFIX))
     if not paths:
         print("no fixtures found", file=sys.stderr)
         return 1

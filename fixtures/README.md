@@ -23,6 +23,7 @@ Every file is JSON with:
 | `categories.json` | the category taxonomy in display order; which categories the reference-data build may assign and which the user may pick |
 | `reference-lookup.json` | GTIN → CIP13 conversion (both cores) and product lookup against the sample database (both apps): name, category, unknown, withdrawn, malformed input |
 | `reference-sample.sqlite` | a small reference database (reference schema v1) built by `scripts/tests/write-reference-sample.py` from invented BDPM-shaped files; the app lookup tests open it |
+| `reference-sample-manifest.json` | the manifest of the sample database (same format as `reference-data/bundle/reference-manifest.json`): the Android installer tests copy and verify the sample against it |
 | `schema-v1.sql` | the exact v1 DDL both platforms run (each platform's test compares its own copy, ignoring whitespace and `--` comments) |
 | `schema-v1.json` | the tables, columns and indexes every platform's database v1 must have |
 | `repository-contract.json` | names of the repository contract checks both platforms run (the checks themselves are code) |

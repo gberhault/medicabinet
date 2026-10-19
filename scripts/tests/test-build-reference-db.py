@@ -703,6 +703,12 @@ class CommittedDataTests(TempDirCase):
                          build.content_sha256(*build.read_database(committed)),
                          "run python3 -I scripts/tests/write-reference-sample.py")
 
+    def test_the_committed_sample_manifest_matches_a_fresh_build(self):
+        fresh = sample.build_sample(build, TAXONOMY, SAMPLE_RULES, self.tmp)
+        self.assertEqual((fresh.parent / build.MANIFEST_NAME).read_bytes(),
+                         (ROOT / "fixtures" / "reference-sample-manifest.json").read_bytes(),
+                         "run python3 -I scripts/tests/write-reference-sample.py")
+
     def test_the_sample_has_a_withdrawn_product(self):
         rows = build.read_database(ROOT / "fixtures" / "reference-sample.sqlite")[2]
         self.assertEqual({c for c, r in rows.items() if r.withdrawn_since}, {sample.cip13(10)})

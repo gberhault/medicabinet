@@ -33,6 +33,10 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        // The BDPM reference database and its manifest, bundled once for both apps from reference-data/bundle.
+        getByName("main").assets.directories.add("../../reference-data/bundle")
+    }
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
