@@ -52,7 +52,7 @@ struct AppDatabase: Sendable {
         return (try migrate(pool), directory)
     }
 
-    private static func protect(_ url: URL, fileManager: FileManager) throws {
+    static func protect(_ url: URL, fileManager: FileManager) throws {
         try fileManager.setAttributes([.protectionKey: fileProtection], ofItemAtPath: url.path)
     }
 }
