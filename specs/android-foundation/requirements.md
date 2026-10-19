@@ -1,6 +1,6 @@
 # Android foundation — Requirements
 
-Status: **Draft — awaiting approval**
+Status: **Approved 2026-10-19**
 Epic: #31 · Children: #32 – #38 · Branch: `android/feature/31-android-foundation`
 
 ## Introduction
@@ -181,11 +181,9 @@ tested in seconds without an emulator.*
 - Android tablets / foldables layout; Wear OS.
 - GitHub Actions (local CI only, as on iOS).
 
-## Open questions (to answer before approval)
+## Resolved questions (approved 2026-10-19)
 
-1. **Fallback language** — proposed French in the default `values/` folder, like iOS (French
-   is the development language there): a phone set to German would show French on both
-   platforms. Alternative: English as fallback on both. Which one?
-2. **Minimum Android version** — proposed Android 8.0 (API 26), same as Riding. OK?
-3. **Distribution** — proposed debug APK attached to the GitHub release for sideloading, like
-   Riding; Play internal testing later. OK?
+1. **Fallback language** — French in the default `values/` folder, like iOS.
+2. **Minimum Android version** — Android 8.0 (API 26), same as Riding.
+3. **Distribution** — debug APK attached to the GitHub release for sideloading; Play internal
+   testing later.
