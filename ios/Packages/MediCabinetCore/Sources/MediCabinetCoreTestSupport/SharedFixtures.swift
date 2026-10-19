@@ -206,6 +206,21 @@ private struct CaseList<Element: Decodable>: Decodable {
     let cases: [Element]
 }
 
+/// One case of `fixtures/archive-code-points.json`.
+public struct ArchiveCodePointCase: Decodable, Sendable, CustomStringConvertible {
+    public let name: String
+    public let text: String
+    public let codePoints: Int
+
+    public var description: String { name }
+}
+
+public struct ArchiveCodePointFixture: Decodable, Sendable {
+    public let formatVersion: Int
+    public let description: String
+    public let cases: [ArchiveCodePointCase]
+}
+
 /// A fixture file that is only a list of named cases.
 private struct NamedCases: Decodable {
     let cases: [NamedCase]
@@ -238,6 +253,14 @@ public enum SharedFixtures {
 
     public static func gs1Datamatrix() throws -> GS1Fixture {
         try JSONDecoder().decode(GS1Fixture.self, from: data("gs1-datamatrix.json"))
+    }
+
+    public static func archiveCodePoints() throws -> ArchiveCodePointFixture {
+        try JSONDecoder().decode(ArchiveCodePointFixture.self, from: data("archive-code-points.json"))
+    }
+
+    public static func archiveCodePointCases() -> [ArchiveCodePointCase] {
+        (try? archiveCodePoints().cases) ?? []
     }
 
     /// Names of the repository contract checks, in order (`fixtures/repository-contract.json`).

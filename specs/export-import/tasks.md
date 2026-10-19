@@ -31,7 +31,7 @@ independent of each other.
   `fixtures/archive/**/*.medicabinet` (+ self-test case). Broken copies for
   `test-shared-fixtures-break.sh`. *Test:* `check-fixtures.py` green, its self-test fails on
   the broken copies.
-- [ ] **T2 — Strict JSON reader, canonical writer, dates, code points (Swift)** `[ios]` [#27] (V4, F8; §1.1, §2.3, §2.4)
+- [x] **T2 — Strict JSON reader, canonical writer, dates, code points (Swift)** `[ios]` [#27] (V4, F8; §1.1, §2.3, §2.4)
   Internal `JSONReader` (pull tokenizer: UTF-8 checks, BOM, depth, string bytes, Int64,
   duplicate keys, trailing data), `CanonicalJSONWriter`, `ArchiveDates`, `CodePoints` in
   `MediCabinetCore/Archive/`. *Tests first:* reader and writer unit tests,
