@@ -47,7 +47,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
 - [x] **T7 — Android architecture checker** [#37] (G4, G5, K1, P6)
   `scripts/android-check-architecture.py` with the five rules of design §7; fixtures under
   `scripts/tests/android-architecture/` (one failing file per rule + a clean one).
-- [ ] **T8 — detekt and ktlint** [#37] (G1)
+- [x] **T8 — detekt and ktlint** [#37] (G1)
   `config/detekt.yml`, empty baselines, ktlint Gradle plugin. *Test:* both green; a
   formatting fixture fails ktlint.
 - [ ] **T9 — `android-local-ci.sh` (first version)** [#37] (G1 partial, G2)
