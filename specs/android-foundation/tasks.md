@@ -22,7 +22,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
 - [x] **T2 — Per-product versions and changelogs** [#32] (M5)
   `CHANGELOG.md` → `ios/CHANGELOG.md`; `check-version.sh <ios|android>`; fixtures for both
   products. *Test:* gate fixtures (match, mismatch, missing entry, unknown product).
-- [ ] **T3 — Shared expiry fixture and Swift loader** [#33] (S1–S5)
+- [x] **T3 — Shared expiry fixture and Swift loader** [#33] (S1–S5)
   `fixtures/README.md`, `fixtures/expiry-dates.json` (all current Swift cases),
   `scripts/check-fixtures.py` + fixture test; `SharedFixtures` in
   `MediCabinetCoreTestSupport`; `ExpiryDateFixtureTests` (one case per fixture entry).

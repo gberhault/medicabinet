@@ -47,6 +47,9 @@ bash "$ROOT/scripts/check-version.sh" ios
 bash "$ROOT/scripts/tests/test-check-version.sh"
 bash "$ROOT/scripts/tests/ios-test-gates.sh"
 
+step "shared fixtures: a wrong fixture fails the Swift suite"
+bash "$ROOT/scripts/tests/test-shared-fixtures-break.sh" ios
+
 step "MediCabinetCore tests"
 (cd Packages/MediCabinetCore && swift test --enable-code-coverage)
 

@@ -2,6 +2,15 @@ public enum ExpiryDateError: Error, Equatable, Sendable {
     case invalidYear(Int)
     case invalidMonth(Int)
     case invalidDay(Int, month: Int, year: Int)
+
+    /// Platform-neutral name, shared with the Android app and `fixtures/expiry-dates.json`.
+    public var kind: String {
+        switch self {
+        case .invalidYear: "invalidYear"
+        case .invalidMonth: "invalidMonth"
+        case .invalidDay: "invalidDay"
+        }
+    }
 }
 
 /// The expiry printed on a box: day-precise, or month-precise when the day is unknown

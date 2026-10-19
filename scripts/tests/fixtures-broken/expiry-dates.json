@@ -1,0 +1,370 @@
+{
+  "formatVersion": 1,
+  "description": "Expiry date validation and derived values. year/month/day are the inputs (day null = month precision, GS1 DD=00). expect is either {lastValidDay, sortKey, monthPrecision} or {error: invalidYear|invalidMonth|invalidDay}. Validation order: year, then month, then day. Supported years: 2000...2099.",
+  "cases": [
+    {
+      "name": "day precision keeps its day",
+      "year": 2027,
+      "month": 3,
+      "day": 15,
+      "expect": {
+        "lastValidDay": 16,
+        "sortKey": "2027-03-15",
+        "monthPrecision": false
+      }
+    },
+    {
+      "name": "month precision ends on the last day of the month",
+      "year": 2027,
+      "month": 4,
+      "day": null,
+      "expect": {
+        "lastValidDay": 30,
+        "sortKey": "2027-04-30",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "month length 2027-01",
+      "year": 2027,
+      "month": 1,
+      "day": null,
+      "expect": {
+        "lastValidDay": 31,
+        "sortKey": "2027-01-31",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "month length 2027-02",
+      "year": 2027,
+      "month": 2,
+      "day": null,
+      "expect": {
+        "lastValidDay": 28,
+        "sortKey": "2027-02-28",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "month length 2027-03",
+      "year": 2027,
+      "month": 3,
+      "day": null,
+      "expect": {
+        "lastValidDay": 31,
+        "sortKey": "2027-03-31",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "month length 2027-04",
+      "year": 2027,
+      "month": 4,
+      "day": null,
+      "expect": {
+        "lastValidDay": 30,
+        "sortKey": "2027-04-30",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "month length 2027-05",
+      "year": 2027,
+      "month": 5,
+      "day": null,
+      "expect": {
+        "lastValidDay": 31,
+        "sortKey": "2027-05-31",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "month length 2027-06",
+      "year": 2027,
+      "month": 6,
+      "day": null,
+      "expect": {
+        "lastValidDay": 30,
+        "sortKey": "2027-06-30",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "month length 2027-07",
+      "year": 2027,
+      "month": 7,
+      "day": null,
+      "expect": {
+        "lastValidDay": 31,
+        "sortKey": "2027-07-31",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "month length 2027-08",
+      "year": 2027,
+      "month": 8,
+      "day": null,
+      "expect": {
+        "lastValidDay": 31,
+        "sortKey": "2027-08-31",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "month length 2027-09",
+      "year": 2027,
+      "month": 9,
+      "day": null,
+      "expect": {
+        "lastValidDay": 30,
+        "sortKey": "2027-09-30",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "month length 2027-10",
+      "year": 2027,
+      "month": 10,
+      "day": null,
+      "expect": {
+        "lastValidDay": 31,
+        "sortKey": "2027-10-31",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "month length 2027-11",
+      "year": 2027,
+      "month": 11,
+      "day": null,
+      "expect": {
+        "lastValidDay": 30,
+        "sortKey": "2027-11-30",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "month length 2027-12",
+      "year": 2027,
+      "month": 12,
+      "day": null,
+      "expect": {
+        "lastValidDay": 31,
+        "sortKey": "2027-12-31",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "leap year February is month precision 29",
+      "year": 2028,
+      "month": 2,
+      "day": null,
+      "expect": {
+        "lastValidDay": 29,
+        "sortKey": "2028-02-29",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "leap year February 29 is a valid day",
+      "year": 2028,
+      "month": 2,
+      "day": 29,
+      "expect": {
+        "lastValidDay": 29,
+        "sortKey": "2028-02-29",
+        "monthPrecision": false
+      }
+    },
+    {
+      "name": "year 2000 is a leap year",
+      "year": 2000,
+      "month": 2,
+      "day": null,
+      "expect": {
+        "lastValidDay": 29,
+        "sortKey": "2000-02-29",
+        "monthPrecision": true
+      }
+    },
+    {
+      "name": "lowest supported date",
+      "year": 2000,
+      "month": 1,
+      "day": 1,
+      "expect": {
+        "lastValidDay": 1,
+        "sortKey": "2000-01-01",
+        "monthPrecision": false
+      }
+    },
+    {
+      "name": "highest supported date",
+      "year": 2099,
+      "month": 12,
+      "day": 31,
+      "expect": {
+        "lastValidDay": 31,
+        "sortKey": "2099-12-31",
+        "monthPrecision": false
+      }
+    },
+    {
+      "name": "sort key is zero padded",
+      "year": 2027,
+      "month": 3,
+      "day": 5,
+      "expect": {
+        "lastValidDay": 5,
+        "sortKey": "2027-03-05",
+        "monthPrecision": false
+      }
+    },
+    {
+      "name": "February 29 in a common year",
+      "year": 2027,
+      "month": 2,
+      "day": 29,
+      "expect": {
+        "error": "invalidDay"
+      }
+    },
+    {
+      "name": "April 31",
+      "year": 2027,
+      "month": 4,
+      "day": 31,
+      "expect": {
+        "error": "invalidDay"
+      }
+    },
+    {
+      "name": "day 0 in January",
+      "year": 2027,
+      "month": 1,
+      "day": 0,
+      "expect": {
+        "error": "invalidDay"
+      }
+    },
+    {
+      "name": "day 32 in January",
+      "year": 2027,
+      "month": 1,
+      "day": 32,
+      "expect": {
+        "error": "invalidDay"
+      }
+    },
+    {
+      "name": "day -3 in January",
+      "year": 2027,
+      "month": 1,
+      "day": -3,
+      "expect": {
+        "error": "invalidDay"
+      }
+    },
+    {
+      "name": "month 0",
+      "year": 2027,
+      "month": 0,
+      "day": null,
+      "expect": {
+        "error": "invalidMonth"
+      }
+    },
+    {
+      "name": "month 13",
+      "year": 2027,
+      "month": 13,
+      "day": null,
+      "expect": {
+        "error": "invalidMonth"
+      }
+    },
+    {
+      "name": "month -1",
+      "year": 2027,
+      "month": -1,
+      "day": null,
+      "expect": {
+        "error": "invalidMonth"
+      }
+    },
+    {
+      "name": "month 99",
+      "year": 2027,
+      "month": 99,
+      "day": null,
+      "expect": {
+        "error": "invalidMonth"
+      }
+    },
+    {
+      "name": "year 1999 is outside 2000...2099",
+      "year": 1999,
+      "month": 6,
+      "day": null,
+      "expect": {
+        "error": "invalidYear"
+      }
+    },
+    {
+      "name": "year 2100 is outside 2000...2099",
+      "year": 2100,
+      "month": 6,
+      "day": null,
+      "expect": {
+        "error": "invalidYear"
+      }
+    },
+    {
+      "name": "year 0 is outside 2000...2099",
+      "year": 0,
+      "month": 6,
+      "day": null,
+      "expect": {
+        "error": "invalidYear"
+      }
+    },
+    {
+      "name": "year -5 is outside 2000...2099",
+      "year": -5,
+      "month": 6,
+      "day": null,
+      "expect": {
+        "error": "invalidYear"
+      }
+    },
+    {
+      "name": "year 27 is outside 2000...2099",
+      "year": 27,
+      "month": 6,
+      "day": null,
+      "expect": {
+        "error": "invalidYear"
+      }
+    },
+    {
+      "name": "year is checked before month",
+      "year": 1999,
+      "month": 13,
+      "day": null,
+      "expect": {
+        "error": "invalidYear"
+      }
+    },
+    {
+      "name": "month is checked before day",
+      "year": 2027,
+      "month": 13,
+      "day": 40,
+      "expect": {
+        "error": "invalidMonth"
+      }
+    }
+  ]
+}
