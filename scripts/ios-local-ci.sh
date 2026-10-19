@@ -53,6 +53,7 @@ bash "$ROOT/scripts/tests/test-shared-fixtures-break.sh" ios
 step "MediCabinetCore tests"
 (cd Packages/MediCabinetCore && swift test --enable-code-coverage)
 
+# Serial: parallel simulator clones were killed (signal kill) once the UI suite grew to a dozen camera-less scan flows.
 step "app unit + UI tests (simulator)"
 DEST_ID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ && /Booted/ {print $2; exit}')"
 if [[ -z "${DEST_ID:-}" ]]; then
@@ -66,6 +67,7 @@ rm -rf build/ci.xcresult
 xcodebuild -project MediCabinet.xcodeproj -scheme MediCabinet \
   -destination "platform=iOS Simulator,id=$DEST_ID" \
   -enableCodeCoverage YES -resultBundlePath build/ci.xcresult \
+  -parallel-testing-enabled NO \
   test -quiet
 
 step "coverage gate (>= 80% lines: core and app)"
