@@ -1,0 +1,49 @@
+included:
+  - MediCabinet
+  - MediCabinetTests
+  - MediCabinetUITests
+  - Packages/MediCabinetCore/Sources
+  - Packages/MediCabinetCore/Tests
+
+excluded:
+  - .build
+  - build
+  - scripts
+  - "**/.build"
+
+opt_in_rules:
+  - force_unwrapping
+
+line_length:
+  warning: 140
+  error: 200
+
+# Custom rules are regex-based: they also match comments and string literals, so a doc
+# comment that names a forbidden symbol triggers them. Rephrase the comment or, for a
+# justified exception, use `// swiftlint:disable:next <rule_id>` with a reason.
+custom_rules:
+  core_forbidden_imports:
+    name: "Forbidden import in MediCabinetCore"
+    message: "MediCabinetCore is pure Swift: no UIKit, SwiftUI, VisionKit or GRDB."
+    regex: '^\s*(@\w+\s+)?import\s+(UIKit|SwiftUI|VisionKit|GRDB)\b'
+    included: 'Packages/MediCabinetCore/Sources/.*\.swift'
+    severity: error
+  core_no_wall_clock:
+    name: "Wall clock in MediCabinetCore"
+    message: "Use the injected Clock instead of Date() / Date.now in domain code."
+    regex: '\bDate\(\)|\bDate\.now\b'
+    included: 'Packages/MediCabinetCore/Sources/.*\.swift'
+    severity: error
+  grdb_confined_to_persistence:
+    name: "GRDB outside Persistence"
+    message: "import GRDB is only allowed under MediCabinet/Sources/Persistence/."
+    regex: '^\s*(@\w+\s+)?import\s+GRDB\b'
+    included: 'MediCabinet/Sources/.*\.swift'
+    excluded: 'MediCabinet/Sources/Persistence/'
+    severity: error
+  no_network:
+    name: "Network API"
+    message: "The app makes no network request. A feature that needs one must amend this rule in its spec."
+    regex: '\bURLSession\b|\bURLRequest\b|^\s*import\s+Network\b'
+    included: '(Packages/MediCabinetCore/Sources|MediCabinet/Sources)/.*\.swift'
+    severity: error

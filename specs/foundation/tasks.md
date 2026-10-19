@@ -22,7 +22,7 @@ for them to measure (T15–T16).
   exactly, core linked. Minimal `MediCabinetApp` with a placeholder view.
   *Test:* `xcodegen generate && xcodebuild build` on a simulator **without**
   `Signing.local.xcconfig`; one unit + one UI smoke test.
-- [ ] **T3 — SwiftLint config, custom rules and `lint.sh`** [#5] (R2.5, R3.1, R3.7, R4.5)
+- [x] **T3 — SwiftLint config, custom rules and `lint.sh`** [#5] (R2.5, R3.1, R3.7, R4.5)
   `.swiftlint.yml` with custom rules: no UIKit/SwiftUI/VisionKit/GRDB import in core,
   no `Date()` in core `Sources/`, `import GRDB` only under `Persistence/`, no
   `URLSession` / `URLRequest` / `import Network` anywhere; empty baseline.
