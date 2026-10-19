@@ -71,6 +71,8 @@ targets:
     dependencies:
       - target: MediCabinet
       - package: MediCabinetCore
+      - package: MediCabinetCore
+        product: MediCabinetCoreTestSupport
       - package: GRDB
     settings:
       base:

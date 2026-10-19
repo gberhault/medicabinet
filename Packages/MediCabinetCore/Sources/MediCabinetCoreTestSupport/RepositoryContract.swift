@@ -45,15 +45,17 @@ public enum RepositoryContract {
         if !condition { throw ContractFailure(description: message) }
     }
 
-    private static func expect(_ error: RepositoryError, from work: () async throws -> Void) async throws {
+    /// Matches by type and case description rather than `as RepositoryError`: when the app and
+    /// its test bundle each link a static copy of the core, the two copies' types are distinct
+    /// at runtime and dynamic casts between them fail.
+    private static func expect(_ expected: RepositoryError, from work: () async throws -> Void) async throws {
         do {
             try await work()
-        } catch let thrown as RepositoryError where thrown == error {
-            return
         } catch {
-            throw ContractFailure(description: "expected \(error) but got a different error")
+            if String(reflecting: error) == String(reflecting: expected) { return }
+            throw ContractFailure(description: "expected \(expected) but got \(error)")
         }
-        throw ContractFailure(description: "expected \(error) but nothing was thrown")
+        throw ContractFailure(description: "expected \(expected) but nothing was thrown")
     }
 
     private static func expectAnyError(from work: () async throws -> Void) async throws {

@@ -55,7 +55,7 @@ for them to measure (T15–T16).
   (design §4). *Tests first:* `MigrationTests` (tables, indexes, every CHECK and the
   single-default index reject bad rows), `AppDatabaseTests` (file protection attribute),
   `EXPLAIN QUERY PLAN` index-use test for active boxes and GTIN lookup.
-- [ ] **T10 — GRDB repositories** [#4] (R4.5–R4.7, R6.1, R6.2)
+- [x] **T10 — GRDB repositories** [#4] (R4.5–R4.7, R6.1, R6.2)
   Records + `GRDBLocationRepository`, `GRDBBoxRepository` (`ensureDefault`, `markRemoved`,
   `undoRemoval`, `updatedAt` from the clock). *Tests:* T8 contract suite against GRDB on a
   temp DB; `ensureDefault` idempotent; second default rejected.
