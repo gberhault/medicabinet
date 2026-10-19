@@ -31,7 +31,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
   condition key, ordering (eye route beats antihistamine, pseudoephedrine beats paracetamol,
   ATC `B01` beats aspirin, topical NSAID beats skin), no match → `uncategorized`, every invalid
   rules file of §4.4 fails, `first-aid` refused.
-- [ ] **T4 — Merge, database, manifest, report** `[shared]` [#9] (B2, B7–B11; §3, §4.3, §4.6)
+- [x] **T4 — Merge, database, manifest, report** `[shared]` [#9] (B2, B7–B11; §3, §4.3, §4.6)
   Reference schema v1 DDL, `user_version`, meta, canonical content and `contentSha256`, sorted
   manifest, report, atomic output, size budget. *Tests first:* first build; second snapshot
   withdraws, reinstates, renames, recategorizes; `withdrawnSince` kept on a third build; older

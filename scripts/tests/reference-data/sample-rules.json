@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "rulesVersion": 1,
+  "description": "Small rules file for the sample snapshot of scripts/tests/reference_sample.py, so fixtures/reference-sample.sqlite does not change when the real rules do.",
+  "rules": [
+    { "name": "homeopathy", "when": { "procedureAny": ["HOMEO"] }, "category": "other" },
+    { "name": "eye", "when": { "routesAny": ["ophtalmique"] }, "category": "eyes" },
+    { "name": "nose", "when": { "routesAny": ["nasale"] }, "category": "cold-ent" },
+    { "name": "long-term", "when": { "atcAny": ["B01"] }, "category": "other" },
+    { "name": "topical-muscle", "when": { "routesAny": ["cutanée"], "substancesAny": ["diclofénac"] }, "category": "muscles-joints" },
+    { "name": "skin", "when": { "routesAny": ["cutanée"] }, "category": "skin-wound" },
+    { "name": "cold", "when": { "substancesAny": ["pseudoéphédrine"] }, "category": "cold-ent" },
+    { "name": "pain", "when": { "substancesAny": ["paracétamol", "ibuprofène"] }, "category": "pain-fever" },
+    { "name": "digestion", "when": { "substancesAny": ["diosmectite", "lopéramide"] }, "category": "digestion" }
+  ]
+}
