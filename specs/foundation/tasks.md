@@ -50,7 +50,7 @@ for them to measure (T15–T16).
 
 ## 3. Persistence (#4)
 
-- [ ] **T9 — `AppDatabase` and migration `v1`** [#4] (R4.1, R4.2, R4.4)
+- [x] **T9 — `AppDatabase` and migration `v1`** [#4] (R4.1, R4.2, R4.4)
   Pool creation, directory + `completeUntilFirstUserAuthentication`, `v1` schema and indexes
   (design §4). *Tests first:* `MigrationTests` (tables, indexes, every CHECK and the
   single-default index reject bad rows), `AppDatabaseTests` (file protection attribute),

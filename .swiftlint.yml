@@ -18,6 +18,8 @@ identifier_name:
   excluded:
     - id
     - ok  # ExpiryStatus.ok — the term used throughout the spec
+    - db  # GRDB's conventional database parameter name
+    - v1  # migration identifiers
 
 line_length:
   warning: 140

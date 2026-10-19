@@ -248,6 +248,8 @@ CREATE TABLE box (
   createdAt          DATETIME NOT NULL,
   updatedAt          DATETIME NOT NULL,
   CHECK ((expiryYear IS NULL) = (expiryMonth IS NULL)),
+  CHECK ((expiryYear IS NULL) = (expirySortKey IS NULL)),
+  CHECK (expiryDay IS NULL OR expiryYear IS NOT NULL),
   CHECK ((removalReason IS NULL) = (removedAt IS NULL))
 );
 CREATE INDEX box_gtin       ON box(gtin);
@@ -318,7 +320,7 @@ The scan path, reference data and import/export do not exist yet.
 | R3.7 | `FixedClock` used in all time-dependent tests; lint custom rule forbids `Date()` in core `Sources/` | unit + lint |
 | R4.1, R4.2 | `MigrationTests`: fresh temp DB → tables, columns, indexes exist; constraints reject invalid rows (bad month, lone removal date, second default) | integration |
 | R4.3 | `BootstrapTests`: injected failing migration → state `.failed(.migration)`, DB identical to before (checksum), backup restored | integration |
-| R4.4 | `AppDatabaseTests`: file protection attribute set on created files (device-independent attribute check) | integration |
+| R4.4 | `AppDatabaseTests`: a recording `FileManager` proves the directory and DB files are given `completeUntilFirstUserAuthentication` (the simulator does not expose Data Protection — the attribute reads back nil); a read-back test runs on a real device only (`#if !targetEnvironment(simulator)`) | integration |
 | R4.5 | Lint custom rule: `import GRDB` only allowed under `Persistence/` | lint |
 | R4.6 | `BootstrapTests`: work asserted off main actor | unit |
 | R4.7 | `GRDBBoxRepositoryTests`: markRemoved hides from `activeBoxes()`, `undoRemoval` restores | integration |
