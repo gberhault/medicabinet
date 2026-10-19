@@ -1,6 +1,6 @@
 # Reference data and automatic classification — Tasks
 
-Status: **Draft for review**
+Status: **Approved 2026-10-19**
 Epic: #7 · Branch: `feature/7-reference-data`
 
 One task = one focused commit (code + tests + this file checked off). Tags: `[shared]`,

@@ -1,6 +1,6 @@
 # Reference data and automatic classification — Design
 
-Status: **Draft for review**
+Status: **Approved 2026-10-19**
 Epic: #7 · Requirements: [`requirements.md`](requirements.md) (approved 2026-10-19)
 
 How the BDPM files become one read-only database bundled by both apps, how the build
