@@ -23,7 +23,7 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
   table, duplicated AI), `GS1ParserFuzzTests` (seeded random + every prefix of every fixture
   payload, never crashes), shape never contains a value. Break script covers the new fixture.
   100 % branch coverage.
-- [ ] **T3 — Kotlin twin of the parser in `:core`** `[android]` [#13] (P1–P14; §3.1)
+- [x] **T3 — Kotlin twin of the parser in `:core`** `[android]` [#13] (P1–P14; §3.1)
   Same tests (`@TestFactory` per case, fuzz, shape), same error kinds; break script.
 
 ## 2. Camera adapters and real payloads (#14, #13)

@@ -3,6 +3,7 @@ package com.medicabinet.core.testing
 import java.io.File
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 
 /** One case of `fixtures/expiry-dates.json`, the test vectors shared with the iOS app. */
 @Serializable
@@ -40,6 +41,28 @@ data class ReferenceLookupCase(val name: String, val gtin: String, val expect: E
     override fun toString(): String = name
 }
 
+/** One case of `fixtures/gs1-datamatrix.json`, the payloads shared with the iOS app. */
+@Serializable
+data class GS1Case(val name: String, val payload: String, val shape: String, val expect: Expect) {
+    @Serializable
+    data class Expect(
+        val gtin: String? = null,
+        /** `dataMatrix` | `ean13` */
+        val symbology: String? = null,
+        /** `"missing"`, `{year, month, day|null}` or `{invalid: kind}`; see the fixture description. */
+        val expiry: JsonElement? = null,
+        val lot: String? = null,
+        val serial: String? = null,
+        /** `empty` | `tooLong` | `invalidCharacters` | `missingGTIN` | `invalidGTIN` */
+        val error: String? = null
+    )
+
+    override fun toString(): String = name
+}
+
+@Serializable
+data class GS1Fixture(val formatVersion: Int, val description: String, val cases: List<GS1Case>)
+
 /** Loads the repository's shared fixtures (folder given by the `medicabinet.fixtures` system property). */
 object SharedFixtures {
     private val json = Json { ignoreUnknownKeys = true }
@@ -50,6 +73,8 @@ object SharedFixtures {
     fun text(name: String): String = File(directory, name).readText()
 
     fun expiryDates(): ExpiryDateFixture = json.decodeFromString(text("expiry-dates.json"))
+
+    fun gs1Datamatrix(): GS1Fixture = json.decodeFromString(text("gs1-datamatrix.json"))
 
     fun schemaV1(): SchemaSnapshot = json.decodeFromString(text("schema-v1.json"))
 
