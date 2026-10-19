@@ -14,7 +14,7 @@ T14, T16) and the Android block (T11, T13, T15, T17) are independent of each oth
 
 ## 1. Status rules (#23)
 
-- [ ] **T1 — Expiry fixtures** `[shared]` [#23, #24, #25] (S1, S11, E2, N10; §2)
+- [x] **T1 — Expiry fixtures** `[shared]` [#23, #24, #25] (S1, S11, E2, N10; §2)
   `fixtures/expiry-status.json` (`cases` + `todayCases`), `fixtures/expiring-overview.json`,
   `fixtures/expiry-digest.json` (`countCases` + `scheduleCases`) with the cases listed in
   §2.1–2.3; `fixtures/README.md` (files and cross-platform names, §2.4); a broken copy of each

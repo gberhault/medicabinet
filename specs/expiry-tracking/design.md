@@ -65,8 +65,8 @@ backups), so a restored phone starts with the defaults and reminders off. iOS
 
 E2 sorts unknown boxes "by name, locale-aware". ICU (Foundation) and `java.text.Collator`
 disagree on edge cases, which would break the shared fixture. The core sorts on a **folded
-name** — lower-cased, diacritics removed (Swift `folding(options: [.caseInsensitive,
-.diacriticInsensitive], locale: nil)`, Kotlin NFD + strip `\p{Mn}` + `lowercase(Locale.ROOT)`)
+name** — lower-cased, diacritics removed (both platforms: canonical decomposition, drop
+non-spacing marks, lower-case with the root locale)
 — compared by Unicode scalars, then by the id in lower-case. It puts "Éfferalgan" next to
 "efferalgan" and is identical on both platforms, which is what a French household
 expects. Proper locale collation is not worth a cross-platform mismatch.
@@ -95,7 +95,8 @@ A second list, `todayCases`, proves the conversion of §1.2:
 
 ```json
 { "name": "23:30 UTC on 31 March is already 1 April in Paris",
-  "instant": "2027-03-31T23:30:00Z", "timeZone": "Europe/Paris", "expect": "2027-04-01" }
+  "instant": "2027-03-31T23:30:00Z", "timeZone": "Europe/Paris",
+  "expect": "2027-04-01", "minutesSinceMidnight": 90 }
 ```
 
 Cases (S11): the day before / on / after the expiry; the window's last day and the day after,
@@ -178,6 +179,7 @@ public struct CalendarDay: Hashable, Comparable, Sendable, CustomStringConvertib
     public let year: Int, month: Int, day: Int
     public static func make(year: Int, month: Int, day: Int) throws(ExpiryDateError) -> CalendarDay
     public static func from(_ instant: Date, timeZone: TimeZone) -> CalendarDay   // Gregorian
+    public static func minutesSinceMidnight(of instant: Date, timeZone: TimeZone) -> Int  // local wall clock
     public static func parse(_ iso: String) -> CalendarDay?                        // "YYYY-MM-DD", fixtures
     public var epochDay: Int                       // days since 1970-01-01, civil algorithm
     public func adding(days: Int) -> CalendarDay
@@ -190,7 +192,7 @@ extension ExpiryDate {
 }
 ```
 
-`make` reuses the `ExpiryDate` validation (2000–2099, month, day in month). `from` is the
+`make` validates month and day-in-month with the `ExpiryDate` rules but accepts any year: a wrong phone clock (before 2000, after 2099) must never crash the status rule. `from` is the
 only function that reads a calendar; it uses a Gregorian calendar with the given time zone
 (Kotlin: `instant.atZone(zone).toLocalDate()`).
 
