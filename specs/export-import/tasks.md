@@ -37,7 +37,7 @@ independent of each other.
   `MediCabinetCore/Archive/`. *Tests first:* reader and writer unit tests,
   `CodePointsFixtureTests`, reader fuzz (seeded random, truncations), round trip
   writer → reader. 100 % branch coverage.
-- [ ] **T3 — Kotlin twin of T2 in `:core`** `[android]` [#27] (same)
+- [x] **T3 — Kotlin twin of T2 in `:core`** `[android]` [#27] (same)
   The same tests (`@TestFactory` per code-point case, fuzz). No new dependency.
 - [ ] **T4 — Archive model, validator, encoder, decoder, v1 reader (Swift)** `[ios]` [#27] (F1–F10, V1–V5; §2, §4)
   `ArchiveFormat`, `ArchiveLimits`, `ArchivedBox`, `CabinetSnapshot` (`summary`,

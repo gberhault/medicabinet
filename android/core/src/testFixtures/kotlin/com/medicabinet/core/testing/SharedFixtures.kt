@@ -130,6 +130,17 @@ data class ProductResolutionCase(
     override fun toString(): String = name
 }
 
+/** One case of `fixtures/archive-code-points.json`. */
+@Serializable
+data class ArchiveCodePointCase(val name: String, val text: String, val codePoints: Int)
+
+@Serializable
+data class ArchiveCodePointFixture(
+    val formatVersion: Int,
+    val description: String,
+    val cases: List<ArchiveCodePointCase>
+)
+
 @Serializable
 private data class CaseList<T>(val cases: List<T>)
 
@@ -153,6 +164,8 @@ object SharedFixtures {
         json.decodeFromString<CaseList<ProductResolutionCase>>(text("product-resolution.json")).cases
 
     fun gs1Datamatrix(): GS1Fixture = json.decodeFromString(text("gs1-datamatrix.json"))
+
+    fun archiveCodePoints(): ArchiveCodePointFixture = json.decodeFromString(text("archive-code-points.json"))
 
     fun schemaV1(): SchemaSnapshot = json.decodeFromString(text("schema-v1.json"))
 
