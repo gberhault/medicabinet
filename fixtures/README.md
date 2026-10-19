@@ -40,6 +40,7 @@ Every file is JSON with:
 | `schema-v3.sql` | the exact v3 migration step (location tombstone `deletedAt`), run after v2 on both platforms |
 | `schema-v3.json` | the tables, columns and indexes of a database migrated to v3 (`schema-v1.json` / `schema-v2.json` are the earlier states) |
 | `schema-v1.json` | the tables, columns and indexes every platform's database v1 must have |
+| `archive-store-contract.json` | names of the `CabinetArchiveStore` contract checks both platforms run (the checks themselves are code) |
 | `repository-contract.json` | names of the repository contract checks both platforms run (the checks themselves are code) |
 | `text-normalization.json` | `TextNormalizer`: `normalize` (accent/case/ligature/whitespace folding) and `matches` (search: every query word is a substring) — also the comparison for location-name uniqueness and name ordering |
 | `location-names.json` | `LocationName.validate`: trim, 1…50 code points, no duplicate (normalized) name among the other locations |

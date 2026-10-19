@@ -24,12 +24,13 @@ internal fun <Draft> JsonReader.readObject(
     opened: Boolean = false
 ) {
     if (!opened) beginObjectOrFail(path)
-    val seen = HashSet<Int>()
+    var seen = 0L // which fields were read, one bit each (an object has far fewer than 64)
     var isFirst = !opened
     while (true) {
         val key = nextKey(isFirst) ?: break
         isFirst = false
         val index = fieldIndex(fields, seen, FieldPath(path, key))
+        seen = seen or (1L shl index)
         fields[index].read(draft, this, FieldPath(path, key))
     }
     requireAllSeen(fields, seen, path)
@@ -40,15 +41,15 @@ private fun JsonReader.beginObjectOrFail(path: String) {
     beginObject()
 }
 
-/** The index of [field]'s entry, which must be known and not seen before; marks it seen. */
-private fun <Draft> fieldIndex(fields: List<ObjectField<Draft>>, seen: MutableSet<Int>, field: FieldPath): Int {
+/** The index of [field]'s entry, which must be known and not seen before. */
+private fun <Draft> fieldIndex(fields: List<ObjectField<Draft>>, seen: Long, field: FieldPath): Int {
     val index = fields.indexOfFirst { field.isKey(it.key) }
-    if (index < 0 || !seen.add(index)) throw ArchiveException(ArchiveErrorKind.INVALID_STRUCTURE, field.text)
+    if (index < 0 || seen and (1L shl index) != 0L) throw ArchiveException(ArchiveErrorKind.INVALID_STRUCTURE, field.text)
     return index
 }
 
-private fun <Draft> requireAllSeen(fields: List<ObjectField<Draft>>, seen: Set<Int>, path: String) {
-    val missing = fields.indices.firstOrNull { it !in seen }
+private fun <Draft> requireAllSeen(fields: List<ObjectField<Draft>>, seen: Long, path: String) {
+    val missing = fields.indices.firstOrNull { seen and (1L shl it) == 0L }
     if (missing != null) {
         throw ArchiveException(ArchiveErrorKind.INVALID_STRUCTURE, FieldPath(path, fields[missing].key).text)
     }

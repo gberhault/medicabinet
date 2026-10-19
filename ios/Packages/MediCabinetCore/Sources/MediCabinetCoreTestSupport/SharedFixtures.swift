@@ -255,6 +255,11 @@ public enum SharedFixtures {
         try JSONDecoder().decode(GS1Fixture.self, from: data("gs1-datamatrix.json"))
     }
 
+    /// Names of the archive store contract checks, in order (`fixtures/archive-store-contract.json`).
+    public static func archiveStoreContractCheckNames() throws -> [String] {
+        try JSONDecoder().decode(NamedCases.self, from: data("archive-store-contract.json")).cases.map(\.name)
+    }
+
     public static func archiveCodePoints() throws -> ArchiveCodePointFixture {
         try JSONDecoder().decode(ArchiveCodePointFixture.self, from: data("archive-code-points.json"))
     }

@@ -21,20 +21,22 @@ enum ArchiveObjectReading {
             guard try reader.peek() == .object else { throw ArchiveError(.invalidStructure, path: path) }
             try reader.beginObject()
         }
-        var seen = Set<Int>()
+        // Which fields were read, one bit each (an object has far fewer than 64).
+        var seen: UInt64 = 0
         var isFirst = !opened
         while let key = try reader.nextKey(isFirst: isFirst) {
             isFirst = false
-            guard let index = fields.firstIndex(where: { $0.key == key }), seen.insert(index).inserted else {
+            guard let index = fields.firstIndex(where: { $0.key == key }), seen & (1 << UInt64(index)) == 0 else {
                 throw ArchiveError(.invalidStructure, path: FieldPath(path, key).text)
             }
+            seen |= 1 << UInt64(index)
             do {
                 try fields[index].read(&draft, &reader, FieldPath(path, key))
             } catch {
                 throw archiveError(error, path: FieldPath(path, key))
             }
         }
-        if let missing = fields.indices.first(where: { !seen.contains($0) }) {
+        if let missing = fields.indices.first(where: { seen & (1 << UInt64($0)) == 0 }) {
             throw ArchiveError(.invalidStructure, path: FieldPath(path, fields[missing].key).text)
         }
     }

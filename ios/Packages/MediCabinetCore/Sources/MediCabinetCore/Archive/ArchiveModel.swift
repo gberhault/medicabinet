@@ -54,6 +54,11 @@ public struct CabinetSummary: Hashable, Sendable {
         self.deleted = deleted
         self.unknownExpiry = unknownExpiry
     }
+
+    /// False when there is nothing to lose: no box of any kind and no location besides (at most) the default one.
+    public var needsBackup: Bool {
+        locations > 1 || inCabinet + removed + deleted > 0
+    }
 }
 
 /// The whole cabinet data: every location and every box, removed and deleted ones included.
@@ -78,9 +83,8 @@ public struct CabinetSnapshot: Hashable, Sendable {
         )
     }
 
-    /// False only when there is nothing to lose: no box of any kind and a single (default) location.
     public var needsBackup: Bool {
-        !(boxes.isEmpty && locations.count == 1)
+        summary.needsBackup
     }
 }
 

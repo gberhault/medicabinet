@@ -53,10 +53,10 @@ independent of each other.
 
 ## 2. Ports and the transfer use case (#29)
 
-- [ ] **T6 — Store contract names** `[shared]` [#29] (I4–I6; §5.1)
-  Append the §5.1 check names to `fixtures/repository-contract.json`. *Test:*
-  `check-fixtures.py` green.
-- [ ] **T7 — Ports, fakes and `CabinetTransfer` (Swift)** `[ios]` [#29] (I1–I9, B1–B3, B5; §4.1, §4.2)
+- [x] **T6 — Store contract names** `[shared]` [#29] (I4–I6; §5.1)
+  `fixtures/archive-store-contract.json` (its own file, so it does not collide with the bulk-scan edits of
+  `repository-contract.json`). *Test:* `check-fixtures.py` green.
+- [x] **T7 — Ports, fakes and `CabinetTransfer` (Swift)** `[ios]` [#29] (I1–I9, B1–B3, B5; §4.1, §4.2)
   `CabinetArchiveStore`, `ArchiveBackupStore`, `BackupReason`, `ArchiveBackupEntry`;
   in-memory fakes and `RepositoryContract` store checks (on the fake) in
   `MediCabinetCoreTestSupport`; `CabinetTransfer`, `ImportPreview`, `ImportResult`,

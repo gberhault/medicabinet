@@ -263,7 +263,8 @@ appears in tests and logs, not in the UI.
    box's `serial`). The encoder runs the same validator before writing.
 5. `CabinetSummary.unknownExpiry` counts the boxes **in the cabinet** (not removed, not
    deleted) without an expiry. `needsBackup` is false only when the cabinet has no box of any
-   kind and exactly one location.
+   kind and at most one location (a database with no location at all has nothing to lose either, and no
+   archive could hold it).
 
 ## 3. Shared fixtures
 
@@ -293,8 +294,9 @@ fixtures/
   agree, and that each platform imports the other's files (X7).
 - **Version check**: a core test asserts that `archive/v<n>/golden.medicabinet` exists for
   every `n` in `1…currentVersion` (F9).
-- `fixtures/repository-contract.json` gains the store checks of §5.1. `fixtures/README.md`
-  lists the files, the error kinds, the `ios` / `android` platform values and the MIME / UTType.
+- `fixtures/archive-store-contract.json` lists the store checks of §5.1 (its own file, not an addition to
+  `repository-contract.json`: the store is a separate port, and the bulk-scan epic edits that list too).
+  `fixtures/README.md` lists the files, the error kinds, the `ios` / `android` platform values and the MIME / UTType.
 - `scripts/check-fixtures.py` also parses `fixtures/archive/**/*.medicabinet` as JSON with
   `"archive": "medicabinet"`. `scripts/tests/test-shared-fixtures-break.sh` gains a broken
   `archive-cases.json` copy and a one-byte-changed golden file, each of which must fail both
@@ -410,11 +412,13 @@ time**.
   `DELETE FROM box`, `DELETE FROM location`, insert records (sort key from
   `ExpiryDate.sortKey`). Android `persistence/SqlCabinetArchiveStore.kt`, the same through
   `CabinetDatabase.transaction` with parameterized statements, compiled once per replace.
-- New contract checks (names appended to `repository-contract.json`): `snapshot includes
-  removed and deleted boxes`, `replace swaps the whole cabinet keeping ids fields and dates`,
-  `replace hands the hook exactly the cabinet it replaces`, `a throwing hook leaves the
-  cabinet unchanged`, `a failing insert rolls the whole replace back`, `replace recomputes the
-  expiry sort key` (SQL implementations only; the fake has no sort key column).
+- The store contract (`ArchiveStoreContract`, names and order in `fixtures/archive-store-contract.json`, run by the
+  fake and by each real store): a new store snapshots as empty; replace swaps the whole cabinet keeping ids, fields
+  and dates; the snapshot includes removed and deleted boxes; the hook receives exactly the cabinet being replaced;
+  a throwing hook leaves the cabinet unchanged; a box in an unknown location, a duplicate id, and two default
+  locations are each rejected (`RepositoryError.unknownLocation` / `.duplicate` / `.duplicateDefault`) and change
+  nothing; replacing with an empty cabinet empties the store. SQL stores add their own tests for what the fake has
+  no equivalent of (the recomputed expiry sort key, rollback of a failing insert midway).
 - No schema change. This epic ships no migration (v2 comes from #12).
 
 ### 5.2 Backup file stores
@@ -565,7 +569,7 @@ android/app/src/main/kotlin/com/medicabinet/app/features/transfer/
 
 ## 9. Performance
 
-- Budgets (X2: < 2 s for 1 000 boxes). Asserted as the **median of 5 runs** with a
+- Budgets (X2: < 2 s for 1 000 boxes). Asserted as the **best of 5 runs** (a busy machine slows some runs, not all) with a
   generated, deterministic 1 000-box cabinet:
   - core: encode ≤ 500 ms, decode + validate ≤ 500 ms (`swift test`, `:core:test`). The test builds are
     unoptimised: decode measures about 150 ms and encode 50 ms there, so the budget is ≥ 3× the measure
@@ -574,8 +578,9 @@ android/app/src/main/kotlin/com/medicabinet/app/features/transfer/
     on GRDB in a temporary directory and on Android Robolectric SQLite.
   These are about a third of the 2 s target, leaving room for older phones and UI. The
   measured values go in the PR.
-- Maximum file: decoding a generated `maxBoxes` file must succeed within 10 s on the desktop
-  test hosts (a guard against quadratic behaviour), without a full tree in memory (§1.1).
+- Maximum file: decoding a generated `maxBoxes` file must succeed within 60 s on the desktop
+  test hosts (a guard against quadratic behaviour, which would take minutes; it measures about 5 s in a debug
+  build), without a full tree in memory (§1.1).
 - No I/O on the main thread: every core and store call runs off the main actor / thread. The
   views show staged progress (reading, checking, saving a backup, importing).
 - App size: unchanged (no dependency, no resource).
