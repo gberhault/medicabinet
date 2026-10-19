@@ -86,7 +86,7 @@ it cannot run the exact iOS DDL, and the user switched Android to plain SQLite �
   transactional checks, `CorruptRow` on unreadable rows. *Tests:* `RepositoryContract` against
   them; stored representation (text UUIDs, UTC text dates, expiry parts + sort key, removal kept);
   corrupt row reported.
-- [ ] **T16 — `BackupService`** [#36] (P3)
+- [x] **T16 — `BackupService`** [#36] (P3)
   Detection (user_version + checkpoint), copy, naming, prune to 5. *Tests first:* new DB → no
   copy; up to date → no copy; pending → one self-contained copy that opens and holds the rows;
   same-second collision; unwritable folder → `BackupException`; pruning.
