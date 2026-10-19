@@ -29,3 +29,14 @@ scripts/.cache/
 
 # Secrets
 .env
+
+# Android
+android/.gradle/
+android/.kotlin/
+android/build/
+android/*/build/
+android/local.properties
+android/captures/
+*.jks
+*.keystore
+.idea/

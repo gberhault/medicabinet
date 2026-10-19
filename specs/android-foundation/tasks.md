@@ -38,7 +38,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
 
 ## 2. Android scaffold and gates (#34, #37)
 
-- [ ] **T6 — Gradle project with `:core` and `:app`** [#34] (A1–A3)
+- [x] **T6 — Gradle project with `:core` and `:app`** [#34] (A1–A3)
   Wrapper, `libs.versions.toml` (Riding's AGP/Kotlin, SQLDelight 2.4.1, Compose BOM),
   `:core` (JVM + test fixtures), `:app` (namespace/applicationId `com.medicabinet.app`,
   minSdk 26, target/compile 36, 0.1.0 / 1), SQLDelight plugin applied with an empty
