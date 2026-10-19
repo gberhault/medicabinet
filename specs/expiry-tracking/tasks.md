@@ -25,7 +25,7 @@ T14, T16) and the Android block (T11, T13, T15, T17) are independent of each oth
   `CalendarDayTests` (epoch-day round trip for every day 2000–2099, `adding`,
   `firstOfNextMonth`, `make` errors, `parse`), `ExpiryWindowTests` (stored 30/60/90, nil,
   45, negative → default). `SharedFixtures` loads the new file. 100 % branch coverage.
-- [ ] **T3 — Kotlin twin in `:core`** `[android]` [#23] (S1–S9, S11, W1, W4; §3.1, §3.2)
+- [x] **T3 — Kotlin twin in `:core`** `[android]` [#23] (S1–S9, S11, W1, W4; §3.1, §3.2)
   Same types and tests (`@TestFactory` per case), `CalendarDay.from` via `java.time`, no wall
   clock (architecture check). 100 % branch coverage.
 
