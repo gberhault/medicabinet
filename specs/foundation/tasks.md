@@ -1,6 +1,6 @@
 # Foundation — Tasks
 
-Status: **Draft — awaiting approval** (requirements and design approved 2026-10-19)
+Status: **Approved 2026-10-19**
 Epic: #1 · Branch: `feature/1-foundation`
 
 One task = one focused commit (code + tests + this file checked off). Order matters: each
@@ -13,7 +13,7 @@ for them to measure (T15–T16).
 
 ## 1. Skeleton and gates (#2, #3, #5)
 
-- [ ] **T1 — Core package skeleton** [#3] (R3.1)
+- [x] **T1 — Core package skeleton** [#3] (R3.1)
   `Packages/MediCabinetCore` with `Package.swift` (tools 6.0, iOS 17 / macOS 14), empty
   library, one smoke test. *Test:* `swift test` passes.
 - [ ] **T2 — XcodeGen project and signing config** [#2] (R1.1–R1.4)
