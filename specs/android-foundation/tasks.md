@@ -1,6 +1,6 @@
 # Android foundation — Tasks
 
-Status: **Approved 2026-10-19**
+Status: **Approved 2026-10-19 — implemented (25/25)**
 Epic: #31 · Branch: `android/feature/31-android-foundation`
 
 One task = one focused commit (code + tests + this file checked off). Child issue in
@@ -131,7 +131,7 @@ it cannot run the exact iOS DDL, and the user switched Android to plain SQLite �
 - [x] **T24 — Full root gate and CLAUDE.md refresh** — `bash scripts/local-ci.sh` green
   (shared + iOS + Android); coverage % for the PR body; Common Task Map and Build & Test
   Commands cover Android.
-- [ ] **T25 — Version confirmation commit** — Android 0.1.0 / 1 and its CHANGELOG match; iOS
+- [x] **T25 — Version confirmation commit** — Android 0.1.0 / 1 and its CHANGELOG match; iOS
   unchanged at 0.1.0. PR to `develop` only when asked. **After merge:** tag `ios/v0.1.0` (on
   the `v0.1.0` commit) and `android/v0.1.0`, GitHub release "MediCabinet Android 0.1.0" with
   the debug APK (I7).
