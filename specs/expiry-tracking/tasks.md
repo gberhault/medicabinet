@@ -31,7 +31,7 @@ T14, T16) and the Android block (T11, T13, T15, T17) are independent of each oth
 
 ## 2. Overview and digest rules (#24, #25)
 
-- [ ] **T4 — `ExpiringOverview`, `NameOrder`, `ExpiryDigest` in `MediCabinetCore`** `[ios]` [#24, #25] (S10, E1, E2, E8, N5–N8, N10, N12; §1.6, §3.3, §3.4)
+- [x] **T4 — `ExpiringOverview`, `NameOrder`, `ExpiryDigest` in `MediCabinetCore`** `[ios]` [#24, #25] (S10, E1, E2, E8, N5–N8, N10, N12; §1.6, §3.3, §3.4)
   *Tests first:* `ExpiringOverviewFixtureTests`, `ExpiryDigestFixtureTests` (`countCases`,
   `scheduleCases`), `NameOrderTests` (case, accents, ties by id lower-cased); timing assertion
   §9 (1 000 boxes, overview + 12 digests ≤ 50 ms, median of 10). 100 % branch coverage.

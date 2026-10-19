@@ -32,6 +32,10 @@ if [[ "$WHICH" == ios || "$WHICH" == all ]]; then
   done
   expect_failure "ios: Swift suite fails on a broken expiry-status fixture" \
     env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter ExpiryRuleFixtureTests
+  expect_failure "ios: Swift suite fails on a broken expiring-overview fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter ExpiringOverviewFixtureTests
+  expect_failure "ios: Swift suite fails on a broken expiry-digest fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter ExpiryDigestFixtureTests
 fi
 if [[ ("$WHICH" == android || "$WHICH" == all) && -f "$ROOT/android/gradlew" ]]; then
   expect_failure "android: Kotlin suite fails on a broken expiry fixture" \
