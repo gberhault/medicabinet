@@ -1,6 +1,6 @@
 # Reference data and automatic classification — Requirements
 
-Status: **Draft for review** — frame approved 2026-10-19
+Status: **Approved 2026-10-19**
 Epic: #7 · Children: #8, #9, #10, #11 · Branch: `feature/7-reference-data` · Platforms: iOS + Android
 
 ## Introduction
