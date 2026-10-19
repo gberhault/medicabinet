@@ -61,7 +61,7 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
 
 ## 4. Schema v2 (#40)
 
-- [ ] **T10 — Schema v2 fixtures and contract names** `[shared]` [#40] (V1, V3; §2.5, §4)
+- [x] **T10 — Schema v2 fixtures and contract names** `[shared]` [#40] (V1, V3; §2.5, §4)
   `schema-v2.sql`, `schema-v2.json`, new checks in `repository-contract.json`,
   `duplicateSerial` in `fixtures/README.md`. *Test:* `check-fixtures.py` green.
 - [ ] **T11 — iOS v2 migration and repository additions** `[ios]` [#40] (V1–V3, I7; §4)

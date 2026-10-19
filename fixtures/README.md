@@ -29,6 +29,8 @@ Every file is JSON with:
 | `scan-intake.json` | `IntakePolicy`: add / complete / confirmAnother / alreadyInCabinet / removedEarlier |
 | `product-resolution.json` | `ProductResolver`: name and category from reference data and the previous box |
 | `schema-v1.sql` | the exact v1 DDL both platforms run (each platform's test compares its own copy, ignoring whitespace and `--` comments) |
+| `schema-v2.sql` | the exact v2 migration step (box tombstone, unique serial among non-deleted boxes), run after v1 on both platforms |
+| `schema-v2.json` | the tables, columns and indexes of a database migrated to v2 (`schema-v1.json` is the v1-only state) |
 | `schema-v1.json` | the tables, columns and indexes every platform's database v1 must have |
 | `repository-contract.json` | names of the repository contract checks both platforms run (the checks themselves are code) |
 
@@ -48,7 +50,7 @@ These strings are identical on both platforms (storage values, error kinds, expo
 | Intake decisions | `add`, `complete`, `confirmAnother`, `alreadyInCabinet`, `removedEarlier` |
 | Intake missing fields | `name`, `expiry` |
 | Barcode symbologies | `dataMatrix`, `ean13` |
-| Repository errors | `notFound`, `unknownLocation`, `duplicate`, `duplicateDefault` |
+| Repository errors | `notFound`, `unknownLocation`, `duplicate`, `duplicateDefault`, `duplicateSerial` |
 
 ## Adding a fixture
 
