@@ -83,10 +83,10 @@ iOS and Android UI blocks of each section are independent of each other.
   row. *Tests:* `LocationsViewModelTests` (create, rename error, reorder, set default, delete
   empty → Undo, delete with boxes → move, default not deletable, failure leaves all
   unchanged); `LocationsUITests` incl. accessibility move actions and largest text size.
-- [ ] **T17 — Android Undo snackbar** `[android]` (same as T15)
+- [x] **T17 — Android Undo snackbar** `[android]` (same as T15)
   `UndoController` + `SnackbarHost` in `MainScaffold`. *Tests:* controller unit tests;
   Robolectric: action shown, undo invoked once.
-- [ ] **T18 — Android Locations screen** `[android]` [#18] (as T16; §6)
+- [x] **T18 — Android Locations screen** `[android]` [#18] (as T16; §6)
   `LocationsScreen`, `LocationsViewModel`, dialogs, `ReorderableColumn` (+ unit test of the
   swap logic), accessibility actions; Settings row. *Tests:* `LocationsViewModelTest`,
   Robolectric `LocationsScreenTest` at font scale 2.0.

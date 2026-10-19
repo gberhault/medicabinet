@@ -19,6 +19,8 @@ IOS_ONLY = {}
 ANDROID_ONLY = {
     "app_name": "iOS takes the app name from InfoPlist.xcstrings (CFBundleDisplayName)",
     "about_back": "iOS shows the system back button; Android needs a content description for its own",
+    "locations_more": "iOS reaches the row actions by swipe and context menu; Android has an overflow button to describe",
+    "locations_reorder": "iOS reorders in edit mode with system controls; Android has its own drag handle to describe",
 }
 
 

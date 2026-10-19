@@ -146,4 +146,6 @@
     <string name="locations_rename">Rename</string>
     <string name="locations_title">Locations</string>
     <string name="settings_locations">Locations</string>
+    <string name="locations_more">More actions</string>
+    <string name="locations_reorder">Reorder: long press, then drag</string>
 </resources>
