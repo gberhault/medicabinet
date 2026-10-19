@@ -1,6 +1,6 @@
 # Cabinet inventory, locations and stock movements — Design
 
-Status: **Draft — awaiting review**
+Status: **Approved 2026-10-19**
 Epic: #17 · Requirements: [`requirements.md`](requirements.md) · Platforms: iOS + Android
 
 This design assumes epic #12 (bulk scan) is on `develop`: schema v2 (`box.deletedAt`,

@@ -1,6 +1,6 @@
 # Cabinet inventory, locations and stock movements — Tasks
 
-Status: **Draft — awaiting review**
+Status: **Approved 2026-10-19**
 Epic: #17 · Branch: `feature/17-cabinet-inventory`
 
 One task = one focused commit (code + tests + this file checked off). Tags: `[shared]`,
