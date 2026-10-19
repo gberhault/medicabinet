@@ -34,7 +34,7 @@ for them to measure (T15–T16).
 
 ## 2. Core domain (#3)
 
-- [ ] **T5 — `ExpiryDate` and `ExpiryDateError`** [#3] (R3.4, R3.5)
+- [x] **T5 — `ExpiryDate` and `ExpiryDateError`** [#3] (R3.4, R3.5)
   *Tests first:* `ExpiryDateTests` — day vs month precision, last valid day of every month,
   Feb 28/29 (2028), invalid month 0/13, day 0/32, Apr 31, year outside 2000…2099.
 - [ ] **T6 — `Clock`, `SystemClock`, `FixedClock`** [#3] (R3.7)

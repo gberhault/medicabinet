@@ -80,15 +80,17 @@ public struct ProductRef: Hashable, Sendable {
     public var name: String              // snapshot, so a box stays readable if reference data changes
 }
 
-public enum ExpiryDate: Hashable, Sendable {
-    case day(year: Int, month: Int, day: Int)
-    case month(year: Int, month: Int)    // GS1 DD=00 → end of month
-
-    public static func make(year: Int, month: Int, day: Int?) throws(ExpiryDateError) -> ExpiryDate
-    public func lastValidDay(in calendar: Calendar) -> DateComponents   // y/m/d, leap-year aware
+public struct ExpiryDate: Hashable, Sendable, Comparable {
+    public let year: Int, month: Int
+    public let day: Int?                  // nil = month precision (GS1 DD=00 → end of month)
+    public static let supportedYears = 2000...2099
+    public static func make(year: Int, month: Int, day: Int?) throws(ExpiryDateError) -> ExpiryDate  // only way to build one
+    public var isMonthPrecision: Bool
+    public var lastValidDay: Int          // printed day, or last day of the month (leap-year aware)
+    public var sortKey: String            // "YYYY-MM-DD" of lastValidDay; also the DB `expirySortKey`
 }
 
-public enum ExpiryDateError: Error, Equatable { case invalidMonth(Int), invalidDay(Int, month: Int, year: Int), invalidYear(Int) }
+public enum ExpiryDateError: Error, Equatable { case invalidYear(Int), invalidMonth(Int), invalidDay(Int, month: Int, year: Int) }
 
 public enum ExpiryStatus: Sendable { case expired, expiringSoon, ok, unknown }   // rules in #23
 
@@ -115,7 +117,7 @@ public struct SystemClock: Clock { … }
 public struct FixedClock: Clock { … }   // in core so app tests can use it too
 ```
 
-Year validity for `ExpiryDate`: 2000…2099 (GS1 `YY` maps to 20YY; manual entry is bounded the
+`ExpiryDate` is a struct with a private initializer (refined from the first draft's enum with public cases, which let callers bypass validation). Year validity: 2000…2099 (GS1 `YY` maps to 20YY; manual entry is bounded the
 same way). Anything else → `invalidYear`.
 
 ### 3.2 Repository ports (core)
