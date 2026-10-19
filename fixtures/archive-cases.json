@@ -898,6 +898,46 @@
       }
     },
     {
+      "name": "a version with an exponent",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":1e0,\"exportedAt\":\"2026-10-19T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.3.0\",\"build\":\"3\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\"}],\"boxes\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03400936404564\",\"productName\":\"Produit 1\",\"category\":\"uncategorized\",\"categoryOverridden\":false,\"locationId\":\"10000001-0000-4000-8000-000000000001\",\"expiry\":{\"year\":2027,\"month\":3,\"day\":15},\"lot\":null,\"serial\":null,\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "notArchive",
+          "path": null
+        }
+      }
+    },
+    {
+      "name": "a version that is a boolean",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":true,\"exportedAt\":\"2026-10-19T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.3.0\",\"build\":\"3\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\"}],\"boxes\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03400936404564\",\"productName\":\"Produit 1\",\"category\":\"uncategorized\",\"categoryOverridden\":false,\"locationId\":\"10000001-0000-4000-8000-000000000001\",\"expiry\":{\"year\":2027,\"month\":3,\"day\":15},\"lot\":null,\"serial\":null,\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "notArchive",
+          "path": null
+        }
+      }
+    },
+    {
+      "name": "a version with a leading zero is a syntax fault",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":01,\"exportedAt\":\"2026-10-19T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.3.0\",\"build\":\"3\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\"}],\"boxes\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03400936404564\",\"productName\":\"Produit 1\",\"category\":\"uncategorized\",\"categoryOverridden\":false,\"locationId\":\"10000001-0000-4000-8000-000000000001\",\"expiry\":{\"year\":2027,\"month\":3,\"day\":15},\"lot\":null,\"serial\":null,\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "notJSON",
+          "path": null
+        }
+      }
+    },
+    {
+      "name": "a version that is a bare minus sign is a syntax fault",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":-,\"exportedAt\":\"2026-10-19T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.3.0\",\"build\":\"3\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\"}],\"boxes\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03400936404564\",\"productName\":\"Produit 1\",\"category\":\"uncategorized\",\"categoryOverridden\":false,\"locationId\":\"10000001-0000-4000-8000-000000000001\",\"expiry\":{\"year\":2027,\"month\":3,\"day\":15},\"lot\":null,\"serial\":null,\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "notJSON",
+          "path": null
+        }
+      }
+    },
+    {
       "name": "version zero",
       "content": "{\"archive\":\"medicabinet\",\"formatVersion\":0,\"exportedAt\":\"2026-10-19T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.3.0\",\"build\":\"3\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\"}],\"boxes\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03400936404564\",\"productName\":\"Produit 1\",\"category\":\"uncategorized\",\"categoryOverridden\":false,\"locationId\":\"10000001-0000-4000-8000-000000000001\",\"expiry\":{\"year\":2027,\"month\":3,\"day\":15},\"lot\":null,\"serial\":null,\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
       "expect": {

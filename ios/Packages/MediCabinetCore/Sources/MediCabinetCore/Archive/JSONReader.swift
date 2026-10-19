@@ -119,6 +119,12 @@ struct JSONReader {
         return value
     }
 
+    /// A number as an integer, or `nil` when it has a fraction or exponent or does not fit Int64. Syntax
+    /// faults still throw. For a value whose type the caller handles itself (the archive's `formatVersion`).
+    mutating func readIntegerIfRepresentable() throws(ArchiveError) -> Int64? {
+        try lexNumber().value
+    }
+
     /// Consumes a JSON `null` and returns true, or returns false when the next value is something else.
     mutating func readNullIfPresent() throws(ArchiveError) -> Bool {
         guard try peek() == .null else { return false }

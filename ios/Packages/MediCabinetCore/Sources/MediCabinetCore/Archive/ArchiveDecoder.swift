@@ -40,9 +40,9 @@ public enum ArchiveDecoder {
         return try reader.readString(FieldPath("", "archive")) == ArchiveFormat.magic
     }
 
-    /// The version, or `nil` when it is not an integer Int64 can hold.
+    /// The version, or `nil` when it is not an integer Int64 can hold (a syntax fault still throws).
     private static func readVersion(_ reader: inout JSONReader) throws(ArchiveError) -> Int64? {
         guard try reader.peek() == .number else { return nil }
-        return try? reader.readInteger(FieldPath("", "formatVersion"))
+        return try reader.readIntegerIfRepresentable()
     }
 }
