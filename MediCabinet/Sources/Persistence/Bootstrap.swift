@@ -36,6 +36,7 @@ struct Bootstrap: Sendable {
         do {
             pool = try AppDatabase.openPool(in: directory)
         } catch {
+            Log.bootstrap.error("Cannot open the database: \(error.localizedDescription)")
             return .failed(.storage)
         }
 
@@ -44,6 +45,7 @@ struct Bootstrap: Sendable {
         do {
             backupURL = try backups.backupIfNeeded(database: pool, migrator: migrator)
         } catch {
+            Log.bootstrap.error("Pre-migration backup failed, migration skipped: \(error.localizedDescription)")
             return .failed(.backup)
         }
 
@@ -51,6 +53,7 @@ struct Bootstrap: Sendable {
         do {
             database = try AppDatabase.migrate(pool, using: migrator)
         } catch {
+            Log.bootstrap.error("Migration failed, restoring the pre-migration copy: \(error.localizedDescription)")
             if let backupURL { restore(backupURL, over: pool) }
             return .failed(.migration)
         }
@@ -59,6 +62,7 @@ struct Bootstrap: Sendable {
         do {
             _ = try await locations.ensureDefault(named: defaultLocationName)
         } catch {
+            Log.bootstrap.error("Cannot create the default location: \(error.localizedDescription)")
             return .failed(.storage)
         }
         try? backups.prune(keeping: backupsToKeep)
@@ -85,6 +89,7 @@ struct Bootstrap: Sendable {
             try AppDatabase.protect(database, fileManager: fileManager)
         } catch {
             // Leave everything in place; the backup remains available for a manual restore.
+            Log.bootstrap.fault("Restoring the pre-migration copy failed: \(error.localizedDescription)")
         }
     }
 }

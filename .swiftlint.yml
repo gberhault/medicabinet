@@ -48,6 +48,12 @@ custom_rules:
     included: 'MediCabinet/Sources/.*\.swift'
     excluded: 'MediCabinet/Sources/Persistence/'
     severity: error
+  no_public_log_privacy:
+    name: "Public log interpolation"
+    message: "Never log with privacy: .public — logs must not carry cabinet contents (use the default private level)."
+    regex: 'privacy:\s*\.public'
+    included: '(MediCabinet|Packages/MediCabinetCore/Sources)/.*\.swift'
+    severity: error
   no_network:
     name: "Network API"
     message: "The app makes no network request. A feature that needs one must amend this rule in its spec."
