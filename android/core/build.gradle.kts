@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     `java-test-fixtures`
+    jacoco
 }
 
 // Bytecode for Java 17 (as Riding), built on whichever JDK >= 17 is installed.
@@ -37,4 +38,21 @@ tasks.test {
     useJUnitPlatform()
     systemProperty("medicabinet.fixtures", fixturesDir.get())
     inputs.dir(fixturesDir)
+}
+
+jacoco {
+    // 0.8.12 cannot instrument JDK 25 class files; 0.8.14+ supports them (as in Riding).
+    toolVersion = "0.8.15"
+}
+
+// Coverage of :core main sources only (not tests, not the test fixtures); XML feeds scripts/android-coverage-gate.py.
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    reports {
+        xml.required.set(true)
+        html.required.set(false)
+    }
 }

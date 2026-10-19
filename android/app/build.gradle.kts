@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     // AGP 9 built-in Kotlin — do not apply org.jetbrains.kotlin.android
     alias(libs.plugins.kotlin.compose)
+    jacoco
 }
 
 android {
@@ -18,6 +19,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
         }
@@ -82,4 +86,54 @@ dependencies {
 
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
+}
+
+jacoco {
+    toolVersion = "0.8.15"
+}
+
+// Robolectric loads classes through its own sandbox classloader, which hides them from Jacoco's default
+// location-based tracking (they would report 0%). includeNoLocationClasses fixes that; jdk.internal.* must be
+// excluded alongside it or the agent crashes (see https://github.com/jacoco/jacoco/issues/1287).
+tasks.withType<Test>().configureEach {
+    configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+    maxHeapSize = "2g"
+}
+
+// Classes that are not authored code or cannot be reached by JVM tests:
+//  - R / BuildConfig / Manifest: generated
+//  - ComposableSingletons$*: compiler-generated holders for cached composable lambdas
+//  - MainActivity: Activity wiring (the Compose UI it hosts is tested directly)
+private val jacocoExcludes = listOf(
+    "**/R.class",
+    "**/R$*.class",
+    "**/BuildConfig.*",
+    "**/Manifest*.*",
+    "**/ComposableSingletons*.*",
+    "**/MainActivity*.*"
+)
+
+// Unit-test coverage for the app (JVM + Robolectric), XML for scripts/android-coverage-gate.py.
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+    group = "verification"
+    description = "JaCoCo coverage report for the debug unit tests."
+    reports {
+        xml.required.set(true)
+        html.required.set(false)
+    }
+    classDirectories.setFrom(
+        fileTree("${layout.buildDirectory.get()}/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes") {
+            exclude(jacocoExcludes)
+        }
+    )
+    sourceDirectories.setFrom(files("src/main/kotlin"))
+    executionData.setFrom(
+        fileTree(layout.buildDirectory.get()) {
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+        }
+    )
 }

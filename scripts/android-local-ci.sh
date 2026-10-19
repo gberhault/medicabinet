@@ -46,7 +46,7 @@ step "detekt + ktlint (against baselines)"
 "${GRADLE[@]}" detekt ktlintCheck
 
 step "localization (fr + en complete)"
-python3 -I "$ROOT/scripts/android-check-strings.py"
+python3 -I "$ROOT/scripts/android-check-strings.py" --res "$ROOT/android/app/src/main/res"
 bash "$ROOT/scripts/tests/test-android-strings.sh"
 
 step "architecture rules"
@@ -61,6 +61,13 @@ bash "$ROOT/scripts/tests/test-shared-fixtures-break.sh" android
 
 step "unit tests (:core, :app)"
 "${GRADLE[@]}" :core:test :app:testDebugUnitTest
+
+step "coverage gate (>= 80% lines: core and app)"
+bash "$ROOT/scripts/tests/test-android-coverage-gate.sh"
+bash "$ROOT/scripts/android-coverage-gate.sh"
+
+step "version matches CHANGELOG"
+bash "$ROOT/scripts/check-version.sh" android
 
 step "instrumented tests compile (build only)"
 "${GRADLE[@]}" :app:compileDebugAndroidTestKotlin

@@ -118,7 +118,7 @@ it cannot run the exact iOS DDL, and the user switched Android to plain SQLite �
   Manifest with no permissions, `AppLog` (failure kind + exception class only),
   `backup_rules.xml` / `data_extraction_rules.xml`. *Tests:* merged-manifest test, `AppLog`
   test, backup-rules test (database + `backups/` included).
-- [ ] **T22 — Coverage gate, Android version check, full gate wiring** [#37] (G1, G3, I5)
+- [x] **T22 — Coverage gate, Android version check, full gate wiring** [#37] (G1, G3, I5)
   Jacoco report for `:core` and `:app` (generated code excluded), `android-coverage-gate.py`
   (≥ 80% lines each) + fixtures; `check-version.sh android` in `android-local-ci.sh`; Android gate and string parity added to `local-ci.sh`.
 
