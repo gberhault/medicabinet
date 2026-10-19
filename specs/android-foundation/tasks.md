@@ -79,7 +79,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
   WAL; database in internal storage. *Tests first (Robolectric):* `SchemaTest` vs
   `fixtures/schema-v1.json`; constraint tests mirroring iOS `MigrationTests`; `EXPLAIN QUERY
   PLAN` index use; paths under internal storage; `verifySqlDelightMigration` green.
-- [ ] **T15 — SQL repositories** [#36] (P6, P7, P10)
+- [x] **T15 — SQL repositories** [#36] (P6, P7, P10)
   `SqlLocationRepository`, `SqlBoxRepository` on `Dispatchers.IO`, transactional checks,
   `CorruptRow` on unreadable rows. *Tests:* `RepositoryContract` against them; stored
   representation (text UUIDs, expiry parts + sort key, removal kept); corrupt row reported.

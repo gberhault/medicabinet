@@ -1,16 +1,26 @@
-import kotlin.Boolean;
-import kotlin.Int;
-
 -- Schema v1: the iOS v1 statements, with one difference: date columns are declared TEXT where iOS says
 -- DATETIME, because SQLDelight's SQLite dialect rejects the DATETIME type name. Both store ISO-8601 text
 -- ('yyyy-MM-dd HH:mm:ss.SSS', UTC). fixtures/schema-v1.json records this under "typeAliases".
 CREATE TABLE location (
   id        TEXT PRIMARY KEY NOT NULL,
   name      TEXT NOT NULL CHECK (length(name) BETWEEN 1 AND 100),
-  isDefault INTEGER AS Boolean NOT NULL DEFAULT 0,
-  sortOrder INTEGER AS Int NOT NULL DEFAULT 0,
+  isDefault INTEGER NOT NULL DEFAULT 0,
+  sortOrder INTEGER NOT NULL DEFAULT 0,
   createdAt TEXT NOT NULL,
   updatedAt TEXT NOT NULL
 );
 
 CREATE UNIQUE INDEX location_single_default ON location(isDefault) WHERE isDefault = 1;
+
+selectAll:
+SELECT * FROM location ORDER BY sortOrder, name;
+
+selectById:
+SELECT * FROM location WHERE id = ?;
+
+selectDefault:
+SELECT * FROM location WHERE isDefault = 1 LIMIT 1;
+
+insert:
+INSERT INTO location (id, name, isDefault, sortOrder, createdAt, updatedAt)
+VALUES (?, ?, ?, ?, ?, ?);
