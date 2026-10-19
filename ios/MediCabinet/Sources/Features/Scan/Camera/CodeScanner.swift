@@ -27,3 +27,16 @@ protocol CodeScanner: AnyObject {
     /// Stops the camera; the scanner can be started again.
     func stop()
 }
+
+/// A scanner for devices that cannot scan: starting it fails with `.unsupported`.
+@MainActor
+final class UnsupportedCodeScanner: CodeScanner {
+    let snapshots = AsyncStream<VisibleCodes> { $0.finish() }
+    var preview: AnyView { AnyView(Color.black) }
+
+    func start() throws(CodeScannerError) {
+        throw .unsupported
+    }
+
+    func stop() {}
+}

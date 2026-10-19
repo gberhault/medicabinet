@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct MainTabView: View {
+    let environment: AppEnvironment
+
     var body: some View {
         TabView {
-            FeaturePlaceholderView(
-                title: "placeholder.scan.title", message: "placeholder.scan.message", systemImage: "barcode.viewfinder"
-            )
-            .tabItem { Label("tab.scan", systemImage: "barcode.viewfinder") }
+            ScanTab(environment: environment)
+                .tabItem { Label("tab.scan", systemImage: "barcode.viewfinder") }
 
             FeaturePlaceholderView(
                 title: "placeholder.cabinet.title", message: "placeholder.cabinet.message", systemImage: "cross.case"
@@ -22,5 +22,18 @@ struct MainTabView: View {
             SettingsView()
                 .tabItem { Label("tab.settings", systemImage: "gearshape") }
         }
+    }
+}
+
+/// Owns the scan view model for the life of the tab.
+private struct ScanTab: View {
+    @State private var model: ScanViewModel
+
+    init(environment: AppEnvironment) {
+        _model = State(initialValue: ScanViewModel(environment: environment, services: .live(clock: environment.clock)))
+    }
+
+    var body: some View {
+        ScanView(model: model)
     }
 }

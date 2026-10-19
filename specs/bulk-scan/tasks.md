@@ -90,37 +90,39 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
 
 ## 6. iOS scan UI (#14, #15, #16)
 
-- [ ] **T15 — Scan tab skeleton and permission states** `[ios]` [#14] (C1–C5, C7, C8, M1; §5)
+- [x] **T15 — Scan tab skeleton and permission states** `[ios]` [#14] (C1–C5, C7, C8, M1; §5)
   `ScanPreferences` (UserDefaults + `PrivacyInfo` CA92.1), `ScanViewModel` states,
   `CameraPermissionView`, `ScanView` replacing the placeholder, camera start/stop on
   appear/disappear/scene phase, location chip, sound toggle. *Tests:* view-model per state,
   preferences round-trip, privacy manifest test, UI test of the permission screen.
-- [ ] **T16 — Scanning loop and feedback** `[ios]` [#14, #15] (C6, C9, D, I2–I6; §5, §7.1–7.5)
+- [x] **T16 — Scanning loop and feedback** `[ios]` [#14, #15] (C6, C9, D, I2–I6; §5, §7.1–7.5)
   Debouncer → parse → `evaluate` → outcomes; confirmation card with **Undo**, already-in-cabinet,
   put back, another box, not recognised; haptics, `scan_confirm.caf`, VoiceOver announcement.
   *Tests:* view-model per outcome with injected payloads; UI test adding two boxes and a
   duplicate.
-- [ ] **T17 — Expiry field and completion sheet** `[ios]` [#16] (K1–K5; §5)
+- [x] **T17 — Expiry field and completion sheet** `[ios]` [#16] (K1–K5; §5)
   *Tests:* `ExpiryFieldTests` (month/year/day, bounds, leap day, no prefill on invalid),
   UI test: EAN-13 → completion → **Date not printed** → "expiry unknown" row.
-- [ ] **T18 — Session list, edit, delete/undo, summary** `[ios]` [#15] (R1–R4; §7.6)
+- [x] **T18 — Session list, edit, delete/undo, summary** `[ios]` [#15] (R1–R4; §7.6)
   *Tests:* view-model edit/delete/undo/summary; UI test.
-- [ ] **T19 — Manual entry** `[ios]` [#16] (M1–M4; §7.7)
+- [x] **T19 — Manual entry** `[ios]` [#16] (M1–M4; §7.7)
   *Tests:* view-model (code check digit, name rules); UI test with camera denied.
 - [ ] **T20 — iOS accessibility pass** `[ios]` (X3)
   *Tests:* UI tests at an accessibility text size and in dark mode; every control labelled.
 
+*T15–T19 landed together in the iOS Scan-tab commit (one view model, one set of screens), T21–T25 in the Android one; the view-model and screen tests carry the per-task coverage.*
+
 ## 7. Android scan UI (#14, #15, #16)
 
-- [ ] **T21 — Scan route skeleton and permission states** `[android]` (as T15; §6)
+- [x] **T21 — Scan route skeleton and permission states** `[android]` (as T15; §6)
   `ScanPreferences` (SharedPreferences), `ScanViewModel`, permission content, CameraX lifecycle
   binding. *Tests:* view-model per state, Robolectric screen tests.
-- [ ] **T22 — Scanning loop and feedback** `[android]` (as T16)
+- [x] **T22 — Scanning loop and feedback** `[android]` (as T16)
   Haptics, `scan_confirm.ogg` via SoundPool, live region. *Tests:* view-model per outcome
   (Turbine), Robolectric UI.
-- [ ] **T23 — Expiry field and completion sheet** `[android]` (as T17)
-- [ ] **T24 — Session list, edit, delete/undo, summary** `[android]` (as T18)
-- [ ] **T25 — Manual entry** `[android]` (as T19)
+- [x] **T23 — Expiry field and completion sheet** `[android]` (as T17)
+- [x] **T24 — Session list, edit, delete/undo, summary** `[android]` (as T18)
+- [x] **T25 — Manual entry** `[android]` (as T19)
 - [ ] **T26 — Android accessibility pass** `[android]` (X3)
   Font scale 2.0, dark theme, TalkBack labels, 48 dp targets.
 

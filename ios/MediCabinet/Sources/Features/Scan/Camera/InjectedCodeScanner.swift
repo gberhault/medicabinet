@@ -6,6 +6,8 @@ import SwiftUI
 final class InjectedCodeScanner: CodeScanner {
     /// Payloads for a UI test run, separated by `|` (write a group separator as `<GS>`).
     static let environmentKey = "MEDICABINET_UI_TEST_SCANS"
+    /// Pause between two replayed payloads, in milliseconds (default 1 500).
+    static let intervalKey = "MEDICABINET_UI_TEST_SCAN_INTERVAL_MS"
 
     let snapshots: AsyncStream<VisibleCodes>
     private let continuation: AsyncStream<VisibleCodes>.Continuation
@@ -15,8 +17,10 @@ final class InjectedCodeScanner: CodeScanner {
     private let interval: Duration
     private let clock: any Clock
     private var replay: Task<Void, Never>?
+    private let startError: CodeScannerError?
 
-    init(script: [String], interval: Duration = .milliseconds(1_500), clock: any Clock) {
+    init(script: [String], interval: Duration = .milliseconds(1_500), startError: CodeScannerError? = nil, clock: any Clock) {
+        self.startError = startError
         self.script = script
         self.interval = interval
         self.clock = clock
@@ -24,10 +28,13 @@ final class InjectedCodeScanner: CodeScanner {
     }
 
     /// `nil` when the UI-test environment variable is absent.
-    static func fromEnvironment(_ environment: [String: String], clock: any Clock) -> InjectedCodeScanner? {
+    static func fromEnvironment(
+        _ environment: [String: String], clock: any Clock, startError: CodeScannerError? = nil
+    ) -> InjectedCodeScanner? {
         guard let raw = environment[environmentKey] else { return nil }
         let payloads = raw.split(separator: "|").map { $0.replacingOccurrences(of: "<GS>", with: "\u{1D}") }
-        return InjectedCodeScanner(script: payloads, clock: clock)
+        let interval = environment[intervalKey].flatMap(Int.init).map { Duration.milliseconds($0) } ?? .milliseconds(1_500)
+        return InjectedCodeScanner(script: payloads, interval: interval, startError: startError, clock: clock)
     }
 
     var preview: AnyView {
@@ -42,6 +49,7 @@ final class InjectedCodeScanner: CodeScanner {
     }
 
     func start() throws(CodeScannerError) {
+        if let startError { throw startError }
         guard replay == nil else { return }
         replay = Task { [script, interval, clock, continuation] in
             for payload in script {

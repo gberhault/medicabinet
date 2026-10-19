@@ -31,7 +31,6 @@ final class MainTabUITests: XCTestCase {
         let bar = app.tabBars.firstMatch
         XCTAssertTrue(bar.waitForExistence(timeout: 15))
         let expectations = [
-            ("Scan", "Scanning is coming soon"),
             ("Cabinet", "Your cabinet is coming soon"),
             ("Expiring", "Expiry tracking is coming soon")
         ]

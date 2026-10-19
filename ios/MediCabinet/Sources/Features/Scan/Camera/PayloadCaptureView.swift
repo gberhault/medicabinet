@@ -50,7 +50,7 @@ struct PayloadCaptureView: View {
         .navigationTitle(Text(verbatim: "Payload shapes"))
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            let created = VisionKitScanner(clock: SystemClock())
+            let created = VisionKitScanner.make(clock: SystemClock())
             scanner = created
             await model.run(created)
         }

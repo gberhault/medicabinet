@@ -7,10 +7,22 @@ import VisionKit
 /// scanner, off our main thread; we only forward the payloads of the codes in view. Never logs a payload.
 @MainActor
 final class VisionKitScanner: NSObject, CodeScanner, DataScannerViewControllerDelegate {
+    /// The scanner needs hardware support (not the simulator); never create one when this is false.
+    static var isSupported: Bool { DataScannerViewController.isSupported }
+
+    /// The real scanner when the hardware supports it, else one that reports `.unsupported`.
+    static func make(clock: any Clock) -> any CodeScanner {
+        isSupported ? VisionKitScanner(clock: clock) : UnsupportedCodeScanner()
+    }
+
     let snapshots: AsyncStream<VisibleCodes>
     private let continuation: AsyncStream<VisibleCodes>.Continuation
     private let controller: DataScannerViewController
     private let clock: any Clock
+    private var inView: [String] = []
+    private var refresh: Task<Void, Never>?
+    /// A held box stops generating updates; republishing keeps its sighting fresh for the debouncer.
+    private static let refreshInterval = Duration.milliseconds(200)
 
     init(clock: any Clock) {
         self.clock = clock
@@ -38,10 +50,24 @@ final class VisionKitScanner: NSObject, CodeScanner, DataScannerViewControllerDe
         } catch {
             throw .failedToStart
         }
+        refresh = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: Self.refreshInterval)
+                self?.republish()
+            }
+        }
     }
 
     func stop() {
+        refresh?.cancel()
+        refresh = nil
+        inView = []
         controller.stopScanning()
+    }
+
+    private func republish() {
+        guard !inView.isEmpty else { return }
+        continuation.yield(VisibleCodes(payloads: inView, instant: clock.now))
     }
 
     // MARK: DataScannerViewControllerDelegate
@@ -63,6 +89,7 @@ final class VisionKitScanner: NSObject, CodeScanner, DataScannerViewControllerDe
             if case let .barcode(barcode) = item { return barcode.payloadStringValue }
             return nil
         }
+        inView = payloads
         continuation.yield(VisibleCodes(payloads: payloads, instant: clock.now))
     }
 }

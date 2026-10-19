@@ -16,7 +16,7 @@ struct RootView: View {
                     Task { await model.start() }
                 }
             case .ready(let environment):
-                MainTabView()
+                MainTabView(environment: environment)
                     .environment(\.appEnvironment, environment)
             }
         }
