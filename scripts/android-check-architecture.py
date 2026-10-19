@@ -12,6 +12,7 @@ Rules
   sql_confined_to_persistence   androidx.sqlite / android.database only under app/.../persistence/
   no_network                    no network API imports and no INTERNET permission
   log_through_applog            android.util.Log only inside AppLog.kt
+  camera_confined_to_scan_camera androidx.camera / zxingcpp only under app/.../features/scan/camera/
 """
 import argparse
 import pathlib
@@ -51,6 +52,12 @@ RULES = [
         "message": "the INTERNET permission is not allowed until a feature needs the network",
         "pattern": re.compile(r"android\.permission\.INTERNET"),
         "applies": lambda p: "/android/" in p and p.endswith("AndroidManifest.xml"),
+    },
+    {
+        "id": "camera_confined_to_scan_camera",
+        "message": "androidx.camera and zxingcpp may only be used under .../features/scan/camera/",
+        "pattern": re.compile(IMPORT + r"(androidx\.camera|zxingcpp)"),
+        "applies": lambda p: "/android/app/src/" in p and p.endswith(".kt") and "/features/scan/camera/" not in p,
     },
     {
         "id": "log_through_applog",

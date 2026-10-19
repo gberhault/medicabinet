@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- No permissions: the app makes no network request (see docs/architecture.md). -->
+    <!-- The only permission is the camera, requested at runtime when the user opens the scanner; the app stays
+         usable (manual entry) without it. No network request (see docs/architecture.md). -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+
+    <!-- camera-view pulls in media3-common, which declares this permission for video playback we do not use. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
 
     <application
         android:name=".MediCabinetApplication"

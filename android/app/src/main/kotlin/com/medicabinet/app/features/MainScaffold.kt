@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -28,6 +29,9 @@ import androidx.navigation.compose.rememberNavController
 import com.medicabinet.app.R
 import com.medicabinet.app.app.LocalAppEnvironment
 import com.medicabinet.app.features.placeholders.FeaturePlaceholder
+import com.medicabinet.app.features.scan.camera.DEBUG_ROUTE
+import com.medicabinet.app.features.scan.camera.DebugSettingsRow
+import com.medicabinet.app.features.scan.camera.debugRoutes
 import com.medicabinet.app.features.settings.AboutScreen
 import com.medicabinet.app.features.settings.AboutViewModel
 import com.medicabinet.app.features.settings.AppInfo
@@ -73,32 +77,43 @@ fun MainScaffold(modifier: Modifier = Modifier, appInfo: AppInfo = PackageAppInf
             }
         }
     ) { padding ->
-        NavHost(navController, startDestination = Destination.Scan.route, modifier = Modifier.padding(padding)) {
-            composable(Destination.Scan.route) {
-                FeaturePlaceholder(
-                    R.string.placeholder_scan_title,
-                    R.string.placeholder_scan_message,
-                    Destination.Scan.icon
+        MainNavHost(navController, aboutViewModel, Modifier.padding(padding))
+    }
+}
+
+@Composable
+private fun MainNavHost(navController: NavHostController, aboutViewModel: AboutViewModel, modifier: Modifier) {
+    NavHost(navController, startDestination = Destination.Scan.route, modifier = modifier) {
+        composable(Destination.Scan.route) {
+            FeaturePlaceholder(
+                R.string.placeholder_scan_title,
+                R.string.placeholder_scan_message,
+                Destination.Scan.icon
+            )
+        }
+        composable(Destination.Cabinet.route) {
+            FeaturePlaceholder(
+                R.string.placeholder_cabinet_title,
+                R.string.placeholder_cabinet_message,
+                Destination.Cabinet.icon
+            )
+        }
+        composable(Destination.Expiring.route) {
+            FeaturePlaceholder(
+                R.string.placeholder_expiring_title,
+                R.string.placeholder_expiring_message,
+                Destination.Expiring.icon
+            )
+        }
+        navigation(route = Destination.Settings.route, startDestination = SETTINGS_HOME) {
+            composable(SETTINGS_HOME) {
+                SettingsScreen(
+                    onOpenAbout = { navController.navigate(SETTINGS_ABOUT) },
+                    extraRows = { DebugSettingsRow { navController.navigate(DEBUG_ROUTE) } }
                 )
             }
-            composable(Destination.Cabinet.route) {
-                FeaturePlaceholder(
-                    R.string.placeholder_cabinet_title,
-                    R.string.placeholder_cabinet_message,
-                    Destination.Cabinet.icon
-                )
-            }
-            composable(Destination.Expiring.route) {
-                FeaturePlaceholder(
-                    R.string.placeholder_expiring_title,
-                    R.string.placeholder_expiring_message,
-                    Destination.Expiring.icon
-                )
-            }
-            navigation(route = Destination.Settings.route, startDestination = SETTINGS_HOME) {
-                composable(SETTINGS_HOME) { SettingsScreen(onOpenAbout = { navController.navigate(SETTINGS_ABOUT) }) }
-                composable(SETTINGS_ABOUT) { AboutScreen(aboutViewModel, onBack = { navController.popBackStack() }) }
-            }
+            composable(SETTINGS_ABOUT) { AboutScreen(aboutViewModel, onBack = { navController.popBackStack() }) }
+            debugRoutes()
         }
     }
 }

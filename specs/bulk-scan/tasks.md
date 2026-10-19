@@ -34,7 +34,10 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
   `NSCameraUsageDescription` (fr + en); SwiftLint rule confining VisionKit/AVFoundation to
   `Features/Scan/Camera/` + lint fixture. *Tests:* injected scanner emits snapshots; Info.plist
   key present and localised; lint fixture fails.
-- [ ] **T5 — Android camera adapter and debug capture screen** `[android]` [#14] (C9–C11, X1; §1.1, §6)
+- [x] **T5 — Android camera adapter and debug capture screen** `[android]` [#14] (C9–C11, X1; §1.1, §6)
+  *Checked 2026-10-19:* zxing-cpp `android` 3.1.1 is Apache-2.0, last released 2026-07-29, its AAR declares no
+  permission and 4 × ~1.2–1.9 MB native libraries; CameraX 1.6.2 `camera-view` pulls in `media3-common`, whose
+  `ACCESS_NETWORK_STATE` is removed from our manifest (`tools:node="remove"`). Debug APK (all ABIs): 28.6 MB.
   Add CameraX + `io.github.zxing-cpp:android` to the catalog after checking licence, last
   release date, merged manifest and APK size delta (recorded in this file and the PR).
   `CodeScanner`, `CameraXScanner` (`DATA_MATRIX`, `EAN_13`, `PLAIN`, symbology prefix),

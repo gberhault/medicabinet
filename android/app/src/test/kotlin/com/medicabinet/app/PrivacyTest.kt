@@ -23,16 +23,24 @@ class PrivacyTest {
     private val context: Context get() = ApplicationProvider.getApplicationContext()
 
     /**
-     * No system permission — in particular not INTERNET. (AndroidX adds one app-private, signature-level
-     * permission named after the package; it grants nothing and is ignored here.)
+     * The camera is the only system permission — in particular not INTERNET. (AndroidX adds one app-private,
+     * signature-level permission named after the package; it grants nothing and is ignored here.)
      */
     @Test
-    fun theAppRequestsNoSystemPermissionAtAll() {
+    fun theCameraIsTheOnlySystemPermission() {
         val info = context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
         val requested = info.requestedPermissions?.toList().orEmpty()
         val system = requested.filterNot { it.startsWith("${context.packageName}.") }
-        assertTrue(system.isEmpty(), "system permissions requested: $system")
+        assertEquals(listOf("android.permission.CAMERA"), system)
         assertFalse("android.permission.INTERNET" in requested)
+    }
+
+    @Test
+    fun theCameraIsNotRequiredToInstallTheApp() {
+        val info = context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_CONFIGURATIONS)
+        val camera = info.reqFeatures?.firstOrNull { it.name == "android.hardware.camera.any" }
+        assertNotNull(camera, "the manifest must declare the camera feature")
+        assertEquals(0, camera.flags and android.content.pm.FeatureInfo.FLAG_REQUIRED)
     }
 
     @Test

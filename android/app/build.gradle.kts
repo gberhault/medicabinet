@@ -74,6 +74,11 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.sqlite.framework)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.zxing.cpp.android)
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
@@ -111,13 +116,16 @@ tasks.withType<Test>().configureEach {
 //  - R / BuildConfig / Manifest: generated
 //  - ComposableSingletons$*: compiler-generated holders for cached composable lambdas
 //  - MainActivity: Activity wiring (the Compose UI it hosts is tested directly)
+//  - CameraXScanner: the camera hardware adapter (CameraX + zxing-cpp); it needs a device, the rest of the scan
+//    flow is tested through the CodeScanner interface
 private val jacocoExcludes = listOf(
     "**/R.class",
     "**/R$*.class",
     "**/BuildConfig.*",
     "**/Manifest*.*",
     "**/ComposableSingletons*.*",
-    "**/MainActivity*.*"
+    "**/MainActivity*.*",
+    "**/features/scan/camera/CameraXScanner*.*"
 )
 
 // Unit-test coverage for the app (JVM + Robolectric), XML for scripts/android-coverage-gate.py.
