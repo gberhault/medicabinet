@@ -1,0 +1,149 @@
+{
+  "formatVersion": 1,
+  "description": "ProductResolver.resolve(reference, previousBox). reference: the reference-data product (name, optional category) or null; previousBox: the most recent non-deleted box with the same GTIN, or null. expect.name null = unknown product (the app asks for a name). The name is the reference name, else the previous box's. The category is the previous box's when the user set it (categoryOverridden), else the reference category, else uncategorized.",
+  "cases": [
+    {
+      "name": "nothing known (broken)",
+      "reference": null,
+      "previousBox": null,
+      "expect": {
+        "name": "WRONG",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "reference only, no category",
+      "reference": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": null
+      },
+      "previousBox": null,
+      "expect": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "reference only, with category",
+      "reference": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": "pain-fever"
+      },
+      "previousBox": null,
+      "expect": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": "pain-fever",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "previous box only, category set by the user",
+      "reference": null,
+      "previousBox": {
+        "name": "Doliprane",
+        "category": "cold-ent",
+        "categoryOverridden": true
+      },
+      "expect": {
+        "name": "Doliprane",
+        "category": "cold-ent",
+        "categoryOverridden": true
+      }
+    },
+    {
+      "name": "previous box only, category not set by the user",
+      "reference": null,
+      "previousBox": {
+        "name": "Doliprane",
+        "category": "pain-fever",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "name": "Doliprane",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "reference name wins over the previous box name",
+      "reference": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": null
+      },
+      "previousBox": {
+        "name": "Doliprane",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "user category of the previous box wins over the reference category",
+      "reference": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": "pain-fever"
+      },
+      "previousBox": {
+        "name": "Doliprane",
+        "category": "skin-wound",
+        "categoryOverridden": true
+      },
+      "expect": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": "skin-wound",
+        "categoryOverridden": true
+      }
+    },
+    {
+      "name": "reference category wins over an automatic previous category",
+      "reference": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": "pain-fever"
+      },
+      "previousBox": {
+        "name": "Doliprane",
+        "category": "digestion",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": "pain-fever",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "user category kept even when the product is unknown to the reference",
+      "reference": null,
+      "previousBox": {
+        "name": "Thermomètre",
+        "category": "other",
+        "categoryOverridden": true
+      },
+      "expect": {
+        "name": "Thermomètre",
+        "category": "other",
+        "categoryOverridden": true
+      }
+    },
+    {
+      "name": "a previous box still named but uncategorized by the user",
+      "reference": null,
+      "previousBox": {
+        "name": "Pansements",
+        "category": "uncategorized",
+        "categoryOverridden": true
+      },
+      "expect": {
+        "name": "Pansements",
+        "category": "uncategorized",
+        "categoryOverridden": true
+      }
+    }
+  ]
+}

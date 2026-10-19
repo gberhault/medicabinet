@@ -1,0 +1,1168 @@
+{
+  "formatVersion": 1,
+  "description": "ScanDebouncer: feed frames in order; each frame lists the payloads visible at time t (milliseconds from an arbitrary start). A payload is a new scan when it was never seen, or when it was last seen rescanGapMs or more before. A sighting always updates the last-seen time. expectScans lists the new scans in the order the debouncer must return them.",
+  "cases": [
+    {
+      "name": "one frame is one scan",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        }
+      ]
+    },
+    {
+      "name": "a box held still counts once",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 100,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 200,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 300,
+          "visible": [
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        }
+      ]
+    },
+    {
+      "name": "a box held still for ten seconds counts once",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 100,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 200,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 300,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 400,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 500,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 600,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 700,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 800,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 900,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 1000,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 1100,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 1200,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 1300,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 1400,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 1500,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 1600,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 1700,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 1800,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 1900,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 2000,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 2100,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 2200,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 2300,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 2400,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 2500,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 2600,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 2700,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 2800,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 2900,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 3000,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 3100,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 3200,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 3300,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 3400,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 3500,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 3600,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 3700,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 3800,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 3900,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 4000,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 4100,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 4200,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 4300,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 4400,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 4500,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 4600,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 4700,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 4800,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 4900,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 5000,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 5100,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 5200,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 5300,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 5400,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 5500,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 5600,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 5700,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 5800,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 5900,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 6000,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 6100,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 6200,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 6300,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 6400,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 6500,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 6600,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 6700,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 6800,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 6900,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 7000,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 7100,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 7200,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 7300,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 7400,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 7500,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 7600,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 7700,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 7800,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 7900,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 8000,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 8100,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 8200,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 8300,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 8400,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 8500,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 8600,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 8700,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 8800,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 8900,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 9000,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 9100,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 9200,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 9300,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 9400,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 9500,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 9600,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 9700,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 9800,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 9900,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 10000,
+          "visible": [
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        }
+      ]
+    },
+    {
+      "name": "a flicker shorter than the gap does not count again",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 100,
+          "visible": []
+        },
+        {
+          "t": 200,
+          "visible": []
+        },
+        {
+          "t": 300,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 400,
+          "visible": []
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        }
+      ]
+    },
+    {
+      "name": "a box shown again after a 1 s absence counts again",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 400,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 500,
+          "visible": []
+        },
+        {
+          "t": 900,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 1000,
+          "visible": []
+        },
+        {
+          "t": 2100,
+          "visible": [
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        },
+        {
+          "t": 2100,
+          "payload": "A"
+        }
+      ]
+    },
+    {
+      "name": "an absence of exactly the gap counts again",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 500,
+          "visible": []
+        },
+        {
+          "t": 1000,
+          "visible": [
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        },
+        {
+          "t": 1000,
+          "payload": "A"
+        }
+      ]
+    },
+    {
+      "name": "an absence one millisecond short of the gap does not",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 500,
+          "visible": []
+        },
+        {
+          "t": 999,
+          "visible": [
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        }
+      ]
+    },
+    {
+      "name": "last sighting restarts the absence",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 600,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 1200,
+          "visible": []
+        },
+        {
+          "t": 1599,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 2598,
+          "visible": [
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        }
+      ]
+    },
+    {
+      "name": "two codes in one frame are both counted in order",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "t": 100,
+          "visible": [
+            "A",
+            "B"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        },
+        {
+          "t": 0,
+          "payload": "B"
+        }
+      ]
+    },
+    {
+      "name": "the same code twice in one frame counts once",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A",
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        }
+      ]
+    },
+    {
+      "name": "A then B then A within the gap: A is not counted again",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 200,
+          "visible": [
+            "B"
+          ]
+        },
+        {
+          "t": 400,
+          "visible": [
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        },
+        {
+          "t": 200,
+          "payload": "B"
+        }
+      ]
+    },
+    {
+      "name": "B arriving while A stays does not recount A",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 300,
+          "visible": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "t": 600,
+          "visible": [
+            "A",
+            "B"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        },
+        {
+          "t": 300,
+          "payload": "B"
+        }
+      ]
+    },
+    {
+      "name": "A and B each recounted after their own absence",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "t": 1500,
+          "visible": [
+            "B"
+          ]
+        },
+        {
+          "t": 2600,
+          "visible": [
+            "A",
+            "B"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        },
+        {
+          "t": 0,
+          "payload": "B"
+        },
+        {
+          "t": 1500,
+          "payload": "B"
+        },
+        {
+          "t": 2600,
+          "payload": "A"
+        },
+        {
+          "t": 2600,
+          "payload": "B"
+        }
+      ]
+    },
+    {
+      "name": "empty frames only count nothing",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": []
+        },
+        {
+          "t": 100,
+          "visible": []
+        },
+        {
+          "t": 5000,
+          "visible": []
+        }
+      ],
+      "expectScans": []
+    },
+    {
+      "name": "the clock not advancing never recounts",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        }
+      ]
+    },
+    {
+      "name": "a shorter gap of 250 ms",
+      "rescanGapMs": 250,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 200,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 450,
+          "visible": []
+        },
+        {
+          "t": 700,
+          "visible": [
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        },
+        {
+          "t": 700,
+          "payload": "A"
+        }
+      ]
+    },
+    {
+      "name": "a gap of 250 ms: 249 ms absent does not count",
+      "rescanGapMs": 250,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 249,
+          "visible": [
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        }
+      ]
+    },
+    {
+      "name": "a long absence much beyond the gap counts again",
+      "rescanGapMs": 1000,
+      "frames": [
+        {
+          "t": 0,
+          "visible": [
+            "A"
+          ]
+        },
+        {
+          "t": 60000,
+          "visible": [
+            "A"
+          ]
+        }
+      ],
+      "expectScans": [
+        {
+          "t": 0,
+          "payload": "A"
+        },
+        {
+          "t": 60000,
+          "payload": "A"
+        }
+      ]
+    }
+  ]
+}

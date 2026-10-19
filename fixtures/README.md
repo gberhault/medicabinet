@@ -25,6 +25,9 @@ Every file is JSON with:
 | `reference-sample.sqlite` | a small reference database (reference schema v1) built by `scripts/tests/write-reference-sample.py` from invented BDPM-shaped files; the app lookup tests open it |
 | `reference-sample-manifest.json` | the manifest of the sample database (same format as `reference-data/bundle/reference-manifest.json`): the Android installer tests copy and verify the sample against it |
 | `gs1-datamatrix.json` | GS1 DataMatrix / EAN-13 payload parsing: GTIN, expiry (invalid vs missing), lot, serial, the `shape` of a payload, parse error kinds |
+| `scan-debounce.json` | `ScanDebouncer`: which sightings count as a new scan (1 s re-scan gap) |
+| `scan-intake.json` | `IntakePolicy`: add / complete / confirmAnother / alreadyInCabinet / removedEarlier |
+| `product-resolution.json` | `ProductResolver`: name and category from reference data and the previous box |
 | `schema-v1.sql` | the exact v1 DDL both platforms run (each platform's test compares its own copy, ignoring whitespace and `--` comments) |
 | `schema-v1.json` | the tables, columns and indexes every platform's database v1 must have |
 | `repository-contract.json` | names of the repository contract checks both platforms run (the checks themselves are code) |
@@ -42,6 +45,8 @@ These strings are identical on both platforms (storage values, error kinds, expo
 | `ReferenceUnavailableReason` | `missing`, `unreadable`, `unsupportedSchema` |
 | Parse error kinds | `empty`, `tooLong`, `invalidCharacters`, `missingGTIN`, `invalidGTIN` |
 | Unreadable scanned expiry | `invalidMonth`, `invalidDay` (as `ExpiryDate`), `invalidFormat` (AI 17 is not six digits) |
+| Intake decisions | `add`, `complete`, `confirmAnother`, `alreadyInCabinet`, `removedEarlier` |
+| Intake missing fields | `name`, `expiry` |
 | Barcode symbologies | `dataMatrix`, `ean13` |
 | Repository errors | `notFound`, `unknownLocation`, `duplicate`, `duplicateDefault` |
 

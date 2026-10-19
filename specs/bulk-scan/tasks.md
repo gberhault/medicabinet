@@ -50,7 +50,7 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
 
 ## 3. Scan rules (#14, #15, #12)
 
-- [ ] **T7 — Debounce, intake and resolution fixtures** `[shared]` [#14, #15] (D5, I1, L; §2.2–2.4)
+- [x] **T7 — Debounce, intake and resolution fixtures** `[shared]` [#14, #15] (D5, I1, L; §2.2–2.4)
   `scan-debounce.json`, `scan-intake.json`, `product-resolution.json`; decision names in
   `fixtures/README.md`; broken copies. *Test:* `check-fixtures.py` green.
 - [ ] **T8 — `ScanDebouncer`, `ProductResolver`, `IntakePolicy` in Swift** `[ios]` (D1–D5, I1–I6, K1, L2–L4; §3.2–3.4)
