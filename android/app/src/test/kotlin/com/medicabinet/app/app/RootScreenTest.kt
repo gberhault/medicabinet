@@ -5,6 +5,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.medicabinet.app.ui.theme.MediCabinetTheme
+import com.medicabinet.core.reference.ReferenceStatus
+import com.medicabinet.core.reference.ReferenceUnavailableReason
+import com.medicabinet.core.testing.InMemoryReferenceData
 import kotlin.test.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -71,7 +74,8 @@ class RootScreenTest {
     @Test
     fun readyShowsTheMainScaffold() {
         val store = com.medicabinet.core.testing.InMemoryCabinetStore(com.medicabinet.core.SystemClock)
-        val environment = AppEnvironment(store, store, com.medicabinet.core.SystemClock)
+        val reference = InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING))
+        val environment = AppEnvironment(store, store, com.medicabinet.core.SystemClock, reference)
         val viewModel = BootstrapViewModel { BootstrapState.Ready(environment) }
         compose.setContent { MediCabinetTheme { RootScreen(viewModel) } }
         compose.onNodeWithText("Cabinet").assertIsDisplayed()

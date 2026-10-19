@@ -2,7 +2,10 @@ package com.medicabinet.app.app
 
 import app.cash.turbine.test
 import com.medicabinet.core.SystemClock
+import com.medicabinet.core.reference.ReferenceStatus
+import com.medicabinet.core.reference.ReferenceUnavailableReason
 import com.medicabinet.core.testing.InMemoryCabinetStore
+import com.medicabinet.core.testing.InMemoryReferenceData
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlinx.coroutines.CompletableDeferred
@@ -26,7 +29,8 @@ class BootstrapViewModelTest {
 
     private fun environment(): AppEnvironment {
         val store = InMemoryCabinetStore(SystemClock)
-        return AppEnvironment(store, store, SystemClock)
+        val reference = InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING))
+        return AppEnvironment(store, store, SystemClock, reference)
     }
 
     @Test

@@ -96,7 +96,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
   hash skips the copy, changed hash replaces, fault-injected interrupted copy leaves no file and
   the next call retries, hash mismatch fails, missing asset → `missing`; backup rules do not
   include `reference`.
-- [ ] **T13 — Reference database and lookup** `[android]` [#11] (L3–L7, L9, X1; §9, §12)
+- [x] **T13 — Reference database and lookup** `[android]` [#11] (L3–L7, L9, X1; §9, §12)
   `ReferenceDatabase`, `SqlReferenceData` (Mutex, injected dispatcher), `AppEnvironment.reference`,
   `AppLog.referenceUnavailable`. *Tests first:* `ReferenceLookupFixtureTest` on the sample;
   unavailable cases as on iOS; logging (reason and class only); integration test on the bundled

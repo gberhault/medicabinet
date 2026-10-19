@@ -20,7 +20,7 @@ if [[ "$WHICH" == all || "$WHICH" == shared ]]; then
 
   step "shared: reference data (build script, committed bundle, golden list)"
   python3 -I scripts/tests/test-build-reference-db.py
-  python3 -I scripts/build-reference-db.py verify --apps ios
+  python3 -I scripts/build-reference-db.py verify --apps ios,android
   bash scripts/tests/test-reference-data-break.sh
 
   step "shared: iOS and Android say the same thing"
