@@ -23,7 +23,7 @@ independent of each other.
 
 ## 1. Archive format in both cores (#27)
 
-- [ ] **T1 — Archive fixtures** `[shared]` [#27] (F2–F10, V2–V3; §2, §3)
+- [x] **T1 — Archive fixtures** `[shared]` [#27] (F2–F10, V2–V3; §2, §3)
   `fixtures/archive/v1/golden.medicabinet` (every variant of §3, canonical form of §2.3),
   `fixtures/archive-cases.json` (golden summary, every error kind with its path, hostile
   inline / base64 / generated cases), `fixtures/archive-code-points.json`. Error kinds,

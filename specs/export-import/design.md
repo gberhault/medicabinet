@@ -22,10 +22,12 @@ are referenced from `tasks.md`.
 
 - The reader implements RFC 8259 strictly: UTF-8 only (overlong forms, surrogate code points
   and invalid bytes are refused), a leading UTF-8 BOM is skipped, nothing may follow the
-  root value, nesting depth ≤ 8, strings ≤ 4 096 bytes once decoded, `\u` escapes with
-  surrogate pairs (a lone surrogate is refused), and numbers read as integers in the Int64
-  range (any fraction or exponent is a type error where an integer is expected). Duplicate
-  keys in one object are refused.
+  root value, strings ≤ 4 096 bytes once decoded, `\u` escapes with surrogate pairs (a lone
+  surrogate is refused), and numbers read as integers in the Int64 range (any fraction or
+  exponent is a type error where an integer is expected). Duplicate keys in one object are
+  refused. There is no depth limit to configure: the reader never descends into a value
+  the schema does not expect (an unknown key is refused at once), so the nesting it reads
+  is bounded by the schema (four levels).
 - The writer emits **canonical** JSON (§2.3). Both cores produce the same bytes, which is
   how X7's cross-platform check stays simple: one golden file, compared byte for byte on
   both platforms.
@@ -83,7 +85,6 @@ backups runs **after** the commit, and a pruning failure is logged, not shown (B
 | `maxFileBytes` | 32 MiB | A real box is ≈ 650 bytes in the file; 1 000 boxes ≈ 0.7 MB. 32 MiB holds the box limit even with maximum-length fields. Checked on the byte count before parsing; reading stops at `max + 1` bytes. |
 | `maxBoxes` | 20 000 | 20× the 1 000-box target. A cabinet with all its history (≈ 300 boxes a year) reaches it in decades. |
 | `maxLocations` | 200 | Far above any household. |
-| `maxDepth` | 8 | The format nests 4 levels. |
 | `maxStringBytes` | 4 096 | Longer than any field allows (200 code points × 4 bytes). Refuses huge strings before decoding them. |
 
 The encoder checks the same limits. A cabinet over a limit cannot be exported (`tooLarge` /
@@ -176,13 +177,13 @@ session **ends** on a change, because its review list points at boxes that no lo
 | `app.platform` | string | `ios` or `android` |
 | `app.version`, `app.build` | string | 1–20 code points (`?` allowed: what `AppInfo` reports when unknown) |
 | `locations` | array | 1…`maxLocations` items; exactly one with `isDefault: true` |
-| `location.id`, `box.id` | UUID | canonical 8-4-4-4-12 hex, either case, stored upper-case. Unique across the file |
+| `location.id`, `box.id` | UUID | canonical 8-4-4-4-12 hex, either case, stored upper-case. Unique among locations and, separately, among boxes (the database rule) |
 | `location.name` | string | 1–100 code points (SQL `CHECK`) |
 | `location.sortOrder` | integer | 32-bit signed range (the Kotlin model is `Int`) |
 | `boxes` | array | 0…`maxBoxes` items |
 | `box.gtin` | string or null | exactly 14 ASCII digits (SQL `CHECK`; the check digit is **not** verified, because the database does not verify it) |
 | `box.productName` | string | 1–200 code points |
-| `box.category` | string | 1–100 code points, no control characters. Unknown ids kept as written (F10) |
+| `box.category` | string | 1–100 code points. Unknown ids kept as written (F10) |
 | `box.locationId` | UUID | must be a location in the file → else `unknownLocation` |
 | `box.expiry` | object or null | `year`, `month`, `day` (integer or null) passed through `ExpiryDate.make`. Any error → `invalidValue` (V3, never "unknown") |
 | `box.lot`, `box.serial` | string or null | 1–20 code points |
@@ -233,6 +234,35 @@ keeps the file's original version for the preview (I8).
 `boxes[12].expiry.month`. The path holds indexes and key names only, never values (V5). It
 appears in tests and logs, not in the UI.
 
+### 2.7 Decoding order and error attribution (fixed by `archive-cases.json`)
+
+1. Size (`tooLarge`, path `null`), then the whole byte string must be valid UTF-8 (a BOM is
+   skipped; else `notJSON`).
+2. The first member must be `archive` = `"medicabinet"` and the second `formatVersion` (an
+   integer): anything else is `notArchive` (also a root that is not an object). A version
+   below 1 is `unsupportedVersion`, above the current one `newerVersion`; both stop the read
+   there (the body of a newer file is never read). All three have path `null`.
+3. The rest is read member by member, in file order, into the model. The first fault wins:
+   syntax faults are `notJSON` (path `null`); a missing, unknown or duplicate key, a wrong
+   JSON type or a float where an integer is expected is `invalidStructure`; an unreadable
+   value (uuid, date, expiry through `ExpiryDate.make`, removal reason, an integer beyond
+   Int64 or a sort order beyond 32 bits, a string over `maxStringBytes`) is `invalidValue`.
+   The path is the field, e.g. `boxes[3].expiry.year`. An expiry rejected by
+   `ExpiryDate.make` is attributed to `boxes[3].expiry`. A missing key is attributed to
+   `<object>.<key>`, reported once the object ends. More than `maxLocations` / `maxBoxes`
+   items is `tooManyItems` (path `locations` / `boxes`), reported when the extra item
+   starts.
+4. After the read, `ArchiveValidator` runs on the model, in this order: field limits (lengths
+   in code points, platform, GTIN of 14 ASCII digits) as `invalidValue`; `duplicateId`
+   (locations, then boxes; path of the second occurrence); `defaultLocation` (not exactly one
+   default, path `locations`, which includes an empty list); `unknownLocation` (path
+   `boxes[i].locationId`); `duplicateSerial` (same GTIN and serial among boxes that are not
+   deleted; boxes without a GTIN are never compared, like the unique index; path of the second
+   box's `serial`). The encoder runs the same validator before writing.
+5. `CabinetSummary.unknownExpiry` counts the boxes **in the cabinet** (not removed, not
+   deleted) without an expiry. `needsBackup` is false only when the cabinet has no box of any
+   kind and exactly one location.
+
 ## 3. Shared fixtures
 
 ```
@@ -252,7 +282,7 @@ fixtures/
   `summary` holds `formatVersion`, `sourceFormatVersion`, `exportedAt`, `app`, `locations`,
   `inCabinet`, `removed`, `deleted` and `unknownExpiry`. Hostile cases are inline: every
   error kind, unknown key, duplicate key, wrong types, `1.0` as an integer, a lone
-  surrogate, invalid UTF-8, a BOM (accepted), trailing data, 9-deep nesting, `formatVersion` 0 and
+  surrogate, invalid UTF-8, a BOM (accepted), trailing data, deep nesting under an unknown key, `formatVersion` 0 and
   2, a missing default, two defaults, expiry `2027-02-29`, year 2100, an `"UNKNOWN"` removal
   reason, and so on. Generated cases cover `maxBoxes + 1`, `maxLocations + 1` and
   `maxFileBytes + 1`.
@@ -284,7 +314,7 @@ public enum ArchiveFormat {
 
 public struct ArchiveLimits: Sendable {               // §1.5, named defaults
     public var maxFileBytes = 32 * 1024 * 1024, maxBoxes = 20_000, maxLocations = 200
-    public var maxDepth = 8, maxStringBytes = 4_096
+    public var maxStringBytes = 4_096
     public static let `default` = ArchiveLimits()
 }
 

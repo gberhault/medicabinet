@@ -1,0 +1,277 @@
+{
+    "archive": "medicabinet",
+    "formatVersion": 1,
+    "exportedAt": "2026-10-19T08:15:30.123Z",
+    "app": {
+        "name": "MediCabinet",
+        "platform": "ios",
+        "version": "0.3.0",
+        "build": "3"
+    },
+    "locations": [
+        {
+            "id": "10000001-0000-4000-8000-000000000001",
+            "name": "Salle de bain",
+            "isDefault": true,
+            "sortOrder": 0,
+            "createdAt": "2026-10-01T09:00:00.000Z",
+            "updatedAt": "2026-10-01T09:00:00.000Z"
+        },
+        {
+            "id": "10000002-0000-4000-8000-000000000002",
+            "name": "Cuisine",
+            "isDefault": false,
+            "sortOrder": 1,
+            "createdAt": "2026-10-01T09:00:00.000Z",
+            "updatedAt": "2026-10-01T09:00:00.000Z"
+        },
+        {
+            "id": "10000003-0000-4000-8000-000000000003",
+            "name": "Trousse de voyage 🧳",
+            "isDefault": false,
+            "sortOrder": 1,
+            "createdAt": "2026-10-01T09:30:00.000Z",
+            "updatedAt": "2026-10-01T09:30:00.000Z"
+        }
+    ],
+    "boxes": [
+        {
+            "id": "B0000001-0000-4000-8000-000000000001",
+            "gtin": "03400936404564",
+            "productName": "DOLIPRANE 1000 mg, comprimé",
+            "category": "pain-fever",
+            "categoryOverridden": false,
+            "locationId": "10000001-0000-4000-8000-000000000001",
+            "expiry": {
+                "year": 2027,
+                "month": 3,
+                "day": 15
+            },
+            "lot": "B1234",
+            "serial": "1234567890AB",
+            "isOpened": false,
+            "removal": null,
+            "createdAt": "2026-10-02T10:00:01.000Z",
+            "updatedAt": "2026-10-02T10:00:01.000Z",
+            "deletedAt": null
+        },
+        {
+            "id": "B0000002-0000-4000-8000-000000000002",
+            "gtin": "03400936404571",
+            "productName": "Produit 2",
+            "category": "uncategorized",
+            "categoryOverridden": false,
+            "locationId": "10000001-0000-4000-8000-000000000001",
+            "expiry": {
+                "year": 2027,
+                "month": 4,
+                "day": null
+            },
+            "lot": null,
+            "serial": null,
+            "isOpened": false,
+            "removal": null,
+            "createdAt": "2026-10-02T10:00:02.000Z",
+            "updatedAt": "2026-10-02T10:00:02.000Z",
+            "deletedAt": null
+        },
+        {
+            "id": "B0000003-0000-4000-8000-000000000003",
+            "gtin": null,
+            "productName": "Thermomètre",
+            "category": "uncategorized",
+            "categoryOverridden": false,
+            "locationId": "10000001-0000-4000-8000-000000000001",
+            "expiry": null,
+            "lot": null,
+            "serial": null,
+            "isOpened": false,
+            "removal": null,
+            "createdAt": "2026-10-02T10:00:03.000Z",
+            "updatedAt": "2026-10-02T10:00:03.000Z",
+            "deletedAt": null
+        },
+        {
+            "id": "B0000004-0000-4000-8000-000000000004",
+            "gtin": "03400936404564",
+            "productName": "Produit 4",
+            "category": "uncategorized",
+            "categoryOverridden": false,
+            "locationId": "10000002-0000-4000-8000-000000000002",
+            "expiry": {
+                "year": 2000,
+                "month": 1,
+                "day": 1
+            },
+            "lot": null,
+            "serial": null,
+            "isOpened": false,
+            "removal": null,
+            "createdAt": "2026-10-02T10:00:04.000Z",
+            "updatedAt": "2026-10-02T10:00:04.000Z",
+            "deletedAt": null
+        },
+        {
+            "id": "B0000005-0000-4000-8000-000000000005",
+            "gtin": "03400936404564",
+            "productName": "Produit 5",
+            "category": "uncategorized",
+            "categoryOverridden": false,
+            "locationId": "10000003-0000-4000-8000-000000000003",
+            "expiry": {
+                "year": 2099,
+                "month": 12,
+                "day": 31
+            },
+            "lot": null,
+            "serial": null,
+            "isOpened": false,
+            "removal": null,
+            "createdAt": "2026-10-02T10:00:05.000Z",
+            "updatedAt": "2026-10-02T10:00:05.000Z",
+            "deletedAt": null
+        },
+        {
+            "id": "B0000006-0000-4000-8000-000000000006",
+            "gtin": "03400936404564",
+            "productName": "Produit 6",
+            "category": "uncategorized",
+            "categoryOverridden": false,
+            "locationId": "10000001-0000-4000-8000-000000000001",
+            "expiry": {
+                "year": 2027,
+                "month": 3,
+                "day": 15
+            },
+            "lot": "L-USED",
+            "serial": "REMOVED00001",
+            "isOpened": false,
+            "removal": {
+                "reason": "usedUp",
+                "at": "2026-10-10T18:00:00.000Z"
+            },
+            "createdAt": "2026-10-02T10:00:06.000Z",
+            "updatedAt": "2026-10-10T18:00:00.000Z",
+            "deletedAt": null
+        },
+        {
+            "id": "B0000007-0000-4000-8000-000000000007",
+            "gtin": "03400936404564",
+            "productName": "Produit 7",
+            "category": "uncategorized",
+            "categoryOverridden": false,
+            "locationId": "10000001-0000-4000-8000-000000000001",
+            "expiry": {
+                "year": 2027,
+                "month": 3,
+                "day": 15
+            },
+            "lot": null,
+            "serial": "REMOVED00002",
+            "isOpened": true,
+            "removal": {
+                "reason": "thrownAway",
+                "at": "2026-10-11T07:45:12.345Z"
+            },
+            "createdAt": "2026-10-02T10:00:07.000Z",
+            "updatedAt": "2026-10-11T07:45:12.345Z",
+            "deletedAt": null
+        },
+        {
+            "id": "B0000008-0000-4000-8000-000000000008",
+            "gtin": "03400936404564",
+            "productName": "Produit 8",
+            "category": "uncategorized",
+            "categoryOverridden": false,
+            "locationId": "10000001-0000-4000-8000-000000000001",
+            "expiry": {
+                "year": 2027,
+                "month": 3,
+                "day": 15
+            },
+            "lot": null,
+            "serial": "SAMESERIAL01",
+            "isOpened": false,
+            "removal": null,
+            "createdAt": "2026-10-02T10:00:08.000Z",
+            "updatedAt": "2026-10-12T12:00:00.000Z",
+            "deletedAt": "2026-10-12T12:00:00.000Z"
+        },
+        {
+            "id": "B0000009-0000-4000-8000-000000000009",
+            "gtin": "03400936404564",
+            "productName": "Produit 9",
+            "category": "uncategorized",
+            "categoryOverridden": false,
+            "locationId": "10000001-0000-4000-8000-000000000001",
+            "expiry": {
+                "year": 2027,
+                "month": 3,
+                "day": 15
+            },
+            "lot": null,
+            "serial": "SAMESERIAL01",
+            "isOpened": false,
+            "removal": null,
+            "createdAt": "2026-10-02T10:00:09.000Z",
+            "updatedAt": "2026-10-02T10:00:09.000Z",
+            "deletedAt": null
+        },
+        {
+            "id": "B0000010-0000-4000-8000-000000000010",
+            "gtin": "03400936404564",
+            "productName": "Produit 10",
+            "category": "future-category-x",
+            "categoryOverridden": true,
+            "locationId": "10000001-0000-4000-8000-000000000001",
+            "expiry": {
+                "year": 2027,
+                "month": 3,
+                "day": 15
+            },
+            "lot": null,
+            "serial": null,
+            "isOpened": false,
+            "removal": null,
+            "createdAt": "2026-10-02T10:00:10.000Z",
+            "updatedAt": "2026-10-02T10:00:10.000Z",
+            "deletedAt": null
+        },
+        {
+            "id": "B0000011-0000-4000-8000-000000000011",
+            "gtin": "03400936404564",
+            "productName": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé🧳🧳🧳🧳🧳🧳🧳🧳🧳🧳🧳🧳🧳🧳🧳🧳🧳🧳🧳🧳xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "category": "uncategorized",
+            "categoryOverridden": false,
+            "locationId": "10000001-0000-4000-8000-000000000001",
+            "expiry": {
+                "year": 2027,
+                "month": 3,
+                "day": 15
+            },
+            "lot": "LLLLLLLLLLLLLLLLLLLL",
+            "serial": "SSSSSSSSSSSSSSSSSSSS",
+            "isOpened": false,
+            "removal": null,
+            "createdAt": "2026-10-02T10:00:11.000Z",
+            "updatedAt": "2026-10-02T10:00:11.000Z",
+            "deletedAt": null
+        },
+        {
+            "id": "B0000012-0000-4000-8000-000000000012",
+            "gtin": null,
+            "productName": "Produit 12",
+            "category": "uncategorized",
+            "categoryOverridden": true,
+            "locationId": "10000001-0000-4000-8000-000000000001",
+            "expiry": null,
+            "lot": null,
+            "serial": null,
+            "isOpened": true,
+            "removal": null,
+            "createdAt": "2026-10-02T10:00:11.000Z",
+            "updatedAt": "2026-10-02T10:00:11.000Z",
+            "deletedAt": null
+        }
+    ]
+}

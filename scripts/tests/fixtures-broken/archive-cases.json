@@ -1,0 +1,39 @@
+{
+  "formatVersion": 1,
+  "description": "Archive decode cases for both cores. A case has `file` (path under fixtures/), `content` (inline text), `contentBase64` (bytes) or `generate` ({fileBytes: n} = n spaces; {locations, boxes} = a synthetic valid archive). `expect` is either {summary, needsBackup} or {error: {kind, path}}; path is null when the error has no field (syntax, size, version). Paths hold keys and indexes only. unknownExpiry counts boxes in the cabinet (not removed, not deleted) without an expiry.",
+  "cases": [
+    {
+      "name": "golden file",
+      "file": "archive/v1/golden.medicabinet",
+      "expect": {
+        "summary": {
+          "formatVersion": 1,
+          "sourceFormatVersion": 1,
+          "exportedAt": "2026-10-19T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.3.0",
+            "build": "3"
+          },
+          "locations": 3,
+          "inCabinet": 10,
+          "removed": 2,
+          "deleted": 1,
+          "unknownExpiry": 2
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "a newer version",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-19T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.3.0\",\"build\":\"3\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\"}],\"boxes\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03400936404564\",\"productName\":\"Produit 1\",\"category\":\"uncategorized\",\"categoryOverridden\":false,\"locationId\":\"10000001-0000-4000-8000-000000000001\",\"expiry\":{\"year\":2027,\"month\":3,\"day\":15},\"lot\":null,\"serial\":null,\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "notJSON",
+          "path": null
+        }
+      }
+    }
+  ]
+}
