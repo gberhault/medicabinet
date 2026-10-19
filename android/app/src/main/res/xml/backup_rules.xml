@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and older Auto Backup: the cabinet and its pre-migration copies, so a restored phone gets the
+     cabinet back (parity with iCloud/iPhone backup on iOS). The -wal file is included so writes not yet folded
+     into the main database file are not lost on restore. -->
+<full-backup-content>
+    <include domain="database" path="cabinet.db" />
+    <include domain="database" path="cabinet.db-wal" />
+    <include domain="file" path="backups/" />
+</full-backup-content>

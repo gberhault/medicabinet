@@ -114,7 +114,7 @@ it cannot run the exact iOS DDL, and the user switched Android to plain SQLite �
   `android-check-strings.py` (key parity, empty values, placeholders) and
   `check-string-parity.py` (Android ↔ iOS wording), fixtures for both;
   `locales_config.xml` + `android:localeConfig`.
-- [ ] **T21 — Privacy: no permissions, AppLog, Auto Backup rules** [#38] (I2, I3)
+- [x] **T21 — Privacy: no permissions, AppLog, Auto Backup rules** [#38] (I2, I3)
   Manifest with no permissions, `AppLog` (failure kind + exception class only),
   `backup_rules.xml` / `data_extraction_rules.xml`. *Tests:* merged-manifest test, `AppLog`
   test, backup-rules test (database + `backups/` included).
