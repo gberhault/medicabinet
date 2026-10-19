@@ -1,0 +1,1078 @@
+{
+  "formatVersion": 1,
+  "description": "GS1 payloads and what the parser must return. payload is the scanner text (GS = \\u001d). expect is {gtin (GTIN-14), symbology (dataMatrix|ean13), expiry, lot, serial} or {error: empty|tooLong|invalidCharacters|missingGTIN|invalidGTIN}. expiry is {year, month, day|null} (day null = month precision, GS1 DD=00), \"missing\", or {invalid: invalidMonth|invalidDay|invalidFormat}. lot/serial are null when absent or dropped (over 20 characters or outside GS1 character set 82). shape is the payload structure without any value (prefix, FNC1, AIs with the length of variable fields, GS, ?(n) = unknown AI followed by n characters, EAN13).",
+  "cases": [
+    {
+      "name": "full DataMatrix with ]d2 and GS after the lot",
+      "payload": "]d2010340093000001417270300101A2B3C\u001d21XYZ123456789",
+      "shape": "]d2 01 17 10(6) GS 21(12)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": "WRONG",
+        "serial": "XYZ123456789"
+      }
+    },
+    {
+      "name": "same payload without symbology identifier",
+      "payload": "010340093000001417270300101A2B3C\u001d21XYZ123456789",
+      "shape": "01 17 10(6) GS 21(12)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": "1A2B3C",
+        "serial": "XYZ123456789"
+      }
+    },
+    {
+      "name": "leading FNC1 without symbology identifier",
+      "payload": "\u001d010340093000001417270300101A2B3C\u001d21XYZ123456789",
+      "shape": "FNC1 01 17 10(6) GS 21(12)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": "1A2B3C",
+        "serial": "XYZ123456789"
+      }
+    },
+    {
+      "name": "]d2 and leading FNC1",
+      "payload": "]d2\u001d01034009300000141727030010LOT1\u001d21S1",
+      "shape": "]d2 FNC1 01 17 10(4) GS 21(2)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": "LOT1",
+        "serial": "S1"
+      }
+    },
+    {
+      "name": "symbology identifier ]Q3 is stripped",
+      "payload": "]Q3010340093000001417270915",
+      "shape": "]Q3 01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 9,
+          "day": 15
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "symbology identifier ]C1 is stripped",
+      "payload": "]C1010340093000001417270915",
+      "shape": "]C1 01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 9,
+          "day": 15
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "several leading GS count as one FNC1",
+      "payload": "\u001d\u001d010340093000001417270915",
+      "shape": "FNC1 01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 9,
+          "day": 15
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "only a prefix holds no GTIN",
+      "payload": "]d2",
+      "shape": "]d2",
+      "expect": {
+        "error": "missingGTIN"
+      }
+    },
+    {
+      "name": "only a GS holds no GTIN",
+      "payload": "\u001d",
+      "shape": "FNC1",
+      "expect": {
+        "error": "missingGTIN"
+      }
+    },
+    {
+      "name": "order 01 21 17 10",
+      "payload": "010340093000001421SER001\u001d1728053110LOT9",
+      "shape": "01 21(6) GS 17 10(4)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2028,
+          "month": 5,
+          "day": 31
+        },
+        "lot": "LOT9",
+        "serial": "SER001"
+      }
+    },
+    {
+      "name": "order 01 10 GS 17 21",
+      "payload": "010340093000001410L1\u001d1727091521S1",
+      "shape": "01 10(2) GS 17 21(2)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 9,
+          "day": 15
+        },
+        "lot": "L1",
+        "serial": "S1"
+      }
+    },
+    {
+      "name": "order 17 before 01",
+      "payload": "172703000103400930000014",
+      "shape": "17 01",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "trailing GS after the serial",
+      "payload": "01034009300000141727030021SER\u001d",
+      "shape": "01 17 21(3) GS",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": "SER"
+      }
+    },
+    {
+      "name": "GS after the GTIN (fixed field) is tolerated",
+      "payload": "0103400930000014\u001d1727030010LOT",
+      "shape": "01 GS 17 10(3)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": "LOT",
+        "serial": null
+      }
+    },
+    {
+      "name": "GS after the expiry (fixed field) is tolerated",
+      "payload": "010340093000001417270300\u001d10LOT\u001d21SER",
+      "shape": "01 17 GS 10(3) GS 21(3)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": "LOT",
+        "serial": "SER"
+      }
+    },
+    {
+      "name": "lot ends the payload without GS",
+      "payload": "01034009300000141727030010L1",
+      "shape": "01 17 10(2)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": "L1",
+        "serial": null
+      }
+    },
+    {
+      "name": "empty lot between GS",
+      "payload": "010340093000001410\u001d17270300",
+      "shape": "01 10(0) GS 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "empty serial at the end",
+      "payload": "010340093000001421",
+      "shape": "01 21(0)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "GTIN only",
+      "payload": "0103400930000014",
+      "shape": "01",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "production date AI 11 before the expiry",
+      "payload": "01034009300000141126010117270300",
+      "shape": "01 11 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "SSCC AI 00 before the GTIN",
+      "payload": "00111111111111111111010340093000001417270300",
+      "shape": "00 01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "DD=00 is month precision (February, leap year)",
+      "payload": "010340093000001417280200",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2028,
+          "month": 2,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "DD=00 is month precision (February, common year)",
+      "payload": "010340093000001417270200",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 2,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "DD=00 is month precision (30-day month)",
+      "payload": "010340093000001417270400",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 4,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "last day of a common February",
+      "payload": "010340093000001417270228",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 2,
+          "day": 28
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "February 29 of a leap year",
+      "payload": "010340093000001417280229",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2028,
+          "month": 2,
+          "day": 29
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "February 29 of a common year is invalid",
+      "payload": "010340093000001417270229",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "invalid": "invalidDay"
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "day 31 of a 30-day month is invalid",
+      "payload": "010340093000001417270431",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "invalid": "invalidDay"
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "day 32 is invalid",
+      "payload": "010340093000001417270532",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "invalid": "invalidDay"
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "month 13 is invalid, never clamped",
+      "payload": "010340093000001417271315",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "invalid": "invalidMonth"
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "month 00 is invalid",
+      "payload": "010340093000001417270015",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "invalid": "invalidMonth"
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "year 00 is 2000",
+      "payload": "010340093000001417000131",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2000,
+          "month": 1,
+          "day": 31
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "year 99 is 2099",
+      "payload": "010340093000001417991231",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2099,
+          "month": 12,
+          "day": 31
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "AI 17 with a non-digit is invalid",
+      "payload": "01034009300000141727A301",
+      "shape": "01 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "invalid": "invalidFormat"
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "AI 17 truncated is invalid",
+      "payload": "01034009300000141727",
+      "shape": "01 17(2)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "invalid": "invalidFormat"
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "AI 17 empty at the end is invalid",
+      "payload": "010340093000001417",
+      "shape": "01 17(0)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "invalid": "invalidFormat"
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "AI 15 alone is not an expiry",
+      "payload": "01034009300000141527030010L1",
+      "shape": "01 15 10(2)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": "L1",
+        "serial": null
+      }
+    },
+    {
+      "name": "AI 16 alone is not an expiry",
+      "payload": "01034009300000141627030010L1",
+      "shape": "01 16 10(2)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": "L1",
+        "serial": null
+      }
+    },
+    {
+      "name": "AI 17 wins over AI 15",
+      "payload": "01034009300000141526010017270300",
+      "shape": "01 15 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "no expiry at all",
+      "payload": "010340093000001410LOT\u001d21SER",
+      "shape": "01 10(3) GS 21(3)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": "LOT",
+        "serial": "SER"
+      }
+    },
+    {
+      "name": "missing GS before AI 17: the lot swallows the rest",
+      "payload": "010340093000001410ABC1727030021S1",
+      "shape": "01 10(15)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": "ABC1727030021S1",
+        "serial": null
+      }
+    },
+    {
+      "name": "missing GS before AI 17: lot longer than 20 is dropped",
+      "payload": "010340093000001410ABCDEFGH1727030021SERIAL123456",
+      "shape": "01 10(30)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "lot of exactly 20 characters is kept",
+      "payload": "010340093000001410AAAAAAAAAAAAAAAAAAAA\u001d17270300",
+      "shape": "01 10(20) GS 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": "AAAAAAAAAAAAAAAAAAAA",
+        "serial": null
+      }
+    },
+    {
+      "name": "lot of 21 characters is dropped, expiry kept",
+      "payload": "010340093000001410AAAAAAAAAAAAAAAAAAAAA\u001d17270300",
+      "shape": "01 10(21) GS 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "serial of exactly 20 characters is kept",
+      "payload": "0103400930000014172703002199999999999999999999",
+      "shape": "01 17 21(20)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": "99999999999999999999"
+      }
+    },
+    {
+      "name": "serial of 21 characters is dropped, expiry kept",
+      "payload": "010340093000001421999999999999999999999\u001d17270300",
+      "shape": "01 21(21) GS 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "lot with a character outside the GS1 set is dropped",
+      "payload": "010340093000001410AB#C\u001d17270300",
+      "shape": "01 10(4) GS 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "lot with a space is dropped",
+      "payload": "010340093000001410AB C\u001d17270300",
+      "shape": "01 10(4) GS 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "lot with allowed punctuation is kept",
+      "payload": "010340093000001410A-1/2.3_x\u001d17270300",
+      "shape": "01 10(9) GS 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": "A-1/2.3_x",
+        "serial": null
+      }
+    },
+    {
+      "name": "duplicate AI 17: the first one wins",
+      "payload": "01034009300000141727030017280400",
+      "shape": "01 17 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "duplicate AI 10: the first one wins",
+      "payload": "010340093000001410AAA\u001d10BBB\u001d17270300",
+      "shape": "01 10(3) GS 10(3) GS 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": "AAA",
+        "serial": null
+      }
+    },
+    {
+      "name": "a second GTIN is ignored",
+      "payload": "0103400930000014172703000103400930000021",
+      "shape": "01 17 01",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "unknown AI after the GTIN stops the read",
+      "payload": "010340093000001499ABC\u001d17270300",
+      "shape": "01 ?(14)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "unknown AI before the GTIN: no GTIN",
+      "payload": "99AB0103400930000014",
+      "shape": "?(20)",
+      "expect": {
+        "error": "missingGTIN"
+      }
+    },
+    {
+      "name": "known but ignored AI 240 does not stop the read",
+      "payload": "0103400930000014240REF1\u001d17270300",
+      "shape": "01 240(4) GS 17",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "known but ignored AI 22 does not stop the read",
+      "payload": "010340093000001422CPV\u001d1727030021S9",
+      "shape": "01 22(3) GS 17 21(2)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        },
+        "lot": null,
+        "serial": "S9"
+      }
+    },
+    {
+      "name": "AI 21 then unknown AI 91",
+      "payload": "010340093000001421S1\u001d91XX\u001d17270300",
+      "shape": "01 21(2) GS ?(13)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": null,
+        "serial": "S1"
+      }
+    },
+    {
+      "name": "unknown 3-digit family member 243 stops the read",
+      "payload": "0103400930000014243AB\u001d17270300",
+      "shape": "01 ?(14)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "ignored fixed AI truncated",
+      "payload": "0103400930000014112601",
+      "shape": "01 11(4)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "EAN-13 CIP13",
+      "payload": "3400930000014",
+      "shape": "EAN13",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "ean13",
+        "expiry": "missing",
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "EAN-13 ACL",
+      "payload": "3401123456786",
+      "shape": "EAN13",
+      "expect": {
+        "gtin": "03401123456786",
+        "symbology": "ean13",
+        "expiry": "missing",
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "EAN-13 with a symbology identifier",
+      "payload": "]E03400930000014",
+      "shape": "]E0 EAN13",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "ean13",
+        "expiry": "missing",
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "EAN-13 with a wrong check digit",
+      "payload": "3400930000015",
+      "shape": "EAN13",
+      "expect": {
+        "error": "invalidGTIN"
+      }
+    },
+    {
+      "name": "12 digits hold no GTIN",
+      "payload": "340093000001",
+      "shape": "?(12)",
+      "expect": {
+        "error": "missingGTIN"
+      }
+    },
+    {
+      "name": "14 digits without AI hold no GTIN",
+      "payload": "34009300000145",
+      "shape": "?(14)",
+      "expect": {
+        "error": "missingGTIN"
+      }
+    },
+    {
+      "name": "15 digits hold no GTIN",
+      "payload": "340093000001412",
+      "shape": "?(15)",
+      "expect": {
+        "error": "missingGTIN"
+      }
+    },
+    {
+      "name": "GTIN with a wrong check digit",
+      "payload": "010340093000001517270300",
+      "shape": "01 17",
+      "expect": {
+        "error": "invalidGTIN"
+      }
+    },
+    {
+      "name": "GTIN truncated",
+      "payload": "010340093000001",
+      "shape": "01(13)",
+      "expect": {
+        "error": "invalidGTIN"
+      }
+    },
+    {
+      "name": "GTIN with a non-digit",
+      "payload": "0103400X3000001417270300",
+      "shape": "01 17",
+      "expect": {
+        "error": "invalidGTIN"
+      }
+    },
+    {
+      "name": "second GTIN valid but first invalid",
+      "payload": "01034009300000150103400930000021",
+      "shape": "01 01",
+      "expect": {
+        "error": "invalidGTIN"
+      }
+    },
+    {
+      "name": "no GTIN: expiry only",
+      "payload": "17270300",
+      "shape": "17",
+      "expect": {
+        "error": "missingGTIN"
+      }
+    },
+    {
+      "name": "no GTIN: lot only",
+      "payload": "10ABC",
+      "shape": "10(3)",
+      "expect": {
+        "error": "missingGTIN"
+      }
+    },
+    {
+      "name": "empty payload",
+      "payload": "",
+      "shape": "empty",
+      "expect": {
+        "error": "empty"
+      }
+    },
+    {
+      "name": "payload of exactly 512 characters is accepted",
+      "payload": "010340093000001421SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+      "shape": "01 21(494)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": null,
+        "serial": null
+      }
+    },
+    {
+      "name": "payload of 513 characters is too long",
+      "payload": "010340093000001421SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+      "shape": "tooLong(513)",
+      "expect": {
+        "error": "tooLong"
+      }
+    },
+    {
+      "name": "NUL character",
+      "payload": "0103400930000014\u0000",
+      "shape": "invalidCharacters",
+      "expect": {
+        "error": "invalidCharacters"
+      }
+    },
+    {
+      "name": "line feed",
+      "payload": "010340093000001417270300\n",
+      "shape": "invalidCharacters",
+      "expect": {
+        "error": "invalidCharacters"
+      }
+    },
+    {
+      "name": "tab",
+      "payload": "0103400930000014\t10A",
+      "shape": "invalidCharacters",
+      "expect": {
+        "error": "invalidCharacters"
+      }
+    },
+    {
+      "name": "DEL character",
+      "payload": "010340093000001410A\u007f",
+      "shape": "invalidCharacters",
+      "expect": {
+        "error": "invalidCharacters"
+      }
+    },
+    {
+      "name": "non-ASCII character",
+      "payload": "010340093000001410A\u00e9",
+      "shape": "invalidCharacters",
+      "expect": {
+        "error": "invalidCharacters"
+      }
+    },
+    {
+      "name": "FNC1 in the middle between lot and serial only",
+      "payload": "010340093000001410L\u001d\u001d21S",
+      "shape": "01 10(1) GS GS 21(1)",
+      "expect": {
+        "gtin": "03400930000014",
+        "symbology": "dataMatrix",
+        "expiry": "missing",
+        "lot": "L",
+        "serial": "S"
+      }
+    },
+    {
+      "name": "second box GTIN C with full data",
+      "payload": "]d201034009500000321730123110Z9\u001d21Q7",
+      "shape": "]d2 01 17 10(2) GS 21(2)",
+      "expect": {
+        "gtin": "03400950000032",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2030,
+          "month": 12,
+          "day": 31
+        },
+        "lot": "Z9",
+        "serial": "Q7"
+      }
+    }
+  ]
+}
