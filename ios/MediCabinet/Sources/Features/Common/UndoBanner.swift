@@ -36,3 +36,19 @@ struct UndoBanner: View {
         }
     }
 }
+
+/// Shows the undo banner above the tab bar. Applied to the root of each tab (not to the `TabView`, whose bottom inset
+/// would cover the tab bar).
+private struct UndoBannerModifier: ViewModifier {
+    @Environment(\.undoCenter) private var center
+
+    func body(content: Content) -> some View {
+        content.safeAreaInset(edge: .bottom) {
+            if let center { UndoBanner(center: center) }
+        }
+    }
+}
+
+extension View {
+    func undoBanner() -> some View { modifier(UndoBannerModifier()) }
+}

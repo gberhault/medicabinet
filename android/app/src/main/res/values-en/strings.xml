@@ -113,4 +113,37 @@
     <string name="scan_unsupported_message">This device can\'t scan codes. You can add your boxes without scanning.</string>
     <string name="scan_unsupported_title">Scanning unavailable</string>
     <string name="undo_action">Undo</string>
+    <string name="locations_add">Add a location</string>
+    <string name="locations_changeFailed_message">Nothing was changed. Try again.</string>
+    <string name="locations_changeFailed_ok">OK</string>
+    <string name="locations_changeFailed_title">Couldn\'t save the change</string>
+    <string name="locations_default">Default</string>
+    <string name="locations_defaultNotDeletable">To delete the default location, choose another default location first.</string>
+    <string name="locations_delete">Delete</string>
+    <string name="locations_delete_confirm">Move and delete</string>
+    <string name="locations_delete_destination">Move to</string>
+    <plurals name="locations_delete_message">
+        <item quantity="one">This location holds %1$d box. Where should it go?</item>
+        <item quantity="other">This location holds %1$d boxes. Where should they go?</item>
+    </plurals>
+    <string name="locations_delete_title">Delete this location?</string>
+    <string name="locations_deleted">Location deleted: %1$s</string>
+    <string name="locations_error_message">The locations could not be read.</string>
+    <string name="locations_error_retry">Retry</string>
+    <string name="locations_error_title">Locations unavailable</string>
+    <string name="locations_loading">Loading locations…</string>
+    <string name="locations_makeDefault">Make default</string>
+    <string name="locations_move_down">Move down</string>
+    <string name="locations_move_up">Move up</string>
+    <string name="locations_name_addTitle">New location</string>
+    <string name="locations_name_cancel">Cancel</string>
+    <string name="locations_name_duplicate">A location already has this name.</string>
+    <string name="locations_name_empty">Enter a name.</string>
+    <string name="locations_name_field">Location name</string>
+    <string name="locations_name_renameTitle">Rename location</string>
+    <string name="locations_name_save">Save</string>
+    <string name="locations_name_tooLong">This name is too long (50 characters at most).</string>
+    <string name="locations_rename">Rename</string>
+    <string name="locations_title">Locations</string>
+    <string name="settings_locations">Locations</string>
 </resources>

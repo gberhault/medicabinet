@@ -7,24 +7,27 @@ struct MainTabView: View {
     var body: some View {
         TabView {
             ScanTab(environment: environment)
+                .undoBanner()
                 .tabItem { Label("tab.scan", systemImage: "barcode.viewfinder") }
 
             FeaturePlaceholderView(
                 title: "placeholder.cabinet.title", message: "placeholder.cabinet.message", systemImage: "cross.case"
             )
+            .undoBanner()
             .tabItem { Label("tab.cabinet", systemImage: "cross.case") }
 
             FeaturePlaceholderView(
                 title: "placeholder.expiring.title", message: "placeholder.expiring.message",
                 systemImage: "calendar.badge.exclamationmark"
             )
+            .undoBanner()
             .tabItem { Label("tab.expiring", systemImage: "calendar.badge.exclamationmark") }
 
             SettingsView()
+                .undoBanner()
                 .tabItem { Label("tab.settings", systemImage: "gearshape") }
         }
         .environment(\.undoCenter, undoCenter)
-        .safeAreaInset(edge: .bottom) { UndoBanner(center: undoCenter) }
         .animation(.default, value: undoCenter.pending?.id)
     }
 }

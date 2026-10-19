@@ -78,7 +78,7 @@ iOS and Android UI blocks of each section are independent of each other.
   `UndoBanner` + `UndoCenter` (one pending action, 10 s, VoiceOver announcement and action,
   no dismissal while focused). *Tests:* view-model/unit tests on `UndoCenter` (replace,
   expire with an injected clock/timer, undo once).
-- [ ] **T16 — iOS Locations screen** `[ios]` [#18] (L1–L8, L10, L11; §5)
+- [x] **T16 — iOS Locations screen** `[ios]` [#18] (L1–L8, L10, L11; §5)
   `LocationsView`, `LocationsViewModel`, `LocationNameSheet`, `DeleteLocationSheet`; Settings
   row. *Tests:* `LocationsViewModelTests` (create, rename error, reorder, set default, delete
   empty → Undo, delete with boxes → move, default not deletable, failure leaves all

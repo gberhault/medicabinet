@@ -1,11 +1,31 @@
 import SwiftUI
 
+/// Settings → Locations once the cabinet is open (the environment is set after bootstrap).
+struct LocationsEntry: View {
+    @Environment(\.appEnvironment) private var environment
+    @Environment(\.undoCenter) private var undo
+
+    var body: some View {
+        if let environment {
+            LocationsView(repository: environment.locations, undo: undo)
+        } else {
+            ProgressView()
+        }
+    }
+}
+
 struct SettingsView: View {
     var info: any AppInfo = BundleAppInfo()
 
     var body: some View {
         NavigationStack {
             List {
+                NavigationLink {
+                    LocationsEntry()
+                } label: {
+                    Label("settings.locations", systemImage: "mappin.and.ellipse")
+                }
+                .accessibilityIdentifier("settings.locations")
                 NavigationLink {
                     AboutView(model: AboutViewModel(info: info))
                 } label: {
