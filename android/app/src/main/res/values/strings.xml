@@ -2,6 +2,13 @@
 <resources>
     <string name="app_name" translatable="false">MediCabinet</string>
     <string name="about_disclaimer">MediCabinet est un outil d\'inventaire. Il ne donne aucun conseil médical : pour toute question sur un médicament, demandez conseil à un pharmacien ou à un médecin.</string>
+    <string name="about_reference_date">Données du %1$@</string>
+    <string name="about_reference_loading">Chargement des données de référence…</string>
+    <string name="about_reference_notEndorsed">MediCabinet n\'est ni affilié ni approuvé par l\'ANSM, la HAS ou l\'Assurance Maladie. Les catégories sont proposées par MediCabinet pour ranger l\'armoire.</string>
+    <string name="about_reference_open">Ouvre le site de la base de données</string>
+    <string name="about_reference_source">Source : Base de Données Publique des Médicaments</string>
+    <string name="about_reference_title">Données de référence</string>
+    <string name="about_reference_unavailable">Données de référence indisponibles : les produits scannés devront être nommés à la main.</string>
     <string name="about_version">Version %1$s (%2$s)</string>
     <string name="bootstrap_error_backup_message">Avant de mettre à jour vos données, MediCabinet doit en faire une copie, mais elle n\'a pas pu être écrite (espace insuffisant ?). Vos données n\'ont pas été modifiées.</string>
     <string name="bootstrap_error_backup_title">Sauvegarde impossible</string>

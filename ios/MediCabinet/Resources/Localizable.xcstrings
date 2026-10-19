@@ -17,6 +17,118 @@
         }
       }
     },
+    "about.reference.date": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data as of %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Données du %1$@"
+          }
+        }
+      }
+    },
+    "about.reference.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading reference data…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chargement des données de référence…"
+          }
+        }
+      }
+    },
+    "about.reference.notEndorsed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MediCabinet is not affiliated with or endorsed by ANSM, HAS or the French national health insurance. Categories are suggested by MediCabinet to tidy the cabinet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MediCabinet n'est ni affilié ni approuvé par l'ANSM, la HAS ou l'Assurance Maladie. Les catégories sont proposées par MediCabinet pour ranger l'armoire."
+          }
+        }
+      }
+    },
+    "about.reference.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens the database website"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre le site de la base de données"
+          }
+        }
+      }
+    },
+    "about.reference.source": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source: Base de Données Publique des Médicaments"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source : Base de Données Publique des Médicaments"
+          }
+        }
+      }
+    },
+    "about.reference.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference data"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Données de référence"
+          }
+        }
+      }
+    },
+    "about.reference.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference data unavailable: scanned products will need to be named by hand."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Données de référence indisponibles : les produits scannés devront être nommés à la main."
+          }
+        }
+      }
+    },
     "about.version": {
       "localizations": {
         "en": {

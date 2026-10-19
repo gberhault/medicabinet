@@ -82,7 +82,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
   `CategoryLabel` (unknown ID → "Autres"/"Other"); twelve `category.*` keys fr + en.
   *Tests:* every `categories.json` case has a label in both languages; unknown ID shows `other`;
   `ios-check-strings.sh` green.
-- [ ] **T11 — About: reference-data section** `[ios]` [#7] (A1–A3, L7; §8, §15)
+- [x] **T11 — About: reference-data section** `[ios]` [#7] (A1–A3, L7; §8, §15)
   `@Observable` `AboutViewModel` with loading / available / unavailable; section with source,
   link, localized date, not-endorsed statement. *Tests:* view-model states with
   `InMemoryReferenceData` (date formatted in fr and en, no day shift across time zones);
