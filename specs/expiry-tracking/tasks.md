@@ -1,6 +1,6 @@
 # Expiry tracking and notifications — Tasks
 
-Status: **Draft — awaiting approval** (after `design.md`)
+Status: **Approved 2026-10-19**
 Epic: #22 · Branch: `feature/22-expiry-tracking`
 
 One task = one focused commit (code + tests + this file checked off). Tags: `[shared]`,

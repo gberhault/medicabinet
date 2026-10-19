@@ -1,6 +1,6 @@
 # Expiry tracking and notifications — Design
 
-Status: **Draft — awaiting approval**
+Status: **Approved 2026-10-19**
 Epic: #22 · Requirements: [`requirements.md`](requirements.md) · Platforms: iOS + Android
 
 The rules (status, sorting, digest content and dates) are written **once as shared

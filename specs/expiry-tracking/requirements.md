@@ -31,7 +31,7 @@ without having to open the app — and a box with no known date is never shown a
 4. **Opt-in.** Reminders are off by default, offered by a card on the Expiring view and a
    switch in Settings; the system permission is asked only when the user turns them on.
 5. **Mechanics.** One core digest function on both platforms. iOS schedules the next 12
-   digests ahead; Android runs a WorkManager job at each digest time. No exact alarms.
+   digests ahead; Android arms an inexact platform alarm (`AlarmManager.setWindow`) for each digest time, because WorkManager would add three permissions X1 forbids (design §1.1). No exact alarms.
 6. **Expiring view.** Sections Expired / Expiring soon / Expiry unknown; a **Thrown away**
    action with Undo; a tab badge. Editing a box (including adding a missing date) stays with
    the box detail (#20).
@@ -229,5 +229,5 @@ expired or about to expire, so that I do not have to remember to check.*
 1. **Dependency on #12.** "Box in the cabinet" excludes deleted boxes, which exist only with
    schema v2 from the bulk-scan epic. The app tasks start after #12 is on `develop`; if they
    must start earlier, the design states how deleted boxes are handled once v2 arrives.
-2. **WorkManager** is a new AndroidX dependency: its size impact is checked in the design.
+2. **WorkManager** was replaced by an inexact platform alarm in the design (§1.1); no new dependency.
 3. **Version number**: fixed when the epic PR is prepared, from whatever is on `develop` then.
