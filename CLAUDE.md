@@ -1,10 +1,11 @@
 # MediCabinet — Project Instructions
 
-You are a senior iOS software engineer working on a production Swift / SwiftUI application.
+You are a senior mobile software engineer working on a production app with two native clients:
+**iOS** (Swift / SwiftUI, in `ios/`) and **Android** (Kotlin / Jetpack Compose, in `android/`).
 
 ## Product Vision / App Goal
 
-MediCabinet manages the **home medicine cabinet** from an iPhone. The headline capabilities
+MediCabinet manages the **home medicine cabinet** from an iPhone or an Android phone. The headline capabilities
 are:
 
 - **Fast bulk intake** — scan every box one after the other with the camera, with as little
@@ -36,9 +37,33 @@ app version.
 indication, interaction, or treatment advice. Category labels are for tidying the cabinet,
 not for choosing a treatment.
 
-MediCabinet is a **native iOS** app (iPhone first). There is no backend, no Android target
-and no web target for now; a self-hosted server (e.g. Raspberry Pi) is explicitly out of
-scope until the user reopens it.
+MediCabinet is a **native iOS and native Android** app (phones first). There is no backend and
+no web target; a self-hosted server (e.g. Raspberry Pi) is explicitly out of scope until the
+user reopens it.
+
+## Platforms — two native apps, one product
+
+The user decided (2026-10-19) on **two native apps in one monorepo** (`ios/`, `android/`),
+with **no cross-language code sharing** (no Kotlin Multiplatform): the domain logic exists
+twice, and what keeps it identical is process, not code.
+
+1. **Specify once, build twice.** `requirements.md` is platform-neutral. `design.md` has an
+   iOS part and an Android part (or states "iOS only" / "Android only" with the reason), and
+   `tasks.md` tags every task `[ios]`, `[android]` or `[shared]`. A feature is done when it
+   ships on **both** platforms, unless the user scopes it to one.
+2. **Shared fixtures are the contract.** Any rule that must behave identically (barcode
+   parsing, expiry dates, database schema, export format, classification) gets a
+   language-neutral test vector under `fixtures/` **before** either implementation. Both test
+   suites run the same file; a case added there runs on both with no code change; a platform
+   that disagrees fails its own gate. Cross-platform names (error kinds, enum raw values)
+   are listed in [`fixtures/README.md`](fixtures/README.md).
+3. **One export format** readable and writable by both apps (a cabinet can move between an
+   iPhone and an Android phone).
+4. **Independent releases.** Each product has its own version, changelog and tags (see
+   Version Management). Shared work lands once (`chore/` or both-platform branch), each app
+   releases when it picks the change up.
+5. A request that is naturally one platform only (a platform API, a store rule) is fine —
+   say so in the spec and open the matching issue for the other platform.
 
 ### Scanning domain facts (France)
 
@@ -114,52 +139,60 @@ violate one of these, flag it explicitly, even if the user asked for exactly tha
 
 ### Security
 
-- **Data at rest.** The database and any app-written file use iOS Data Protection
+- **Data at rest.** iOS: the database and any app-written file use Data Protection
   (`NSFileProtectionComplete` or `CompleteUntilFirstUserAuthentication` when background
-  notification scheduling needs it — justify the choice in the design).
-- **Secrets.** No API keys, signing team IDs, or credentials in source or version control.
-  Local-only signing goes in `Config/Signing.local.xcconfig` (gitignored; commit only the
-  `.sample`).
-- **Network.** The app works with no network. If a reference-data refresh is added: HTTPS
-  only (ATS on, no exceptions), integrity-check the download, and never send inventory data
-  anywhere.
+  notification scheduling needs it — justify the choice in the design). Android: database
+  and backups live in the app's **internal** storage only (never external or shared
+  storage), encrypted at rest by the device.
+- **Secrets.** No API keys, signing team IDs, keystores or credentials in source or version
+  control. iOS signing goes in `ios/Config/Signing.local.xcconfig`; Android keystores and
+  `local.properties` are gitignored (commit only `.sample` files).
+- **Network.** The apps work with no network. Android declares **no `INTERNET` permission**
+  until a feature needs one (a lint rule enforces it on both platforms). If a reference-data
+  refresh is added: HTTPS only (ATS / network security config, no exceptions),
+  integrity-check the download, and never send inventory data anywhere.
 - **Input.** Treat every scanned code, imported file, and reference dataset as untrusted:
   validate, length-limit, parameterize all SQL. An import file can be malformed or hostile —
   it must never crash the app, corrupt the store, or execute anything.
-- **Dependencies.** Prefer Apple frameworks. Flag any third-party dependency that hasn't been
-  updated in 12+ months, and any GPL/AGPL-licensed dependency (incompatible with App Store
-  distribution).
+- **Dependencies.** Prefer platform frameworks (Apple, AndroidX). Flag any third-party
+  dependency that hasn't been updated in 12+ months, and any GPL/AGPL-licensed dependency
+  (incompatible with store distribution).
 
 ### Privacy
 
 - Medication data is **health data** (GDPR special category). It stays on the device: no
   analytics, no crash-reporting SDK, no tracking, no cloud sync unless the user explicitly
   opts into a future sync feature.
-- Never log scanned serial numbers, lot numbers, or inventory contents (`os.Logger` with
-  `.private` for anything item-related).
+- Never log scanned serial numbers, lot numbers, or inventory contents. iOS: `os.Logger` at
+  the default (private) level, public interpolation is lint-forbidden. Android: everything
+  goes through `AppLog`, which logs failure kinds and exception class names only — never
+  `message`.
 - **Export files contain health data.** Export happens only on explicit user action, through
   the system share sheet / Files; the UI says so before sharing. The app never uploads or
   sends an export by itself.
-- Camera permission: request only when the user opens the scanner, with a clear
-  `NSCameraUsageDescription` (localized). The app must remain usable (manual entry) when
-  camera access is denied.
-- Keep the App Store privacy manifest (`PrivacyInfo.xcprivacy`) accurate; declare required-
-  reason APIs.
+- Camera permission: request only when the user opens the scanner, with a clear localized
+  usage description (`NSCameraUsageDescription` / the `CAMERA` runtime permission). The app
+  must remain usable (manual entry) when camera access is denied.
+- Keep the privacy declarations accurate: iOS `PrivacyInfo.xcprivacy` (required-reason
+  APIs); Android manifest permissions (none today) and Auto Backup rules (the cabinet and
+  its backups are included so a restored phone gets the cabinet back).
 
 ### UI / UX
 
-- Follow Apple's **Human Interface Guidelines** and SwiftUI conventions; native controls over
-  custom ones.
+- Follow each platform's guidelines — Apple's **Human Interface Guidelines** and SwiftUI on
+  iOS, **Material 3** and Compose on Android; native controls over custom ones. The two apps
+  may differ in idiom but not in behaviour or wording.
 - **Bulk-scan flow is the hot path.** Continuous scanning (no "tap to scan again" between
   boxes), immediate haptic + visual (and optional sound) confirmation per box,
   duplicate-scan protection (the same serial must not be counted twice; same product without
   serial asks), and a running list of what was just added that can be corrected inline.
   One-handed use: the other hand holds the box.
-- Touch targets minimum **44×44 pt**.
+- Touch targets minimum **44×44 pt** (iOS) / **48×48 dp** (Android).
 - Every screen must work without color alone (expired / expiring / OK also carry text or an
-  SF Symbol); text meets WCAG AA contrast (4.5:1) in light and dark mode.
-- Support **Dynamic Type** (up to accessibility sizes) and **VoiceOver** labels on every
-  control; never fixed font sizes.
+  icon); text meets WCAG AA contrast (4.5:1) in light and dark mode.
+- Support **Dynamic Type** (up to accessibility sizes) / Android **font scale 200%**, and
+  **VoiceOver** / **TalkBack** labels on every control; never fixed font sizes (`sp`, not
+  `dp`, for text).
 - Loading, empty, and error states are mandatory for every async operation (camera start,
   reference lookup, import, export).
 - Destructive actions (remove, throw away, delete, import-replace) are undoable or confirmed —
@@ -170,13 +203,16 @@ violate one of these, flag it explicitly, even if the user asked for exactly tha
 
 - **Views never talk to persistence directly** — always through a store/repository layer;
   view models hold presentation state only.
-- Pure, framework-free domain logic lives in the local Swift package **`MediCabinetCore`**:
+- Pure, framework-free domain logic lives in the **core** of each platform — the local Swift
+  package **`MediCabinetCore`** and the pure-Kotlin Gradle module **`:core`**:
   **GS1 DataMatrix parsing**, **expiry computation and status** (expired / expiring soon /
   OK / unknown), **classification**, **stock movements**, and the **export archive format**
-  (encode, decode, validate, migrate). It must be testable with `swift test` on macOS —
-  no simulator, no camera, no UIKit.
+  (encode, decode, validate, migrate). Each must be testable on the desktop (`swift test`,
+  `./gradlew :core:test`) — no simulator/emulator, no camera, no UI or storage framework.
+  The two cores are twins: same types, same names, same behaviour, proven by `fixtures/`.
 - The schema evolves only through **versioned migrations** committed in the repo. Never edit
-  a shipped migration.
+  a shipped migration. The v1 schema is identical on both platforms (`fixtures/schema-v1.json`);
+  a schema change updates that fixture first, then both migrations.
 - **Export format is a public contract.** It carries a `formatVersion`; every app version must
   import every earlier `formatVersion` (keep fixture files of each version in tests). Breaking
   changes add a new version plus a migration, never edit an old one.
@@ -186,9 +222,10 @@ violate one of these, flag it explicitly, even if the user asked for exactly tha
   transaction. A failed import leaves the existing cabinet untouched.
 - **Offline-first.** Scanning, inventory, expiry and notifications work with no network; the
   BDPM reference data ships in the app bundle.
-- Notifications are **local** (`UNUserNotificationCenter`), no push server. iOS caps pending
-  local notifications per app (64), so schedule digests (e.g. "3 items expire this month"),
-  not one notification per item.
+- Notifications are **local** (`UNUserNotificationCenter` on iOS, WorkManager/AlarmManager
+  on Android), no push server. iOS caps pending local notifications per app (64) and Android
+  restricts exact alarms, so schedule digests (e.g. "3 items expire this month"), not one
+  notification per item.
 - Dependency injection for the clock, stores, and reference-data source — no singletons
   reaching into `Date()` or the database from domain code.
 
@@ -196,20 +233,20 @@ violate one of these, flag it explicitly, even if the user asked for exactly tha
 
 (See Performance Requirements below.)
 
-- No database, file, or reference-data I/O on the main actor.
-- Barcode recognition runs on the system scanner (VisionKit / Vision); do not decode frames
-  by hand on the main thread.
+- No database, file, or reference-data I/O on the main actor / main thread.
+- Barcode recognition runs on the platform scanner (VisionKit on iOS, a CameraX-based scanner
+  on Android); do not decode frames by hand on the main thread.
 - Flag any new dependency that adds meaningful app size without clear justification.
 
-### Legal & App Store compliance
+### Legal & store compliance
 
 - **Reference data.** Verify and record the reuse terms of the BDPM dataset before bundling
   it; attribute the source in the About screen as the licence requires.
-- **App Store Review.** If the app is published: accurate privacy nutrition labels, no
-  medical claims, no features that recommend, dose, or prescribe (flag any request moving in
-  that direction).
+- **Store review.** If an app is published (App Store / Google Play): accurate privacy
+  labels / data-safety form, no medical claims, no features that recommend, dose, or
+  prescribe (flag any request moving in that direction).
 - **Terms & IP.** Do not reproduce third-party code without verifying its license permits
-  commercial use and App Store distribution.
+  commercial use and store distribution.
 
 ### Ground rules for AI responses
 
@@ -235,8 +272,8 @@ or classification, export format, UX copy, settings, notifications):
 1. **Challenge the idea and the method.** Restate the *goal* in your own words (what
    outcome the household should get). Then challenge the *how*: is this the right surface
    (scanner vs inventory vs expiring vs settings), the right control (toast vs sheet vs
-   inline), the right default, the right Apple API? Surface ambiguities, hidden
-   assumptions, edge cases, and conflicts with the product vision, the HIG, or existing
+   inline), the right default, the right platform API? Surface ambiguities, hidden
+   assumptions, edge cases, and conflicts with the product vision, the platform guidelines, or existing
    behaviour. If the requested design would be weaker than a standard pattern, **say so
    and recommend the better pattern**.
 2. **Do not assume.** Never fill gaps silently (what "automatic" means; what "expiring
@@ -272,18 +309,24 @@ user asks.
 Commit message format: `<type>: <subject>` — keep the subject under 72 characters.
 Use the body to explain *why*, not *what*.
 
-| Type | Format | Example |
-|------|--------|---------|
-| Feature | `feature/<issue>-<short-description>` | `feature/12-bulk-scan` |
-| Bug fix | `bugfix/<issue>-<short-description>` | `bugfix/31-expiry-end-of-month` |
-| Refactor | `refactor/<issue>-<short-description>` | `refactor/40-stock-store` |
-| Chore | `chore/<short-description>` | `chore/update-dependencies` |
+Branch names carry the **component** they change:
+
+| Scope | Format | Example |
+|-------|--------|---------|
+| Work shipping on **both** platforms | `<type>/<issue>-<slug>` | `feature/7-reference-data` |
+| iOS only | `ios/<type>/<issue>-<slug>` | `ios/feature/12-bulk-scan` |
+| Android only | `android/<type>/<issue>-<slug>` | `android/bugfix/31-backup-prune` |
+| Repo-wide, no product change | `chore/<slug>` | `chore/update-dependencies` |
+
+`<type>` is `feature`, `bugfix`, `refactor` or `chore`. Include the issue number when one
+exists. (`feature/1-foundation` and `android/feature/31-android-foundation` are the first two.)
 
 Before implementing any work: create the appropriate branch off `origin/develop` unless
 explicitly told otherwise.
 
 **Epic branch (not one branch per child issue):** when work sits under a parent/epic issue,
-open **one** branch named for the **epic** (`feature/<epic-issue>-<epic-slug>`). Child issues
+open **one** branch named for the **epic** (`feature/<epic-issue>-<epic-slug>`, with the
+`ios/` or `android/` prefix when the epic is single-platform). Child issues
 are implemented on that same branch with atomic commits referencing the child
 (`Refs #15`). **One PR** epic branch → `develop` when the epic (or agreed slice) is ready.
 Standalone issues still get their own branch.
@@ -295,18 +338,29 @@ merges from `develop`.
 
 ### Local CI (before PR) — mandatory
 
-Before opening a PR (and before the AI treats a branch as PR-ready), run the local CI gate:
+Before opening a PR (and before the AI treats a branch as PR-ready), run the gate:
 
 ```bash
-bash scripts/local-ci.sh
+bash scripts/local-ci.sh            # shared checks + iOS gate + Android gate
+bash scripts/ios-local-ci.sh        # iOS only
+bash scripts/android-local-ci.sh    # Android only
 ```
 
-It runs, in order: `xcodegen generate` → SwiftLint (`--strict`, new violations only against
-the committed baseline) → lint-rule fixtures → localization completeness (fr + en) → version
-vs `CHANGELOG.md` → `swift test` on `MediCabinetCore` → `xcodebuild test` (unit + UI tests)
-on an iPhone simulator with code coverage → the coverage gate (**80% line**, for the core
-and for the app). Do **not** open a PR if it fails. Never regenerate the lint baseline or lower a threshold to
-hide a new finding.
+A PR must pass the gate of **every product it touches**; run the root script when shared
+files (`fixtures/`, `scripts/`, `CLAUDE.md`) change. Do **not** open a PR if a gate fails.
+Never regenerate a lint/detekt baseline or lower a threshold to hide a new finding.
+
+- **Shared:** `fixtures/` validity (`check-fixtures.py`), version-check and fixture-checker
+  self-tests, and (once Android exists) Android ↔ iOS string wording parity.
+- **iOS** (`ios-local-ci.sh`): `xcodegen generate` → SwiftLint (`--strict`, baseline) →
+  lint-rule fixtures → localization (fr + en) → version vs `ios/CHANGELOG.md` → a wrong
+  shared fixture fails the Swift suite → `swift test` on `MediCabinetCore` →
+  `xcodebuild test` (unit + UI) on an iPhone simulator with coverage → coverage gate
+  (**80% lines**, core and app).
+- **Android** (`android-local-ci.sh`): debug build → detekt + ktlint (baselines) →
+  architecture rules → unit tests (`:core`, `:app` incl. Robolectric Compose UI) →
+  SQLDelight migration verification → coverage gate (**80% lines**, core and app) → string
+  checks → version vs `android/CHANGELOG.md` → instrumented tests compile.
 
 ---
 
@@ -320,8 +374,9 @@ next one starts.
 ### 0. Challenge (before any spec file)
 
 - Restate the problem and motivation; list open questions and assumptions.
-- Challenge scope (scanner vs inventory vs settings), defaults vs opt-in, impact on expiry
-  reliability, scan speed, and the export format, and docs/i18n impact.
+- Challenge scope (scanner vs inventory vs settings; iOS, Android or both), defaults vs
+  opt-in, impact on expiry reliability, scan speed, and the export format, and docs/i18n
+  impact.
 - Wait for the user to answer and confirm the frame. **Do not assume answers.**
 
 ### Where specs live
@@ -356,8 +411,10 @@ Do not proceed until the user has approved `requirements.md`. You should be able
 ### 2. `design.md` — how
 
 Only after `requirements.md` is approved. Cover:
-- **Architecture** — which layers/modules are touched (app target vs `MediCabinetCore`) and
-  how new pieces fit View → ViewModel → Store → persistence.
+- **Architecture** — per platform: which layers/modules are touched (app vs core) and how new
+  pieces fit View → ViewModel → Store → persistence. One section for iOS, one for Android.
+- **Shared fixtures** — which `fixtures/` files are added or extended for the rules that
+  must match across platforms.
 - **Components and interfaces** — new/changed types, protocols, and their signatures.
 - **Data models** — tables/models, migrations, `UserDefaults`/settings keys, export
   `formatVersion` impact.
@@ -374,7 +431,8 @@ Do not proceed until the user has approved `design.md`.
 
 Only after `design.md` is approved. A checklist of discrete, incremental coding tasks. Each
 task:
-- Is a checkbox item (`- [ ] Task description`) referencing the requirement(s) it satisfies.
+- Is a checkbox item (`- [ ] Task description`) referencing the requirement(s) it satisfies,
+  tagged `[ios]`, `[android]` or `[shared]` when a spec covers more than one platform.
 - Is small enough to implement and test in one focused commit.
 - Is ordered so earlier tasks unblock later ones (e.g. core logic → store → UI).
 - Explicitly calls out where a test is written.
@@ -401,7 +459,8 @@ For every task:
 5. After each task: run its tests, check it off in `tasks.md`, commit.
 6. Once all tasks are complete, run the full test suite.
 7. Verify coverage meets requirements (state % in PR; do not commit coverage output).
-8. Bump the version (see Version Management) as the last commit on the branch.
+8. Bump the version of each product the branch ships (see Version Management) as the last
+   commit on the branch.
 9. Run `bash scripts/local-ci.sh` and fix failures (mandatory).
 10. Open the PR **only when the user asks** — the version bump and the `specs/<feature-name>/`
     directory must be included.
@@ -425,38 +484,45 @@ If implementation time must be traded against testing time, **prioritize testing
   exceptions** (see Bug Fix Policy).
 - Every new feature requires test coverage.
 - Never reduce overall test coverage.
-- Minimum project coverage is **80%**. New code should target **90%**. `MediCabinetCore`
-  (GS1 parsing, expiry status, classification, stock movements, export format) targets
-  **100%** of branches.
+- Minimum coverage is **80%** per product (and per core and app within it). New code should
+  target **90%**. The cores (`MediCabinetCore`, Kotlin `:core`: GS1 parsing, expiry status,
+  classification, stock movements, export format) target **100%** of branches.
 - Never leave failing tests.
-- Date logic must be tested with an injected clock and calendar — never `Date()` inside
-  domain code — including month ends, leap years, `DD=00`, time zones, and "today is the
-  expiry day".
+- Date logic must be tested with an injected clock and calendar — never `Date()` /
+  `Instant.now()` inside domain code — including month ends, leap years, `DD=00`, time
+  zones, and "today is the expiry day".
+- A rule that must behave identically on both platforms gets a **shared fixture** under
+  `fixtures/` before either implementation; both suites run it.
 - Every export `formatVersion` ever shipped keeps a fixture file and an import test.
 
 ---
 
 ## Test Frameworks
 
-| Framework | Purpose |
-|-----------|---------|
-| **Swift Testing** (`import Testing`) | Unit tests (default for new tests) |
-| **XCTest / XCUITest** | UI tests and performance (`measure`) tests |
-| **`swift test`** | Fast `MediCabinetCore` tests on macOS, no simulator |
-| **`xcodebuild -enableCodeCoverage` + `xccov`** | Coverage reporting and gate |
-| **SwiftLint** | Static analysis (strict, baseline committed) |
+| Platform | Framework | Purpose |
+|----------|-----------|---------|
+| iOS | **Swift Testing** (`import Testing`) | Unit tests (default for new tests) |
+| iOS | **XCTest / XCUITest** | UI tests and performance (`measure`) tests |
+| iOS | **`swift test`** | Fast `MediCabinetCore` tests on macOS, no simulator |
+| iOS | **`xcodebuild -enableCodeCoverage` + `xccov`** | Coverage reporting and gate |
+| iOS | **SwiftLint** | Static analysis (strict, baseline committed) |
+| Android | **JUnit 5** (`:core`), **JUnit 4 + Robolectric** (`:app`) | Unit tests; Robolectric runs Compose UI tests on the JVM |
+| Android | **Turbine, kotlinx-coroutines-test** | Flow / coroutine tests |
+| Android | **Jacoco** | Coverage reporting and gate |
+| Android | **detekt + ktlint** | Static analysis (baselines committed) |
+| Both | `fixtures/*.json` | Shared test vectors run by both suites |
 
 Keep a fixture set of **real-world DataMatrix payloads** (with/without serial, `DD=00`,
-missing AI `17`, different GS separators, malformed, EAN-13 only) under
-`Packages/MediCabinetCore/Tests/Fixtures/` — every parser bug adds one. The scanner is
-behind a protocol so UI tests can inject codes without a camera.
+missing AI `17`, different GS separators, malformed, EAN-13 only) under `fixtures/` — shared
+by both platforms; every parser bug adds one. The scanner is behind a protocol/interface so UI
+tests can inject codes without a camera.
 
 ---
 
 ## Performance Requirements
 
-Performance is a **first-class requirement**: bulk intake must feel instant on an iPhone
-that is several generations old.
+Performance is a **first-class requirement**: bulk intake must feel instant on phones that
+are several generations old.
 
 ### Targets
 
@@ -467,12 +533,12 @@ that is several generations old.
 | Reference lookup (CIP13 → product, full BDPM) | < 50 ms |
 | App cold start to interactive | < 1 s |
 | Inventory list (1 000 items) | scrolls without dropped frames |
-| Export / import of 1 000 items | < 2 s, off the main actor, with progress |
+| Export / import of 1 000 items | < 2 s, off the main actor / thread, with progress |
 | App download size | < 50 MB (bundled reference data included) |
 
 ### Rules
 
-- No persistence, file, or reference-data I/O on the main actor.
+- No persistence, file, or reference-data I/O on the main actor / main thread.
 - Index every column used for lookup (CIP13/GTIN, category, expiry).
 - Reference data ships pre-processed (only the fields the app needs), not raw dataset files.
 - Lazy-load the scanner: start the camera only on the scan screen and stop it when leaving.
@@ -486,7 +552,7 @@ regression > 10%.
 
 ### Performance checklist (include in every PR)
 
-- [ ] No I/O on the main actor.
+- [ ] No I/O on the main actor / main thread.
 - [ ] New queries indexed; no per-row queries in list views.
 - [ ] Camera stops when the scanner is not visible.
 - [ ] App size checked against target when resources change.
@@ -514,11 +580,13 @@ Every bug fix requires, in order:
 1. A **failing** regression test that reproduces the issue (TDD: test first, then fix).
 2. The code fix.
 3. The regression test now passing.
-4. Run the relevant test suites (`swift test` for core, `xcodebuild test` for the app).
+4. Run the relevant test suites (`swift test` / `xcodebuild test` on iOS, `./gradlew :core:test`
+   / `:app:testDebugUnitTest` on Android — both when the bug exists on both platforms).
 
 Never fix a bug without adding a regression test first. Name or comment the test with the
 issue when known (e.g. `// Regression #31`). Scan/parse bugs also add the offending payload
-to the DataMatrix fixtures; import bugs add the offending file to the archive fixtures.
+to the shared DataMatrix fixtures; import bugs add the offending file to the shared archive
+fixtures — so the other platform is protected from the same bug too.
 
 ---
 
@@ -532,8 +600,8 @@ to the DataMatrix fixtures; import bugs add the offending file to the archive fi
 
 ## Reporting
 
-**Do not commit generated test/coverage output** (`.xcresult` bundles, coverage HTML). It is
-gitignored. Put pass/fail, coverage %, and risks in the **PR body**.
+**Do not commit generated test/coverage output** (`.xcresult` bundles, Gradle `build/`
+reports, coverage HTML). It is gitignored. Put pass/fail, coverage %, and risks in the **PR body**.
 
 Small intentional reports may go under `reports/<feature-name>/` (e.g. a `README.md` with a
 coverage note, a benchmark JSON).
@@ -545,21 +613,31 @@ coverage note, a benchmark JSON).
 - **Coverage** — overall and new-code percentage.
 - **Performance** — impact vs targets, or "no scan-path/persistence changes"; performance
   checklist.
-- **Data impact** — migrations, export `formatVersion` change, privacy manifest change.
+- **Data impact** — migrations, shared-fixture and export `formatVersion` changes, privacy
+  manifest / permission changes.
+- **Platforms** — which of iOS / Android the PR ships, and the issue for the other if not both.
 - **Risk assessment** — remaining risks, missing scenarios, recommended future tests.
 
 ---
 
 ## Version Management & Release
 
-### Version
+Two products, **two independent semver clocks**: never share one number across iOS and
+Android.
 
-- Single product, single semver clock. Source of truth: `project.yml` → `MARKETING_VERSION`
-  (semver) and `CURRENT_PROJECT_VERSION` (build number, +1 for every build installed as a
-  distinct binary: device, TestFlight, App Store).
-- **`CHANGELOG.md`** at the repo root, newest entry first: `## X.Y.Z — YYYY-MM-DD`. A test
-  (or the local CI) checks the top entry matches `MARKETING_VERSION`.
-- The version is visible in the app's About screen and written into every export file.
+| | iOS | Android |
+|--|-----|---------|
+| Source of truth | `ios/project.yml` → `MARKETING_VERSION` (+ `CURRENT_PROJECT_VERSION` build number, +1 per distinct installed build) | `android/app/build.gradle.kts` → `versionName` (+ `versionCode`, +1 per distinct installed build) |
+| Changelog | `ios/CHANGELOG.md` | `android/CHANGELOG.md` |
+| Check | `bash scripts/check-version.sh ios` | `bash scripts/check-version.sh android` |
+| Tag | `ios/vX.Y.Z` | `android/vX.Y.Z` |
+| Release | GitHub Release "MediCabinet iOS X.Y.Z" (notes = changelog entry) | GitHub Release "MediCabinet Android X.Y.Z" (notes = changelog entry + the debug APK) |
+| Distribution | TestFlight / own device only when asked (bump the build number) | debug APK sideload; Play internal testing later |
+
+Changelogs are newest-first: `## X.Y.Z — YYYY-MM-DD`; the top entry must match the product's
+version (checked by the gate). The version is visible in each app's About screen and written
+into every export file. The legacy tag `v0.1.0` is the iOS 0.1.0 history (`ios/v0.1.0`
+points at the same commit).
 
 | Increment | When |
 |-----------|------|
@@ -567,19 +645,22 @@ coverage note, a benchmark JSON).
 | `MINOR` | New user-visible features, backwards-compatible changes (incl. a new export `formatVersion` that old files still import into) |
 | `MAJOR` | Breaking changes, large redesigns |
 
-**The version bump is part of the feature branch** (`project.yml` + `CHANGELOG.md` in one
-commit; `chore:` for patch, `feat:` for minor/major), never a follow-up after merge.
-Docs-only / chore PRs with no user-visible change: no bump.
+**Bump only the product(s) the PR actually ships.** The version bump is part of the feature
+branch (version file + changelog in one commit; `chore:` for patch, `feat:` for minor/major),
+never a follow-up after merge. Docs-only / chore PRs with no user-visible change: no bump.
 
 ### After merge (mandatory, same session)
 
+For each product the PR bumped:
+
 1. `git pull origin develop`
-2. Read `MARKETING_VERSION` from `project.yml` (do not guess).
-3. Create and push the annotated tag `vX.Y.Z` on the merge commit if it does not exist.
-4. GitHub Release on the tag, titled `MediCabinet X.Y.Z`, body = the matching
-   `CHANGELOG.md` entry.
-5. TestFlight upload only when the user asks for a distributed build (bump
-   `CURRENT_PROJECT_VERSION` for it). No App Store submission for now (see Product decisions).
+2. Read the version from its source of truth (do not guess).
+3. Create and push the annotated tag (`ios/vX.Y.Z` / `android/vX.Y.Z`) on the merge commit
+   if it does not exist.
+4. GitHub Release on the tag, titled `MediCabinet iOS X.Y.Z` / `MediCabinet Android X.Y.Z`,
+   body = the matching changelog entry; Android attaches the debug APK
+   (`./gradlew :app:assembleDebug`, renamed `MediCabinet-Android-X.Y.Z-debug.apk`).
+5. TestFlight upload only when the user asks. No App Store / Play Store submission for now.
 
 Tags cannot be part of the PR itself.
 
@@ -618,38 +699,45 @@ Deliver:
 
 ## Code Quality
 
-- Follow clean architecture principles (View → ViewModel → Store → persistence; domain in
-  `MediCabinetCore`).
+- Follow clean architecture principles (View → ViewModel → Store → persistence; domain in the
+  core: `MediCabinetCore` / Kotlin `:core`).
 - Favor dependency injection (clock, stores, scanner, reference data are injected via
   protocols).
 - Swift concurrency: strict concurrency checking on; UI state on `@MainActor`; no
-  `DispatchQueue.main.sync`.
+  `DispatchQueue.main.sync`. Kotlin: coroutines with injected dispatchers, `StateFlow` for UI
+  state, no `GlobalScope`.
 - Keep functions small and single-purpose.
 - Avoid duplicated logic.
 - Use meaningful names.
 - Add comments only when the *why* is non-obvious (GS1 quirks deserve a comment).
 - Never hardcode user-facing strings, configuration values, or magic numbers (e.g. the
   "expiring soon" window is a setting with a named default).
-- No force unwraps (`!`) or `try!` outside tests.
+- No force unwraps (`!`) or `try!` (Swift) and no `!!` (Kotlin) outside tests.
 
 ---
 
 ## Internationalization
 
-The app ships in **French (development language)** and **English**, using a String Catalog
-(`Localizable.xcstrings`). Reference data (drug names) stays in the language of its source
+Both apps ship in **French (development language / fallback)** and **English**. iOS uses a
+String Catalog (`Localizable.xcstrings`); Android uses `res/values/strings.xml` (French) and
+`res/values-en/strings.xml`. Reference data (drug names) stays in the language of its source
 (French for BDPM).
 
-### MANDATORY: every user-facing change supports all languages
+### MANDATORY: every user-facing change supports all languages, on both platforms
 
-1. **Never hardcode a user-facing string** — use `String(localized:)` / `LocalizedStringKey`.
-   This includes labels, titles, accessibility labels, alerts, notification text, permission
-   strings (`InfoPlist.xcstrings`), and error messages. Do not externalize unit tokens or
-   proper nouns (`CIP13`, `GTIN`, `BDPM`, `MediCabinet`).
-2. Use format arguments and String Catalog plural variants, never string concatenation.
+1. **Never hardcode a user-facing string** — iOS `String(localized:)` / `LocalizedStringKey`,
+   Android `stringResource` / `getString`. This includes labels, titles, accessibility labels,
+   alerts, notification text, permission strings (`InfoPlist.xcstrings` / manifest), and
+   error messages. Do not externalize unit tokens or proper nouns (`CIP13`, `GTIN`, `BDPM`,
+   `MediCabinet`).
+2. Use positional format arguments (`%1$@` / `%1$s`) and plural variants, never string
+   concatenation.
 3. Every key must be translated in **all** languages — no "needs review" or untranslated
-   entries at PR time.
-4. Dates are formatted with `Date.FormatStyle` for the user's locale, never hand-built.
+   entries at PR time (the string checks fail otherwise).
+4. The same screen says the same thing on both platforms: a key that exists on both uses the
+   same wording (`check-string-parity.py` enforces it once Android exists).
+5. Dates are formatted with the user's locale (`Date.FormatStyle` / `DateTimeFormatter`),
+   never hand-built.
 
 ---
 
@@ -676,61 +764,67 @@ complete until the docs reflect it.
 
 ```
 CLAUDE.md / AGENTS.md            # agent instructions (AGENTS.md and .agents/rules/CLAUDE.md are symlinks)
-README.md  CHANGELOG.md
-project.yml                      # XcodeGen — the .xcodeproj is generated, not committed
-Config/
-  Signing.xcconfig               # committed defaults
-  Signing.local.xcconfig.sample  # copy to Signing.local.xcconfig (gitignored) with your team
-MediCabinet/
-  Sources/
-    App/                         # MediCabinetApp, AppEnvironment, BootstrapModel, RootView, Log
-    Features/                    # MainTabView, Placeholders/, Settings/ (+ future Scan/, Cabinet/, Expiring/)
-    Persistence/                 # the ONLY place that imports GRDB: AppDatabase, Migrations, Records,
-                                 #   GRDB*Repository, BackupService, Bootstrap
-  Resources/                     # Localizable.xcstrings, InfoPlist.xcstrings, Assets, PrivacyInfo.xcprivacy
-MediCabinetTests/                # Swift Testing: persistence/, app/
-MediCabinetUITests/              # XCUITest flows (+ opt-in launch measurement)
-Packages/MediCabinetCore/        # pure Swift (no UIKit/SwiftUI/VisionKit/GRDB, no Date())
-  Sources/MediCabinetCore/       #   ExpiryDate, Clock, Model, Repositories (ports)
-  Sources/MediCabinetCoreTestSupport/   # MutableClock, InMemoryCabinetStore, RepositoryContract
-  Tests/MediCabinetCoreTests/
-scripts/                         # local-ci.sh, lint.sh, check-strings.sh, check-version.sh, coverage-gate.sh
-  tests/                         #   fixtures proving each lint rule / gate fails when it should
+README.md
+fixtures/                        # SHARED language-neutral test vectors (expiry-dates.json, schema-v1.json, …)
+ios/
+  project.yml                    # XcodeGen — the .xcodeproj is generated, not committed
+  CHANGELOG.md  .swiftlint.yml  .swiftlint-baseline.json
+  Config/                        # Signing.xcconfig (committed), Signing.local.xcconfig.sample
+  MediCabinet/Sources/{App,Features,Persistence}   # Persistence is the ONLY place that imports GRDB
+  MediCabinet/Resources/         # Localizable.xcstrings, InfoPlist.xcstrings, Assets, PrivacyInfo.xcprivacy
+  MediCabinetTests/  MediCabinetUITests/
+  Packages/MediCabinetCore/      # pure Swift (no UIKit/SwiftUI/VisionKit/GRDB, no Date())
+    Sources/MediCabinetCore/  Sources/MediCabinetCoreTestSupport/  Tests/MediCabinetCoreTests/
+android/                         # (added by epic #31)
+  core/                          # :core — pure Kotlin/JVM twin of MediCabinetCore (+ test fixtures)
+  app/                           # :app — Compose app; persistence/ is the only place that touches SQLDelight
+  CHANGELOG.md  config/        # detekt / ktlint config and baselines
+scripts/
+  local-ci.sh                    # shared checks + both gates
+  ios-*.sh  android-*.sh         # per-product gate pieces
+  check-version.sh <ios|android>  check-fixtures.py
+  tests/                         # fixtures proving each lint rule / gate fails when it should
 docs/                            # architecture.md, development.md (+ one page per feature)
 specs/<feature-name>/            # requirements.md, design.md, tasks.md
 reports/<feature-name>/          # small intentional reports only
 ```
 
 See [`docs/architecture.md`](docs/architecture.md) for the layers, database, migrations and
-backups. Planned folders (`Features/Scan`, `Cabinet`, `Expiring`, `Archive/` in the core, the
+backups. Planned folders (`Features/Scan`, `Cabinet`, `Expiring`, `Archive/` in the cores, the
 reference-data build script) appear with their epics.
 
 ### Common Task Map
 
-Reuse this before searching — these are the files a typical change touches.
+Reuse this before searching — these are the files a typical change touches. iOS paths are
+under `ios/`, Android paths under `android/`; a change to a shared rule touches both.
 
 | Task | Files |
 |------|-------|
-| Add a persisted field | `Persistence/Migrations.swift` (new migration, never edit a shipped one) → `Persistence/Records.swift` → core model in `Model.swift` → repository port/impl + `RepositoryContract` check → `docs/architecture.md` |
-| Add a repository method | core `Repositories.swift` (port) → `InMemoryCabinetStore` (fake) → `RepositoryContract.swift` (check) → `Persistence/GRDB*Repository.swift` |
-| Add domain logic (parsing, expiry, classification) | `Packages/MediCabinetCore/Sources/MediCabinetCore/` + tests next to it; inject `Clock`, never call `Date()` |
-| Add a screen / tab | `Features/<Name>/` view + view model → wire in `Features/MainTabView.swift` → strings in `Localizable.xcstrings` (fr + en) → UI test → `docs/<feature>.md` |
-| Add a user-facing string | `MediCabinet/Resources/Localizable.xcstrings` (both languages `translated`) → `bash scripts/check-strings.sh` |
-| Add a launch/bootstrap step or failure | `Persistence/Bootstrap.swift` + `BootstrapFailure` → `App/BootstrapErrorView.swift` strings → `BootstrapTests` |
-| Bump the version | `project.yml` `MARKETING_VERSION` (+ `CURRENT_PROJECT_VERSION` for a distinct build) + `CHANGELOG.md` top entry → `bash scripts/check-version.sh` |
-| Add a lint/architecture rule | `.swiftlint.yml` custom rule + fixture in `scripts/tests/lint/` + case in `scripts/tests/test-lint-rules.sh` |
+| Add a rule that must match on both platforms | `fixtures/<name>.json` first (+ `fixtures/README.md`) → Swift core + test using `SharedFixtures` → Kotlin `:core` + test using `SharedFixtures` → `scripts/tests/test-shared-fixtures-break.sh` |
+| Add a persisted field | `fixtures/schema-v1.json` (or a new schema fixture) → iOS `Persistence/Migrations.swift` + `Records.swift` + core `Model.swift` → Android `.sq`/`.sqm` migration + mapper + core `Model.kt` → repository port/impl + `RepositoryContract` check on both → `docs/architecture.md` |
+| Add a repository method | core ports (`Repositories.swift` / `Repositories.kt`) → in-memory fake → `RepositoryContract` check → `GRDB*Repository.swift` / `Sql*Repository.kt` |
+| Add domain logic (parsing, expiry, classification) | both cores, tests next to the code; inject `Clock`, never call `Date()` / `Instant.now()` |
+| Add a screen / tab | iOS `Features/<Name>/` + `MainTabView.swift`; Android `features/<name>/` + `MainScaffold` → strings (fr + en, both platforms) → UI tests → `docs/<feature>.md` |
+| Add a user-facing string | iOS `Localizable.xcstrings`; Android `values/strings.xml` + `values-en/strings.xml` (same wording) → the string checks |
+| Add a launch/bootstrap step or failure | iOS `Persistence/Bootstrap.swift` + `BootstrapFailure` + `BootstrapErrorView`; Android `persistence/Bootstrap.kt` + `BootstrapErrorScreen` → bootstrap tests |
+| Bump a version | iOS: `ios/project.yml` + `ios/CHANGELOG.md`; Android: `android/app/build.gradle.kts` + `android/CHANGELOG.md` → `bash scripts/check-version.sh <product>` |
+| Add a lint/architecture rule | iOS: `ios/.swiftlint.yml` custom rule + fixture in `scripts/tests/ios-lint/` + case in `ios-test-lint-rules.sh`; Android: `scripts/android-check-architecture.py` + fixture |
 
 ---
 
 ## Build & Test Commands
 
 ```bash
-bash scripts/local-ci.sh                             # mandatory before PR (lint, strings, version, core + app tests, coverage)
-xcodegen generate                                    # regenerate the Xcode project after editing project.yml
-swift test --package-path Packages/MediCabinetCore   # core tests only — fast, no simulator
-bash scripts/lint.sh                                 # SwiftLint against the committed baseline
-bash scripts/check-strings.sh                        # fr + en completeness
-bash scripts/check-version.sh                        # project.yml version == top CHANGELOG entry
+bash scripts/local-ci.sh                 # mandatory before PR: shared checks + iOS gate + Android gate
+bash scripts/ios-local-ci.sh             # iOS gate only
+bash scripts/android-local-ci.sh         # Android gate only (once epic #31 lands)
+cd ios && xcodegen generate              # regenerate the Xcode project after editing project.yml
+swift test --package-path ios/Packages/MediCabinetCore    # iOS core tests — fast, no simulator
+cd android && ./gradlew :core:test       # Android core tests — fast, no emulator
+bash scripts/ios-lint.sh                 # SwiftLint against the committed baseline
+bash scripts/ios-check-strings.sh        # iOS fr + en completeness
+bash scripts/check-version.sh ios        # (or android) version == top changelog entry
+python3 -I scripts/check-fixtures.py     # shared fixtures are valid
 ```
 
 Prerequisites and the opt-in launch measurement: [`docs/development.md`](docs/development.md).
@@ -743,12 +837,14 @@ Change these only with the user's explicit agreement (challenge-first applies).
 
 | Topic | Decision | Consequence |
 |-------|----------|-------------|
-| **Devices** | **One iPhone** holds the cabinet. | Export/import moves or backs it up. Multi-phone iCloud/CloudKit sync is a possible later epic — keep the model sync-friendly (stable UUIDs, `updatedAt` on every row) but build no sync now. |
+| **Platforms** | **iOS and Android, both native**, one monorepo (`ios/`, `android/`, shared `fixtures/`). | No Kotlin Multiplatform: each platform has its own core. Behaviour is tied together by shared fixtures; see "Platforms" above. |
+| **Devices** | **One phone** holds the cabinet (an iPhone or an Android phone). | Export/import moves or backs it up, **across platforms**. Multi-phone iCloud/CloudKit/Drive sync is a possible later epic — keep the model sync-friendly (stable UUIDs, `updatedAt` on every row) but build no sync now. |
 | **Import** | **Replace only.** | Import replaces the whole cabinet after validation, a preview (item count, export date, app version, `formatVersion`) and an explicit confirmation; an automatic local backup is taken first and can be restored. No merge. |
 | **Quantity** | **Boxes only.** | One scan = one box. Remove / throw away acts on a box. An "opened" flag may mark started boxes; no unit counts. |
 | **Locations** | **Several locations** (bathroom, kitchen, car, travel kit…). | Every box has a location; user-managed list with a default; bulk scan pre-selects a location for the whole session. |
-| **Distribution** | **TestFlight / own device** via the paid Apple Developer account. | No App Store submission for now; keep privacy manifest and guardrails App Store–ready. |
-| **Minimum iOS** | **iOS 17.** | VisionKit `DataScannerViewController` (continuous DataMatrix) and modern SwiftUI available. |
-| **Export file** | **Versioned JSON archive, no password** (`.medicabinet`, registered document type so it opens from Files/Mail). | Not a raw DB copy, so old files import across schema changes. The UI warns that the file contains health data before sharing. Encryption is a possible later opt-in. |
-| **Persistence** | **SQLite via GRDB** (MIT). | Explicit versioned migrations (`DatabaseMigrator`), full query control. No SwiftData / Core Data. |
-| **Bundle identifier** | Proposed `com.medicabinet.app` — confirm in the foundation spec. | — |
+| **Distribution** | iOS: **TestFlight / own device** (paid Apple Developer account). Android: **debug APK on GitHub releases**, Play internal testing later. | No App Store / Play Store submission for now; keep privacy declarations and guardrails store-ready. |
+| **Minimum OS** | **iOS 17**; **Android 8.0 (API 26)**. | iOS: VisionKit `DataScannerViewController` and modern SwiftUI. Android: `java.time` and adaptive APIs without desugaring. |
+| **Fallback language** | **French** on both platforms (English is the second shipped language). | A phone set to another language shows French. |
+| **Export file** | **One versioned JSON archive, no password** (`.medicabinet`; opens from Files/Mail on iOS, shared/opened through the Android document picker and share sheet). | Not a raw DB copy, so old files import across schema changes and across platforms. The UI warns that the file contains health data before sharing. Encryption is a possible later opt-in. |
+| **Persistence** | iOS: **SQLite via GRDB** (MIT). Android: **SQLite via SQLDelight** (Apache-2.0). | Both run the **same v1 SQL schema** with explicit versioned migrations (Room cannot express the CHECK constraints and partial indexes; see `specs/android-foundation/design.md`). No SwiftData / Core Data / Room. |
+| **Identifiers** | Bundle ID / `applicationId` **`com.medicabinet.app`**, display name **MediCabinet** (both platforms). | — |

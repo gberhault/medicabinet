@@ -31,7 +31,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
   `fixtures/schema-v1.json` (tables, columns, indexes incl. partial, foreign keys);
   iOS `SchemaFixtureTests` introspects a migrated DB and compares. *Test:* passes on iOS; a
   modified copy of the fixture fails.
-- [ ] **T5 — Root `local-ci.sh` and CLAUDE.md monorepo rules** [#32] (M3, M4, M6)
+- [x] **T5 — Root `local-ci.sh` and CLAUDE.md monorepo rules** [#32] (M3, M4, M6)
   `scripts/local-ci.sh` = shared step (check-fixtures, script fixture tests) → iOS gate
   (Android gate added in T22). CLAUDE.md: platforms decision, branch table, per-product
   version/tag/release steps, structure and commands. *Test:* `local-ci.sh` green.
