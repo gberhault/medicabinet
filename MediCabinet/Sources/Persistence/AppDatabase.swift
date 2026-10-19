@@ -35,8 +35,8 @@ struct AppDatabase: Sendable {
         return pool
     }
 
-    static func migrate(_ writer: any DatabaseWriter) throws -> AppDatabase {
-        try Migrations.migrator.migrate(writer)
+    static func migrate(_ writer: any DatabaseWriter, using migrator: DatabaseMigrator = Migrations.migrator) throws -> AppDatabase {
+        try migrator.migrate(writer)
         return AppDatabase(migrated: writer)
     }
 

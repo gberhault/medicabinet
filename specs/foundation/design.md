@@ -192,7 +192,7 @@ App launch
 8. State → .ready(AppEnvironment) → TabView shown
 ```
 
-`.failed` shows a localized blocking screen with **Retry** (re-runs from step 2). It never
+Failure kinds: `.storage` (database cannot be opened or written), `.backup` (R5.2), `.migration` (R4.3). `.failed` shows a localized blocking screen with **Retry** (re-runs from step 2). It never
 deletes the database. GRDB runs each migration in its own transaction, so a failure in
 migration *n* can leave *n-1* applied — hence step 5 restores the pre-migration backup to
 return to exactly the pre-launch state.

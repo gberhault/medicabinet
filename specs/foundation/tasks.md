@@ -62,7 +62,7 @@ for them to measure (T15–T16).
 - [x] **T11 — `BackupService`** [#4] (R5.1, R5.3, R5.4)
   Online backup, file naming, prune to 5. *Tests first:* backup on pending migration; none
   on a fresh DB; 7 backups → newest 5 kept; backup file opens and contains the rows.
-- [ ] **T12 — `Bootstrap` state machine and restore** [#4] (R4.1, R4.3, R4.6, R5.2, R6.1)
+- [x] **T12 — `Bootstrap` state machine and restore** [#4] (R4.1, R4.3, R4.6, R5.2, R6.1)
   Design §3.4 incl. restore procedure (close pool, replace file, drop `-wal`/`-shm`), with
   injectable migrator/backup. *Tests first:* first launch; upgrade; backup failure → no
   migration; migration failure → backup restored, checksum equal; first-launch failure →
