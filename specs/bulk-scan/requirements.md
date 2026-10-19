@@ -214,7 +214,7 @@ camera — so that every box can be recorded.*
 2. The form SHALL ask for a name (required unless a typed code resolves it), an optional code
    (EAN-13 / CIP13 / GTIN-14 digits, check digit validated), the expiry (month/year/optional
    day, or **Date not printed**) and the location (session location pre-selected).
-3. The added box SHALL follow the intake rules (I) and appear in the session list.
+3. The added box SHALL follow the intake rules (I) — except the "another box?" question, since the user is adding explicitly — and appear in the session list.
 4. Manual entry SHALL work with the camera permission denied and on a device with no camera.
 
 ### L — Product resolution (#12, binding with #11)

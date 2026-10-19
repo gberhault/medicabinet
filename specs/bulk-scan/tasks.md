@@ -77,7 +77,7 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
 
 ## 5. Intake service (#15, #16, #12)
 
-- [ ] **T13 — `ProductLookup`, `ScanIntake` in Swift** `[ios]` (I2–I7, K, M2, L1–L4, R3; §3.3–3.4)
+- [x] **T13 — `ProductLookup`, `ScanIntake` in Swift** `[ios]` (I2–I7, K, M2, L1–L4, R3; §3.3–3.4)
   `UnknownProductLookup` in the app. *Tests:* `ScanIntakeTests` on the in-memory fake (every
   outcome, put back, delete / undo delete, duplicate race → `.duplicateSerial`, name
   validation, manual code check digit); iOS app perf test evaluate + add on a 1 000-box GRDB

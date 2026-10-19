@@ -47,6 +47,7 @@ These strings are identical on both platforms (storage values, error kinds, expo
 | `ReferenceUnavailableReason` | `missing`, `unreadable`, `unsupportedSchema` |
 | Parse error kinds | `empty`, `tooLong`, `invalidCharacters`, `missingGTIN`, `invalidGTIN` |
 | Unreadable scanned expiry | `invalidMonth`, `invalidDay` (as `ExpiryDate`), `invalidFormat` (AI 17 is not six digits) |
+| Intake errors | `invalidName`, `invalidCode` |
 | Intake decisions | `add`, `complete`, `confirmAnother`, `alreadyInCabinet`, `removedEarlier` |
 | Intake missing fields | `name`, `expiry` |
 | Barcode symbologies | `dataMatrix`, `ean13` |
