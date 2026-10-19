@@ -50,5 +50,7 @@ if [[ ("$WHICH" == android || "$WHICH" == all) && -f "$ROOT/android/gradlew" ]];
     expect_failure "android: Kotlin suite fails on a broken fixture ($suite)" \
       env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*$suite*'"
   done
+  expect_failure "android: Kotlin suite fails on a broken expiry-status fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*ExpiryRuleFixtureTest*'"
 fi
 exit $fail
