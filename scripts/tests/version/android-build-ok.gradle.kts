@@ -1,0 +1,6 @@
+android {
+    defaultConfig {
+        versionCode = 7
+        versionName = "1.2.3"
+    }
+}

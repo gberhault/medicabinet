@@ -19,7 +19,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
   `ios-check-strings.*`, `ios-coverage-gate.*`), each working from `ios/`; fix `.gitignore`
   and script-test paths. *Test:* `bash scripts/ios-local-ci.sh` green with the same test count
   and coverage ≥ 100% core / 92.4% app.
-- [ ] **T2 — Per-product versions and changelogs** [#32] (M5)
+- [x] **T2 — Per-product versions and changelogs** [#32] (M5)
   `CHANGELOG.md` → `ios/CHANGELOG.md`; `check-version.sh <ios|android>`; fixtures for both
   products. *Test:* gate fixtures (match, mismatch, missing entry, unknown product).
 - [ ] **T3 — Shared expiry fixture and Swift loader** [#33] (S1–S5)

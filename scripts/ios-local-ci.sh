@@ -43,7 +43,8 @@ bash "$ROOT/scripts/ios-check-strings.sh"
 bash "$ROOT/scripts/tests/ios-test-check-strings.sh"
 
 step "version matches CHANGELOG"
-bash "$ROOT/scripts/check-version.sh"
+bash "$ROOT/scripts/check-version.sh" ios
+bash "$ROOT/scripts/tests/test-check-version.sh"
 bash "$ROOT/scripts/tests/ios-test-gates.sh"
 
 step "MediCabinetCore tests"
