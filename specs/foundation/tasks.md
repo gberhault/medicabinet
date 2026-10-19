@@ -94,7 +94,7 @@ for them to measure (T15–T16).
 
 ## 6. Docs and wrap-up (#6)
 
-- [ ] **T18 — Docs, README and CHANGELOG 0.1.0** [#6] (R10.1–R10.3)
+- [x] **T18 — Docs, README and CHANGELOG 0.1.0** [#6] (R10.1–R10.3)
   `docs/README.md`, `docs/architecture.md` (layers, DB location, migrations, backups, device
   backups), `docs/development.md` (setup, commands, lint-rule limits), README build/install,
   `CHANGELOG.md` `## 0.1.0 — <date>`; launch-metric result in `reports/foundation/README.md`.
