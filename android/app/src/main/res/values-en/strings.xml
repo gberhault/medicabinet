@@ -112,4 +112,5 @@
     <string name="scan_unrecognized">Code not recognized</string>
     <string name="scan_unsupported_message">This device can\'t scan codes. You can add your boxes without scanning.</string>
     <string name="scan_unsupported_title">Scanning unavailable</string>
+    <string name="undo_action">Undo</string>
 </resources>

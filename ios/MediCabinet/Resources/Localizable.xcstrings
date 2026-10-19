@@ -1760,6 +1760,22 @@
           }
         }
       }
+    },
+    "undo.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

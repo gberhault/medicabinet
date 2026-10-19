@@ -74,7 +74,7 @@ iOS and Android UI blocks of each section are independent of each other.
 
 ## 3. Locations UI (#18)
 
-- [ ] **T15 — iOS Undo banner** `[ios]` (B5–B7, L7; §1.7)
+- [x] **T15 — iOS Undo banner** `[ios]` (B5–B7, L7; §1.7)
   `UndoBanner` + `UndoCenter` (one pending action, 10 s, VoiceOver announcement and action,
   no dismissal while focused). *Tests:* view-model/unit tests on `UndoCenter` (replace,
   expire with an injected clock/timer, undo once).

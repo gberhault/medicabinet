@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainTabView: View {
     let environment: AppEnvironment
+    @State private var undoCenter = UndoCenter()
 
     var body: some View {
         TabView {
@@ -22,6 +23,9 @@ struct MainTabView: View {
             SettingsView()
                 .tabItem { Label("tab.settings", systemImage: "gearshape") }
         }
+        .environment(\.undoCenter, undoCenter)
+        .safeAreaInset(edge: .bottom) { UndoBanner(center: undoCenter) }
+        .animation(.default, value: undoCenter.pending?.id)
     }
 }
 
