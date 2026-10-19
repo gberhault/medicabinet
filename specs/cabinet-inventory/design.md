@@ -242,9 +242,10 @@ public struct CabinetFilter: Hashable, Sendable {
 
 public enum ProductKey: Hashable, Sendable { case gtin(String), name(String) }   // name = normalized
 
+public struct ProductRowID: Hashable, Sendable { public let category: CategoryID; public let key: ProductKey }
+
 public struct ProductRow: Identifiable, Hashable, Sendable {
-    public struct ID: Hashable, Sendable { public let category: CategoryID; public let key: ProductKey }
-    public let id: ID
+    public let id: ProductRowID
     public let name: String                               // most recently created box
     public let boxes: [Box]                               // filtered, P1 order
     public let status: ExpiryStatus                       // most urgent
@@ -432,7 +433,7 @@ ios/MediCabinet/Sources/Features/Scan/        (from #12, extended)
   `loaded`, `failed`). The `boxes` and `locations` streams and a `today` tick feed a
   `Task.detached` that runs `CabinetRows.build`; the latest result wins (the previous task is
   cancelled).
-- Navigation: `NavigationStack(path:)` with `ProductRow.ID` and `Box.ID` destinations; a row
+- Navigation: `NavigationStack(path:)` with `ProductRowID` and `Box.ID` destinations; a row
   with one box pushes `Box.ID` (P2). When the shown box leaves the cabinet, the detail pops
   (P3).
 - Empty-cabinet button: `MainTabView` gets a `@State selection` and passes a
@@ -514,7 +515,7 @@ android/app/src/main/kotlin/com/medicabinet/app/features/scan/   (from #12, exte
   and an Android Robolectric test.
 - Remove by scan: `handle` (one indexed lookup + one update) on a 1 000-box cabinet
   **≤ 100 ms** median, same harness as bulk-scan §8, guarding the < 300 ms target.
-- Lists: stable ids (`ProductRow.ID`, `Box.ID`); iOS `List` / Android `LazyColumn` with
+- Lists: stable ids (`ProductRowID`, `Box.ID`); iOS `List` / Android `LazyColumn` with
   `key`s; no per-row queries (rows carry their boxes). Scrolling 1 000 boxes is checked once
   on the oldest available device in the device task (recorded in
   `reports/cabinet-inventory/README.md`).
