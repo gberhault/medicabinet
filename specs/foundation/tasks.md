@@ -16,7 +16,7 @@ task unblocks the next. Child issue in brackets; requirement IDs refer to
   *Tests first:* `ExpiryDateTests` — day vs month precision, leap years, invalid month/day/year,
   last valid day of every month.
 - [ ] **T3 — `Clock`, `SystemClock`, `FixedClock`** [#3] (R3.7)
-  *Tests:* `FixedClock` returns the fixed date; advancing works.
+  *Tests:* `FixedClock` returns the fixed date; `SystemClock` is monotonic non-decreasing across two reads.
 - [ ] **T4 — Domain model: `Location`, `CategoryID`, `ProductRef`, `Box`, `RemovalReason`,
   `ExpiryStatus`** [#3] (R3.2, R3.3, R3.6)
   *Tests:* `BoxTests`, `LocationTests` — identity, nil expiry, removal value semantics,

@@ -1,6 +1,6 @@
 # Foundation — Requirements
 
-Status: **Draft — awaiting approval**
+Status: **Approved 2026-10-19**
 Epic: #1 · Children: #2, #3, #4, #5, #6 · Branch: `feature/1-foundation`
 
 ## Introduction
@@ -172,7 +172,7 @@ box always has a place.*
 - iCloud sync, App Store submission, iPad layout.
 - GitHub Actions (local CI only).
 
-## Open questions (to answer before approval)
+## Resolved questions
 
-1. **Bundle identifier** — proposed `com.medicabinet.app`. OK?
-2. **Display name** under the icon — proposed "MediCabinet". OK?
+1. **Bundle identifier** — `com.medicabinet.app` (approved 2026-10-19).
+2. **Display name** under the icon — "MediCabinet" (approved 2026-10-19).

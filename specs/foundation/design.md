@@ -1,6 +1,6 @@
 # Foundation — Design
 
-Status: **Draft — awaiting approval of `requirements.md` first**
+Status: **Draft — awaiting approval** (requirements approved 2026-10-19)
 Epic: #1 · Requirements: [`requirements.md`](requirements.md)
 
 ## 1. Architecture
@@ -43,7 +43,7 @@ Epic: #1 · Requirements: [`requirements.md`](requirements.md)
 | `options.deploymentTarget.iOS` | `17.0` |
 | `TARGETED_DEVICE_FAMILY` | `1` (iPhone) |
 | `SWIFT_VERSION` | `6.0`, `SWIFT_STRICT_CONCURRENCY = complete` |
-| `PRODUCT_BUNDLE_IDENTIFIER` | `com.medicabinet.app` (pending Q1) |
+| `PRODUCT_BUNDLE_IDENTIFIER` | `com.medicabinet.app` |
 | `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` | `0.1.0` / `1` |
 | `configFiles` | Debug/Release → `Config/Signing.xcconfig` (which `#include?`s `Signing.local.xcconfig`) |
 | `packages` | `MediCabinetCore` (local path `Packages/MediCabinetCore`), `GRDB` (remote, `exactVersion` pinned to the latest 7.x at implementation time) |
@@ -162,6 +162,9 @@ Only what the foundation needs and tests; later epics extend the protocols in th
   Uses GRDB's `backup(to:)` (online SQLite backup API) into
   `Application Support/MediCabinet/Backups/pre-migration-<UTC yyyyMMdd-HHmmss>-<fromMigration>.sqlite`.
   Pruning sorts by the timestamp in the file name (no file-date API → no required-reason API).
+- **Device backups:** `Application Support` is included in the user's iCloud / Finder iPhone
+  backup by default, and we keep it that way (no `isExcludedFromBackup`), so the cabinet and
+  its pre-migration copies survive a phone restore even without a manual export.
 
 ### 3.4 Bootstrap (R4.1, R4.3, R5, R6)
 
@@ -183,6 +186,14 @@ App launch
 deletes the database. GRDB runs each migration in its own transaction, so a failure in
 migration *n* can leave *n-1* applied — hence step 5 restores the pre-migration backup to
 return to exactly the pre-launch state.
+
+Restore procedure: close the `DatabasePool` first, then replace `cabinet.sqlite` with the
+backup copy and delete the `-wal` / `-shm` side files, then reopen (Retry). On a **first
+launch** there is no backup and nothing to lose: a failed `v1` leaves the empty file in place
+and Retry migrates it again.
+
+`updatedAt` is set by the repositories on every write from the injected `Clock` — callers
+never set it.
 
 ### 3.5 App shell (R2)
 
