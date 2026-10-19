@@ -219,9 +219,9 @@ Algorithm (one pass, index-based, no regex):
 
 ```swift
 public struct ScanDebouncer: Sendable {
-    public static let defaultRescanGap: Duration = .seconds(1)
-    public init(rescanGap: Duration = defaultRescanGap)
-    /// Feed every frame/snapshot; returns the payloads that count as new scans, in first-seen order.
+    public static let defaultRescanGapMilliseconds = 1_000       // Kotlin: DEFAULT_RESCAN_GAP_MS
+    public init(rescanGapMilliseconds: Int = defaultRescanGapMilliseconds)
+    /// Feed every frame/snapshot; returns the payloads that count as new scans, in the order of `visible`.
     public mutating func observe(visible: [String], at instant: Date) -> [String]
 }
 ```

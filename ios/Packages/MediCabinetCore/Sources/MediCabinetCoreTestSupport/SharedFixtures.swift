@@ -113,6 +113,99 @@ public struct GS1Fixture: Decodable, Sendable {
     public let cases: [GS1Case]
 }
 
+public struct ScanDebounceFrame: Decodable, Sendable {
+    public let milliseconds: Int
+    public let visible: [String]
+
+    private enum CodingKeys: String, CodingKey {
+        case milliseconds = "t"
+        case visible
+    }
+}
+
+public struct ScanDebounceScan: Decodable, Sendable, Equatable {
+    public let milliseconds: Int
+    public let payload: String
+
+    public init(milliseconds: Int, payload: String) {
+        self.milliseconds = milliseconds
+        self.payload = payload
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case milliseconds = "t"
+        case payload
+    }
+}
+
+/// One case of `fixtures/scan-debounce.json`.
+public struct ScanDebounceCase: Decodable, Sendable, CustomStringConvertible {
+    public let name: String
+    public let rescanGapMs: Int
+    public let frames: [ScanDebounceFrame]
+    public let expectScans: [ScanDebounceScan]
+
+    public var description: String { name }
+}
+
+/// One case of `fixtures/scan-intake.json`.
+public struct IntakeCase: Decodable, Sendable, CustomStringConvertible {
+    public struct Scan: Decodable, Sendable {
+        public let hasSerial: Bool
+        /// `known` | `missing` | `invalid`
+        public let expiry: String
+    }
+
+    public struct Expect: Decodable, Sendable {
+        /// `add` | `complete` | `confirmAnother` | `alreadyInCabinet` | `removedEarlier`
+        public let decision: String
+        public let missing: [String]?
+        public let thenMissing: [String]?
+        public let expiryUnreadable: Bool?
+    }
+
+    public let name: String
+    public let scan: Scan
+    public let productKnown: Bool
+    /// `inCabinet` | `removed` | `nil`
+    public let cabinetMatch: String?
+    public let sessionHasGTIN: Bool
+    public let expect: Expect
+
+    public var description: String { name }
+}
+
+/// One case of `fixtures/product-resolution.json`.
+public struct ProductResolutionCase: Decodable, Sendable, CustomStringConvertible {
+    public struct Reference: Decodable, Sendable {
+        public let name: String
+        public let category: String?
+    }
+
+    public struct Previous: Decodable, Sendable {
+        public let name: String
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
+    public struct Expect: Decodable, Sendable {
+        public let name: String?
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
+    public let name: String
+    public let reference: Reference?
+    public let previousBox: Previous?
+    public let expect: Expect
+
+    public var description: String { name }
+}
+
+private struct CaseList<Element: Decodable>: Decodable {
+    let cases: [Element]
+}
+
 /// A fixture file that is only a list of named cases.
 private struct NamedCases: Decodable {
     let cases: [NamedCase]
@@ -156,6 +249,19 @@ public enum SharedFixtures {
     /// fixture-driven suite also has a test asserting the file loads (which fails loudly).
     public static func expiryDateCases() -> [ExpiryDateCase] {
         (try? expiryDates().cases) ?? []
+    }
+
+    private static func cases<Element: Decodable>(_ file: String, as type: Element.Type) -> [Element] {
+        guard let data = try? data(file) else { return [] }
+        return (try? JSONDecoder().decode(CaseList<Element>.self, from: data).cases) ?? []
+    }
+
+    public static func scanDebounceCases() -> [ScanDebounceCase] { cases("scan-debounce.json", as: ScanDebounceCase.self) }
+
+    public static func intakeCases() -> [IntakeCase] { cases("scan-intake.json", as: IntakeCase.self) }
+
+    public static func productResolutionCases() -> [ProductResolutionCase] {
+        cases("product-resolution.json", as: ProductResolutionCase.self)
     }
 
     public static func gs1Cases() -> [GS1Case] {
