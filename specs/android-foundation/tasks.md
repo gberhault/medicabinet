@@ -63,7 +63,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
 - [x] **T11 — `Clock`, `SystemClock`, `FixedClock`, `MutableClock`** [#35] (K5)
   `SystemClock` is the only allowed wall-clock read. *Tests:* fixed / advancing /
   non-decreasing.
-- [ ] **T12 — Domain model v1** [#35] (K2, K4, S6)
+- [x] **T12 — Domain model v1** [#35] (K2, K4, S6)
   `Location`, `CategoryID`, `ProductRef`, `Box` (+ `Removal`), `RemovalReason`,
   `ExpiryStatus` with the shared raw values. *Tests:* mirror Swift `ModelTests`; raw values
   equal the strings listed in `fixtures/README.md`.

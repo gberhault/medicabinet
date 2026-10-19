@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import MediCabinetCore
+import MediCabinetCoreTestSupport
 
 @Suite struct ModelTests {
     let now = Date(timeIntervalSince1970: 1_800_000_000)
@@ -52,5 +53,15 @@ import Testing
     @Test func expiryStatusHasAnExplicitUnknownCase() {
         #expect(ExpiryStatus.allCases.contains(.unknown))
         #expect(ExpiryStatus.unknown != .ok)
+    }
+
+    @Test func theSharedReadmeListsEveryCrossPlatformName() throws {
+        let readme = try #require(String(bytes: SharedFixtures.data("README.md"), encoding: .utf8))
+        let names = RemovalReason.allCases.map(\.rawValue) + ExpiryStatus.allCases.map(\.rawValue)
+            + [CategoryID.uncategorized.rawValue, "invalidYear", "invalidMonth", "invalidDay"]
+            + ["notFound", "unknownLocation", "duplicate", "duplicateDefault"]
+        for name in names {
+            #expect(readme.contains("`\(name)`"), "fixtures/README.md does not list `\(name)`")
+        }
     }
 }
