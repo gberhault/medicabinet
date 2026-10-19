@@ -1,6 +1,6 @@
 # Foundation — Design
 
-Status: **Draft — awaiting approval** (requirements approved 2026-10-19)
+Status: **Approved 2026-10-19**
 Epic: #1 · Requirements: [`requirements.md`](requirements.md)
 
 ## 1. Architecture
@@ -300,6 +300,7 @@ The scan path, reference data and import/export do not exist yet.
 | R1.1–R1.4 | `local-ci.sh` from a clean clone generates and builds; `.gitignore` excludes `*.xcodeproj` | CI |
 | R2.1, R2.2 | `MainTabUITests`: 4 tabs exist with labels; each placeholder shows its title | UI |
 | R2.3 | `AboutUITests`: version/build text equals bundle values; `AboutViewModelTests` with fake `AppInfo` | UI + unit |
+| R2.5 | Lint custom rule: no `URLSession`, `import Network` or `URLRequest` in app or core sources (later epics that add a download must amend this rule in their spec) | lint |
 | R2.4 | UI test launched with `-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL` and dark mode: tabs still hittable | UI |
 | R3.1 | `swift test` in CI; core has no forbidden imports (`scripts/lint.sh` custom rule) | CI |
 | R3.4, R3.5 | `ExpiryDateTests`: day/month precision, Feb 28/29 (2028 leap, 2100 excluded by year bound), month 0/13, day 0/32, Apr 31, year bounds | unit |
