@@ -49,6 +49,7 @@ targets:
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         ITSAppUsesNonExemptEncryption: false
+        NSCameraUsageDescription: MediCabinet utilise l'appareil photo pour lire les codes des boîtes de médicaments. Aucune image n'est enregistrée ni envoyée.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.medicabinet.app

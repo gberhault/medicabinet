@@ -28,7 +28,7 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
 
 ## 2. Camera adapters and real payloads (#14, #13)
 
-- [ ] **T4 — iOS camera adapter and debug capture view** `[ios]` [#14] (C9–C11, X1; §1.2, §5)
+- [x] **T4 — iOS camera adapter and debug capture view** `[ios]` [#14] (C9–C11, X1; §1.2, §5)
   `CodeScanner` protocol, `VisionKitScanner`, `InjectedCodeScanner`; `PayloadCaptureView`
   (`#if DEBUG`, from Settings → Debug) listing `GS1Parser.shape` of each payload;
   `NSCameraUsageDescription` (fr + en); SwiftLint rule confining VisionKit/AVFoundation to
