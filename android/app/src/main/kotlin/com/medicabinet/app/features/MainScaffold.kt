@@ -76,7 +76,15 @@ fun MainScaffold(
     val scope = rememberCoroutineScope()
     val undoController = remember(snackbars, scope) { UndoController(snackbars, scope) }
     CompositionLocalProvider(LocalUndoController provides undoController) {
-        MainContent(navController, aboutViewModel, environment, scanServices, snackbars, backStack?.destination, modifier)
+        MainContent(
+            navController,
+            aboutViewModel,
+            environment,
+            scanServices,
+            snackbars,
+            backStack?.destination,
+            modifier
+        )
     }
 }
 
