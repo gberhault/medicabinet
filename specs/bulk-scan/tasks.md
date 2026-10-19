@@ -137,6 +137,6 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
 - [ ] **T29 — Bind the BDPM lookup** `[shared]` (L1, L5) — **blocked by #11**
   Replace `UnknownProductLookup` with the #11 lookup on both platforms after rebasing on
   `develop`; flow 1 of §7 tested with a real reference GTIN.
-- [ ] **T30 — Versions and gate** `[shared]` (X6)
+- [x] **T30 — Versions and gate** `[shared]` (X6)
   iOS 0.2.0 (build 2), Android 0.2.0 (versionCode 2), changelog entries;
   `bash scripts/local-ci.sh` green. Coverage stated in the PR.
