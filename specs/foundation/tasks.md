@@ -27,7 +27,7 @@ for them to measure (T15–T16).
   no `Date()` in core `Sources/`, `import GRDB` only under `Persistence/`, no
   `URLSession` / `URLRequest` / `import Network` anywhere; empty baseline.
   *Test:* fixture files under `scripts/tests/lint/` each trigger their rule (non-zero exit).
-- [ ] **T4 — `local-ci.sh` (first version)** [#5] (R7.1 partial, R7.2, R7.5)
+- [x] **T4 — `local-ci.sh` (first version)** [#5] (R7.1 partial, R7.2, R7.5)
   Steps: generate → lint → `swift test` → `xcodebuild test` on the first available iPhone
   simulator; named `▶`/`✗` steps; missing `xcodegen`/`swiftlint` → install hint.
   *Test:* green on the branch; stubbed `PATH` without `swiftlint` fails with the hint.
