@@ -70,7 +70,7 @@ for them to measure (T15–T16).
 
 ## 4. App shell (#2)
 
-- [ ] **T13 — Root view, blocking error screen, tabs and placeholders** [#2]
+- [x] **T13 — Root view, blocking error screen, tabs and placeholders** [#2]
   (R2.1, R2.2, R2.4, R4.3, R5.2)
   `RootView`, `MainTabView` (Scan · Cabinet · Expiring · Settings), `ContentUnavailableView`
   placeholders, error screen with Retry. *Tests:* `MainTabUITests`; accessibility-size + dark
