@@ -1,0 +1,1 @@
+{"data": [{"files": [{"filename": "/r/Packages/MediCabinetCore/Sources/MediCabinetCore/A.swift", "summary": {"lines": {"count": 100, "covered": 90}}}, {"filename": "/r/Packages/MediCabinetCore/Tests/MediCabinetCoreTests/T.swift", "summary": {"lines": {"count": 100, "covered": 0}}}]}]}

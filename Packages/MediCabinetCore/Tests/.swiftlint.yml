@@ -1,4 +1,0 @@
-# Tests may use force unwraps and `try!` for brevity.
-disabled_rules:
-  - force_unwrapping
-  - force_try

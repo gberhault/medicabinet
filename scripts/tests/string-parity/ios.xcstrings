@@ -1,0 +1,54 @@
+{
+  "sourceLanguage": "fr",
+  "version": "1.0",
+  "strings": {
+    "tab.scan": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanner"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan"
+          }
+        }
+      }
+    },
+    "about.version": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %1$@ (%2$@)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %1$@ (%2$@)"
+          }
+        }
+      }
+    },
+    "msg.apostrophe": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'armoire"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The cabinet"
+          }
+        }
+      }
+    }
+  }
+}

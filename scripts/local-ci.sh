@@ -1,71 +1,43 @@
 #!/usr/bin/env bash
-# Local CI gate — run before opening a PR. Exits non-zero and names the failing step.
+# Root gate: shared checks, then each product's gate. Exits non-zero and names the failing step.
+#   bash scripts/local-ci.sh              everything
+#   bash scripts/local-ci.sh shared|ios|android    one part
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+WHICH="${1:-all}"
 CURRENT_STEP="setup"
-on_exit() {
-  local status=$?
-  if [[ $status -ne 0 ]]; then
-    echo "✗ local-ci FAILED at step: $CURRENT_STEP" >&2
-  fi
-}
-trap on_exit EXIT
-
+trap 'status=$?; [[ $status -eq 0 ]] || echo "✗ local-ci FAILED at step: $CURRENT_STEP" >&2' EXIT
 step() { CURRENT_STEP="$1"; echo "▶ $1"; }
 
-require() { # command, install hint
-  if ! command -v "$1" >/dev/null 2>&1; then
-    CURRENT_STEP="prerequisites"
-    echo "$1 not found — install with: $2" >&2
-    exit 1
+case "$WHICH" in all|shared|ios|android) ;; *) echo "usage: local-ci.sh [all|shared|ios|android]" >&2; exit 2 ;; esac
+
+if [[ "$WHICH" == all || "$WHICH" == shared ]]; then
+  step "shared: fixtures are valid"
+  python3 -I scripts/check-fixtures.py
+  bash scripts/tests/test-check-fixtures.sh
+
+  step "shared: iOS and Android say the same thing"
+  python3 -I scripts/check-string-parity.py
+
+  step "shared: version checker self-test"
+  bash scripts/tests/test-check-version.sh
+fi
+
+if [[ "$WHICH" == all || "$WHICH" == ios ]]; then
+  step "iOS gate"
+  bash scripts/ios-local-ci.sh
+fi
+
+if [[ "$WHICH" == all || "$WHICH" == android ]]; then
+  if [[ -f scripts/android-local-ci.sh ]]; then
+    step "Android gate"
+    bash scripts/android-local-ci.sh
+  else
+    echo "• Android gate not available yet (scripts/android-local-ci.sh)"
   fi
-}
-
-require xcodegen "brew install xcodegen"
-require swiftlint "brew install swiftlint"
-require xcodebuild "install Xcode from the App Store"
-
-mkdir -p build
-
-step "xcodegen generate"
-xcodegen generate --quiet
-
-step "swiftlint (against baseline)"
-bash scripts/lint.sh
-
-step "lint rule fixtures"
-bash scripts/tests/test-lint-rules.sh
-
-step "localization (fr + en complete)"
-bash scripts/check-strings.sh
-bash scripts/tests/test-check-strings.sh
-
-step "version matches CHANGELOG"
-bash scripts/check-version.sh
-bash scripts/tests/test-gates.sh
-
-step "MediCabinetCore tests"
-(cd Packages/MediCabinetCore && swift test --enable-code-coverage)
-
-step "app unit + UI tests (simulator)"
-DEST_ID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ && /Booted/ {print $2; exit}')"
-if [[ -z "${DEST_ID:-}" ]]; then
-  DEST_ID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ {print $2; exit}')"
 fi
-if [[ -z "${DEST_ID:-}" ]]; then
-  echo "No iPhone simulator available" >&2
-  exit 1
-fi
-rm -rf build/ci.xcresult
-xcodebuild -project MediCabinet.xcodeproj -scheme MediCabinet \
-  -destination "platform=iOS Simulator,id=$DEST_ID" \
-  -enableCodeCoverage YES -resultBundlePath build/ci.xcresult \
-  test -quiet
-
-step "coverage gate (>= 80% lines: core and app)"
-bash scripts/coverage-gate.sh
 
 CURRENT_STEP="done"
-echo "✓ local-ci OK"
+echo "✓ local-ci OK ($WHICH)"
