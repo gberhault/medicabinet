@@ -39,7 +39,7 @@ iOS and Android UI blocks of each section are independent of each other.
 - [x] **T5 — `CabinetRows`, `CabinetFilter`, `ProductRow`, `ExpiryUrgency` in Swift** `[ios]` (same; §1.1, §1.2, §3.2)
   *Tests first:* `CabinetRowsFixtureTests`; perf test 1 000 boxes ≤ 100 ms median of 10
   (§8). 100 % branch coverage.
-- [ ] **T6 — Kotlin twins** `[android]` (same)
+- [x] **T6 — Kotlin twins** `[android]` (same)
 - [ ] **T7 — Scan-removal fixture** `[shared]` [#21] (R5; §2.4)
   `fixtures/scan-removal.json`; decision names in `fixtures/README.md`; broken copy.
 - [ ] **T8 — `RemovalPolicy`, `ScanRemoval` in Swift** `[ios]` [#21] (R5, R9; §3.3)

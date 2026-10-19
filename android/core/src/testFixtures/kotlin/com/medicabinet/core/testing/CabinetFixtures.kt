@@ -36,6 +36,51 @@ data class LocationNameCase(
     override fun toString(): String = name
 }
 
+/** One case of `fixtures/cabinet-rows.json`. */
+@Serializable
+data class CabinetRowsCase(
+    val name: String,
+    val categoryOrder: List<String>,
+    val boxes: List<FixtureBox>,
+    val filter: FixtureFilter,
+    val expect: Expect
+) {
+    @Serializable
+    data class FixtureExpiry(val year: Int, val month: Int, val day: Int? = null)
+
+    @Serializable
+    data class FixtureBox(
+        val id: String,
+        val gtin: String? = null,
+        val name: String,
+        val category: String,
+        val location: String,
+        val expiry: FixtureExpiry? = null,
+        /** `expired` | `expiringSoon` | `ok` | `unknown` */
+        val status: String,
+        val createdOrder: Int
+    )
+
+    @Serializable
+    data class FixtureFilter(val query: String, val location: String? = null, val status: String? = null)
+
+    @Serializable
+    data class FixtureRow(
+        val name: String,
+        val boxes: List<String>,
+        val status: String,
+        val earliestExpiry: FixtureExpiry? = null
+    )
+
+    @Serializable
+    data class FixtureSection(val category: String, val rows: List<FixtureRow>)
+
+    @Serializable
+    data class Expect(val boxCount: Int, val sections: List<FixtureSection>)
+
+    override fun toString(): String = name
+}
+
 @Serializable
 data class CabinetCaseList<T>(val formatVersion: Int, val description: String, val cases: List<T>)
 
@@ -47,3 +92,6 @@ fun SharedFixtures.textNormalization(): CabinetCaseList<TextNormalizationCase> =
 
 fun SharedFixtures.locationNames(): CabinetCaseList<LocationNameCase> =
     cabinetFixtureJson.decodeFromString(text("location-names.json"))
+
+fun SharedFixtures.cabinetRows(): CabinetCaseList<CabinetRowsCase> =
+    cabinetFixtureJson.decodeFromString(text("cabinet-rows.json"))
