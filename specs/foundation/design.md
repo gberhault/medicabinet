@@ -122,23 +122,31 @@ same way). Anything else → `invalidYear`.
 
 ### 3.2 Repository ports (core)
 
+Repositories are created with an injected `Clock` and stamp `updatedAt` themselves; callers
+never set it. Errors are `RepositoryError` (`notFound`, `unknownLocation`, `duplicate`,
+`duplicateDefault`).
+
 ```swift
 public protocol LocationRepository: Sendable {
-    func all() async throws -> [Location]
+    func all() async throws -> [Location]                       // sortOrder, then name
     func defaultLocation() async throws -> Location?
     func insert(_ location: Location) async throws
-    func ensureDefault(named name: String, clock: any Clock) async throws -> Location   // R6
+    func ensureDefault(named name: String) async throws -> Location   // R6, idempotent
 }
 
 public protocol BoxRepository: Sendable {
     func activeBoxes() async throws -> [Box]          // removal == nil
-    func box(id: Box.ID) async throws -> Box?
+    func box(id: Box.ID) async throws -> Box?         // includes removed boxes
     func insert(_ box: Box) async throws
-    func update(_ box: Box) async throws
+    func update(_ box: Box) async throws              // keeps createdAt and removal
     func markRemoved(id: Box.ID, reason: RemovalReason, at date: Date) async throws
     func undoRemoval(id: Box.ID) async throws
 }
 ```
+
+The package also exposes a `MediCabinetCoreTestSupport` library: `MutableClock`, the
+`InMemoryCabinetStore` fake and `RepositoryContract` (a framework-agnostic list of checks every
+implementation must pass — the GRDB repositories run the same list in T10).
 
 Only what the foundation needs and tests; later epics extend the protocols in their own spec.
 

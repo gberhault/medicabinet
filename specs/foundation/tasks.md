@@ -44,7 +44,7 @@ for them to measure (T15–T16).
   `Location`, `CategoryID` (+ `.uncategorized`), `ProductRef`, `Box` (+ `Removal`),
   `RemovalReason`, `ExpiryStatus`. *Tests:* `BoxTests`, `LocationTests` — identity, nil
   expiry, removal semantics, category key round-trip.
-- [ ] **T8 — Repository ports and contract tests** [#3] (R4.5)
+- [x] **T8 — Repository ports and contract tests** [#3] (R4.5)
   `LocationRepository`, `BoxRepository` (design §3.2) + in-memory fake; reusable contract test
   suite runnable against any implementation.
 
