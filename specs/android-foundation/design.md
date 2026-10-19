@@ -240,6 +240,12 @@ keeps `createdAt` and `removal`). `java.time.Instant` is truncated to millisecon
   `cabinet.db`, `-wal`, `-shm`, copy the backup back → `Failed(MIGRATION)`) →
   `ensureDefault(localized name)` → prune → `Ready(AppEnvironment)`. Any other I/O failure →
   `Failed(STORAGE)`. Never deletes the database except to replace it with its backup.
+  **Corruption safety (found in T17):** the platform's `SupportSQLiteOpenHelper.Callback.onCorruption`
+  and the default `DatabaseErrorHandler` *delete* a database they consider corrupt. `CabinetDatabase`
+  overrides `onCorruption` to throw, and `BackupService` opens the existing file with a no-op error
+  handler, so an unreadable file is reported (`STORAGE`) and left untouched; a mutation check proves the
+  regression test fails if the file is ever deleted. iOS has the same guarantee (GRDB never deletes),
+  now tested there too.
 - **Auto Backup (I3):** `allowBackup="true"`, `fullBackupContent="@xml/backup_rules"`
   (API ≤ 30) and `dataExtractionRules="@xml/data_extraction_rules"` (API 31+) include the
   `database` domain and `file` domain `backups/` for cloud backup and device transfer.

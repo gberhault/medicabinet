@@ -162,6 +162,19 @@ import Testing
         #expect(failure == .storage)
     }
 
+    @Test func anUnreadableDatabaseFileIsReportedAndNeverDeleted() async throws {
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let file = root.appendingPathComponent(AppDatabase.fileName)
+        let garbage = Data((0..<4096).map { UInt8(truncatingIfNeeded: $0 &* 31) })
+        try garbage.write(to: file)
+
+        guard case .failed(let failure) = await bootstrap().run() else { throw Failure("expected failure") }
+
+        #expect(failure == .storage)
+        #expect(try Data(contentsOf: file) == garbage, "the unreadable database must be left untouched")
+    }
+
     // MARK: threading
 
     @Test @MainActor func bootstrapWorkRunsOffTheMainThread() async throws {

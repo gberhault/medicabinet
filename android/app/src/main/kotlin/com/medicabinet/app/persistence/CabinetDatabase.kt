@@ -57,8 +57,18 @@ internal class MigratingCallback(private val migrations: List<Migration>) :
         migrations.subList(oldVersion, newVersion).forEach { it.apply(db) }
     }
 
+    /**
+     * The platform default deletes the database file when it looks corrupt. The cabinet is the user's data:
+     * never delete it — fail loudly and leave the file for recovery instead.
+     */
+    override fun onCorruption(db: SupportSQLiteDatabase): Unit =
+        throw CorruptDatabaseException("the cabinet database could not be read; it was left untouched")
+
     override fun onDowngrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int): Unit =
         throw IllegalStateException(
             "database schema v$oldVersion is newer than this app (v$newVersion); refusing to downgrade"
         )
 }
+
+/** The database file exists but SQLite cannot read it. The file is never deleted. */
+class CorruptDatabaseException(message: String) : IllegalStateException(message)

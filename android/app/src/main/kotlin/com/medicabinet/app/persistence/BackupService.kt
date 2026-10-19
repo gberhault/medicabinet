@@ -1,5 +1,6 @@
 package com.medicabinet.app.persistence
 
+import android.database.DatabaseErrorHandler
 import android.database.sqlite.SQLiteDatabase
 import com.medicabinet.core.Clock
 import java.io.File
@@ -48,6 +49,16 @@ class BackupService(
         }
     }
 
+    /**
+     * Puts [backup] back as the database, removing the write-ahead-log side files first, so the database is
+     * exactly what it was before the migration was attempted. The backup stays in place either way.
+     */
+    fun restore(backup: File) {
+        listOf("-wal", "-shm", "-journal").forEach { File(databaseFile.path + it).delete() }
+        databaseFile.delete()
+        backup.copyTo(databaseFile, overwrite = false)
+    }
+
     /** Deletes all but the [count] newest pre-migration backups (ordered by the timestamp in their name). */
     fun prune(count: Int = DEFAULT_KEEP_COUNT) {
         val backups = directory.listFiles { file -> file.name.startsWith(PREFIX) && file.name.endsWith(EXTENSION) }
@@ -62,7 +73,14 @@ class BackupService(
      */
     private fun existingVersion(): Int? {
         if (!databaseFile.isFile) return null
-        val database = SQLiteDatabase.openDatabase(databaseFile.path, null, SQLiteDatabase.OPEN_READWRITE)
+        // The default error handler deletes a database it considers corrupt; ours does nothing.
+        val database = SQLiteDatabase.openDatabase(
+            databaseFile.path,
+            null,
+            SQLiteDatabase.OPEN_READWRITE,
+            DatabaseErrorHandler {
+            }
+        )
         try {
             database.rawQuery("PRAGMA wal_checkpoint(TRUNCATE)", null).use { it.moveToFirst() }
             return database.version

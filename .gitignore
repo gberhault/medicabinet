@@ -40,3 +40,4 @@ android/captures/
 *.jks
 *.keystore
 .idea/
+android/gradle/gradle-daemon-jvm.properties

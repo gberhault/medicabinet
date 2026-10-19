@@ -90,7 +90,7 @@ it cannot run the exact iOS DDL, and the user switched Android to plain SQLite �
   Detection (user_version + checkpoint), copy, naming, prune to 5. *Tests first:* new DB → no
   copy; up to date → no copy; pending → one self-contained copy that opens and holds the rows;
   same-second collision; unwritable folder → `BackupException`; pruning.
-- [ ] **T17 — `Bootstrap` with restore** [#36] (P3–P6, P9)
+- [x] **T17 — `Bootstrap` with restore** [#36] (P3–P6, P9)
   Design §6 sequence with an injectable schema for tests. *Tests first:* first launch;
   upgrade (test schema v2); backup failure → no migration; migration failure → copy restored,
   rows identical; first-launch failure then Retry; work off the main thread; default location

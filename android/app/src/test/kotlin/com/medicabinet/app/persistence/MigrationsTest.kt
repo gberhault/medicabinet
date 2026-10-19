@@ -101,4 +101,19 @@ class MigrationsTest {
         assertEquals(listOf("v1"), Migrations.all.map { it.name })
         assertEquals(Migrations.all.map { it.name }.toSet().size, Migrations.all.size)
     }
+
+    /** Regression guard: the platform helper deletes a database it thinks is corrupt unless told not to. */
+    @Test
+    fun aCorruptDatabaseFileIsRefusedAndNeverDeleted() {
+        val name = uniqueName()
+        val file = context.getDatabasePath(name)
+        file.parentFile?.mkdirs()
+        val garbage = ByteArray(4096) { (it * 31).toByte() }
+        file.writeBytes(garbage)
+
+        assertFailsWith<Exception> { CabinetDatabase(context, name).use { it.database } }
+
+        assertTrue(file.isFile, "the unreadable database must not be deleted")
+        kotlin.test.assertContentEquals(garbage, file.readBytes())
+    }
 }
