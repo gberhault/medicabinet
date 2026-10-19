@@ -39,7 +39,7 @@ independent of each other.
   writer → reader. 100 % branch coverage.
 - [x] **T3 — Kotlin twin of T2 in `:core`** `[android]` [#27] (same)
   The same tests (`@TestFactory` per code-point case, fuzz). No new dependency.
-- [ ] **T4 — Archive model, validator, encoder, decoder, v1 reader (Swift)** `[ios]` [#27] (F1–F10, V1–V5; §2, §4)
+- [x] **T4 — Archive model, validator, encoder, decoder, v1 reader (Swift)** `[ios]` [#27] (F1–F10, V1–V5; §2, §4)
   `ArchiveFormat`, `ArchiveLimits`, `ArchivedBox`, `CabinetSnapshot` (`summary`,
   `needsBackup`), `Archive`, `ArchiveError` / kinds, `ArchiveValidator`, `ArchiveEncoder`
   (validates its own output), `ArchiveDecoder`, `ArchiveV1Reader`, `ArchiveMigrations`.

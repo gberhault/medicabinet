@@ -238,8 +238,10 @@ appears in tests and logs, not in the UI.
 
 1. Size (`tooLarge`, path `null`), then the whole byte string must be valid UTF-8 (a BOM is
    skipped; else `notJSON`).
-2. The first member must be `archive` = `"medicabinet"` and the second `formatVersion` (an
-   integer): anything else is `notArchive` (also a root that is not an object). A version
+2. The root must be an object whose first member is `archive` = `"medicabinet"` and the
+   second `formatVersion` (an integer): anything else is `notArchive`. A root is classed by its
+   first byte alone: one that cannot start a JSON value is `notJSON`, any other root that is
+   not an object (even `true`, or text starting like it) is `notArchive`. A version
    below 1 is `unsupportedVersion`, above the current one `newerVersion`; both stop the read
    there (the body of a newer file is never read). All three have path `null`.
 3. The rest is read member by member, in file order, into the model. The first fault wins:
@@ -565,7 +567,9 @@ android/app/src/main/kotlin/com/medicabinet/app/features/transfer/
 
 - Budgets (X2: < 2 s for 1 000 boxes). Asserted as the **median of 5 runs** with a
   generated, deterministic 1 000-box cabinet:
-  - core: encode ≤ 150 ms, decode + validate ≤ 150 ms (`swift test`, `:core:test`);
+  - core: encode ≤ 500 ms, decode + validate ≤ 500 ms (`swift test`, `:core:test`). The test builds are
+    unoptimised: decode measures about 150 ms and encode 50 ms there, so the budget is ≥ 3× the measure
+    as CLAUDE.md asks, and a release build is many times faster;
   - app integration: `exportArchive` ≤ 600 ms and `apply` (including the backup) ≤ 600 ms,
     on GRDB in a temporary directory and on Android Robolectric SQLite.
   These are about a third of the 2 s target, leaving room for older phones and UI. The

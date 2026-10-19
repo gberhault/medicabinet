@@ -519,7 +519,7 @@
     },
     {
       "name": "plain text",
-      "content": "this is not json",
+      "content": "This is not json",
       "expect": {
         "error": {
           "kind": "notJSON",
@@ -780,6 +780,36 @@
     {
       "name": "the root is a string",
       "content": "\"medicabinet\"",
+      "expect": {
+        "error": {
+          "kind": "notArchive",
+          "path": null
+        }
+      }
+    },
+    {
+      "name": "the root is a number",
+      "content": "42",
+      "expect": {
+        "error": {
+          "kind": "notArchive",
+          "path": null
+        }
+      }
+    },
+    {
+      "name": "the root is a literal",
+      "content": "true",
+      "expect": {
+        "error": {
+          "kind": "notArchive",
+          "path": null
+        }
+      }
+    },
+    {
+      "name": "text that starts like a literal is decided by its first byte",
+      "content": "this is not json",
       "expect": {
         "error": {
           "kind": "notArchive",

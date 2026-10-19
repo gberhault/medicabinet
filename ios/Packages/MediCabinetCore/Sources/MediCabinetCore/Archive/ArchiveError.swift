@@ -39,9 +39,14 @@ struct FieldPath: Sendable {
     let prefix: String
     let key: String
 
-    init(_ prefix: String = "", _ key: String) {
+    init(_ prefix: String, _ key: String) {
         self.prefix = prefix
         self.key = key
+    }
+
+    /// A field of the root object.
+    init(_ key: String) {
+        self.init("", key)
     }
 
     var text: String { prefix.isEmpty ? key : prefix + "." + key }
