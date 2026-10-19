@@ -1,6 +1,6 @@
 # Expiry tracking and notifications — Requirements
 
-Status: **Draft — awaiting approval**
+Status: **Approved 2026-10-19**
 Epic: #22 · Children: #23, #24, #25 · Branch: `feature/22-expiry-tracking` · Platforms: iOS + Android
 
 ## Introduction
