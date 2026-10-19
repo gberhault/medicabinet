@@ -3,7 +3,7 @@
 #   bash scripts/check-version.sh [project.yml] [CHANGELOG.md]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PROJECT="${1:-$ROOT/project.yml}"
+PROJECT="${1:-$ROOT/ios/project.yml}"
 CHANGELOG="${2:-$ROOT/CHANGELOG.md}"
 
 project_version="$(sed -nE 's/^[[:space:]]*MARKETING_VERSION:[[:space:]]*"?([0-9]+\.[0-9]+\.[0-9]+)"?[[:space:]]*$/\1/p' "$PROJECT" | head -1)"

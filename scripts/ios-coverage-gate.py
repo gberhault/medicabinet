@@ -1,6 +1,6 @@
 """Coverage gate: line coverage must be >= THRESHOLD for the core package and for the app.
 
-    python3 -I scripts/coverage-gate.py --core <llvm-cov export json> --app <xccov report json> [--threshold 80]
+    python3 -I scripts/ios-coverage-gate.py --core <llvm-cov export json> --app <xccov report json> [--threshold 80]
 
 Core: only files under Sources/MediCabinetCore/ count (not tests, not the test-support library).
 App:  the `MediCabinet.app` target of the xcresult report. Stdlib only.

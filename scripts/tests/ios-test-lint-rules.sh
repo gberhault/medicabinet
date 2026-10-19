@@ -3,7 +3,7 @@
 # and the clean fixture must pass. Run from anywhere.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-FIX="$ROOT/scripts/tests/lint"
+FIX="$ROOT/scripts/tests/ios-lint"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 fail=0
@@ -13,7 +13,7 @@ check() { # fixture rule target-path expect(fail|pass)
   mkdir -p "$(dirname "$target")"
   cp "$FIX/$fixture" "$target"
   local out status=0
-  out="$(swiftlint lint --strict --no-cache --config "$ROOT/.swiftlint.yml" "$target" 2>&1)" || status=$?
+  out="$(swiftlint lint --strict --no-cache --config "$ROOT/ios/.swiftlint.yml" "$target" 2>&1)" || status=$?
   if [[ "$expect" == "fail" ]]; then
     if [[ $status -ne 0 && "$out" == *"$rule"* ]]; then echo "ok   $rule triggers"; else echo "FAIL $rule did not trigger"; echo "$out"; fail=1; fi
   else

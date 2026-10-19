@@ -1,9 +1,9 @@
 """Localization gate: every key in every String Catalog must be translated in every shipped
 language, with the same format specifiers in all of them.
 
-    python3 -I scripts/check-strings.py [catalog.xcstrings ...]
+    python3 -I scripts/ios-check-strings.py [catalog.xcstrings ...]
 
-Without arguments it checks every *.xcstrings under MediCabinet/. Stdlib only.
+Without arguments it checks every *.xcstrings under MediCabinet/ (run from ios/). Stdlib only.
 """
 import json
 import pathlib

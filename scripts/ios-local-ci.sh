@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Local CI gate — run before opening a PR. Exits non-zero and names the failing step.
+# iOS local CI gate — run before opening an iOS PR (the root scripts/local-ci.sh runs it with the shared checks). Exits non-zero and names the failing step.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$ROOT"
+cd "$ROOT/ios"
 
 CURRENT_STEP="setup"
 on_exit() {
@@ -33,18 +33,18 @@ step "xcodegen generate"
 xcodegen generate --quiet
 
 step "swiftlint (against baseline)"
-bash scripts/lint.sh
+bash "$ROOT/scripts/ios-lint.sh"
 
 step "lint rule fixtures"
-bash scripts/tests/test-lint-rules.sh
+bash "$ROOT/scripts/tests/ios-test-lint-rules.sh"
 
 step "localization (fr + en complete)"
-bash scripts/check-strings.sh
-bash scripts/tests/test-check-strings.sh
+bash "$ROOT/scripts/ios-check-strings.sh"
+bash "$ROOT/scripts/tests/ios-test-check-strings.sh"
 
 step "version matches CHANGELOG"
-bash scripts/check-version.sh
-bash scripts/tests/test-gates.sh
+bash "$ROOT/scripts/check-version.sh"
+bash "$ROOT/scripts/tests/ios-test-gates.sh"
 
 step "MediCabinetCore tests"
 (cd Packages/MediCabinetCore && swift test --enable-code-coverage)
@@ -65,7 +65,7 @@ xcodebuild -project MediCabinet.xcodeproj -scheme MediCabinet \
   test -quiet
 
 step "coverage gate (>= 80% lines: core and app)"
-bash scripts/coverage-gate.sh
+bash "$ROOT/scripts/ios-coverage-gate.sh"
 
 CURRENT_STEP="done"
 echo "✓ local-ci OK"

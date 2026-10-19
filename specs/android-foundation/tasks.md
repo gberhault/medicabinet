@@ -1,6 +1,6 @@
 # Android foundation — Tasks
 
-Status: **Draft — awaiting approval** (requirements and design approved 2026-10-19)
+Status: **Approved 2026-10-19**
 Epic: #31 · Branch: `android/feature/31-android-foundation`
 
 One task = one focused commit (code + tests + this file checked off). Child issue in
@@ -13,7 +13,7 @@ AGP 9 **before** anything depends on it — if it does not, stop and revisit the
 
 ## 1. Monorepo and shared fixtures (#32, #33)
 
-- [ ] **T1 — Move iOS into `ios/`** [#32] (M1, M2)
+- [x] **T1 — Move iOS into `ios/`** [#32] (M1, M2)
   `git mv` project.yml, Config, MediCabinet*, Packages, SwiftLint config/baseline into `ios/`;
   rename scripts with the `ios-` prefix (`ios-local-ci.sh`, `ios-lint.sh`,
   `ios-check-strings.*`, `ios-coverage-gate.*`), each working from `ios/`; fix `.gitignore`

@@ -5,7 +5,7 @@
 #                                           never to hide a new one)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$ROOT"
+cd "$ROOT/ios"
 
 if ! command -v swiftlint >/dev/null 2>&1; then
   echo "swiftlint not found — install with: brew install swiftlint" >&2
