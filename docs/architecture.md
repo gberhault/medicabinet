@@ -15,6 +15,8 @@ Language-neutral test vectors that both test suites run (see [`fixtures/README.m
 | `schema-v1.sql` | the v1 database DDL is **character for character** the same SQL on both platforms |
 | `schema-v1.json` | the migrated databases have the same tables, columns, foreign keys and indexes |
 | `repository-contract.json` | both repository implementations pass the same named list of contract checks |
+| `categories.json` | the twelve categories, in display order, are identical in both cores and the reference build |
+| `reference-lookup.json` + `reference-sample.sqlite` | GTIN → CIP13 and the product lookup answer identically on both platforms |
 | `README.md` | the cross-platform names (error kinds, enum raw values) — both suites assert the code matches |
 
 A wrong fixture fails each platform's suite (`scripts/tests/test-shared-fixtures-break.sh`), iOS and
@@ -80,6 +82,23 @@ backup API / a checkpointed copy, and keeps the newest five. `Bootstrap` runs on
 On a first launch there is nothing to lose, so no backup is made. **An unreadable database file is reported
 ("Storage unavailable") and never deleted** — Android's platform helpers delete corrupt databases by default,
 so `CabinetDatabase` overrides that, with a mutation-checked regression test; iOS has the same guarantee.
+
+## The reference database
+
+A second, **read-only** SQLite database ships inside each app: the BDPM names and categories by CIP13
+(`reference-data/bundle/reference.sqlite`, ~1.7 MB, the same file for both apps; contents, rules and the update
+procedure are in [reference-data.md](reference-data.md)). It is separate from the cabinet database, holds no
+household data, and is never migrated: a new data release replaces the whole file.
+
+- The cores declare the port (`ProductLookup`, `ReferenceDataSource`), the taxonomy and the GTIN → CIP13 rule;
+  `Persistence/Reference/` (iOS, GRDB) and `persistence/reference/` (Android) implement it. Views never open it.
+- It is opened **lazily**, on the first lookup or when About asks for its date, off the main thread, and never during
+  bootstrap, so cold start is unchanged. Missing, unreadable or unsupported data means every product is unknown; the
+  cabinet is unaffected.
+- iOS opens the file in the signed app bundle. Android copies it from the APK assets to `noBackupFilesDir/reference/`
+  (internal storage that Auto Backup and device transfer never include), atomically and verified against the
+  manifest's `contentSha256`; a marker file naming the installed version is written last.
+- Classification happens when the file is **built**, not in the apps.
 
 ## Privacy
 

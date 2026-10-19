@@ -38,6 +38,7 @@ These strings are identical on both platforms (storage values, error kinds, expo
 | `RemovalReason` | `usedUp`, `thrownAway` |
 | `ExpiryStatus` | `expired`, `expiringSoon`, `ok`, `unknown` |
 | `CategoryID` (taxonomy, display order) | `pain-fever`, `cold-ent`, `digestion`, `allergy`, `skin-wound`, `eyes`, `muscles-joints`, `mouth-teeth`, `vitamins-minerals`, `first-aid`, `other`, `uncategorized` |
+| `ReferenceUnavailableReason` | `missing`, `unreadable`, `unsupportedSchema` |
 | Repository errors | `notFound`, `unknownLocation`, `duplicate`, `duplicateDefault` |
 
 ## Adding a fixture

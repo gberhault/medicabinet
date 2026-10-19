@@ -111,7 +111,7 @@ Spike #8 (S1) is already delivered: `docs/reference-data.md` (b2c23b1).
 
 ## 5. Docs, measurements, version
 
-- [ ] **T16 — Docs and CLAUDE.md** `[shared]` [#7] (X4, X5; §16)
+- [x] **T16 — Docs and CLAUDE.md** `[shared]` [#7] (X4, X5; §16)
   `docs/reference-data.md` (update procedure, rules format, schema, manifest, golden list),
   `docs/architecture.md`, `fixtures/README.md`, `CLAUDE.md` (architecture amendment, project
   structure, two Common Task Map rows), `docs/README.md` index.

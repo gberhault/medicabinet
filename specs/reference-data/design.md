@@ -64,6 +64,18 @@ merges, it deletes its own two declarations from `Scan/ProductResolver.swift` an
 `scan/ProductResolver.kt`, and adds `import com.medicabinet.core.reference.*` on Android. The
 rest is unchanged (requirements, decision 5).
 
+### 1.8 Deviations found while implementing
+
+- iOS bundles only `reference.sqlite` (it reads the data date from the database's `meta` table); the manifest is
+  bundled by Android alone, which needs it to verify the copy (§9).
+- The Android installer verifies the copy against the manifest's **content** hash (opening the copy and hashing its
+  rows with the build's canonical text, §3.3) rather than a file hash, and replaces an installed copy that no longer
+  opens once (`install(force = true)`).
+- `fixtures/reference-sample-manifest.json` is added next to the sample database for the installer tests;
+  `check-fixtures.py` skips `*-manifest.json` (generated output, not a case list).
+- The Android assets source is declared with `sourceSets["main"].assets.directories` (AGP 9).
+- `ReferenceUnavailableReason` conforms to `Error` in the Swift core (used as a `Result` failure by the app).
+
 ## 2. Repository layout
 
 ```

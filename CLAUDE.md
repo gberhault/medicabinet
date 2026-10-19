@@ -78,9 +78,11 @@ twice, and what keeps it identical is process, not code.
   thermometer) may only have a 1D barcode or none: the user must be able to enter the
   expiry (and, if needed, the product) manually.
 - Product reference data comes from the French public medicines database
-  (**BDPM**, `base-donnees-publique.medicaments.gouv.fr`). The classification source (ATC
-  code, substance or form mapping) is to be confirmed in the classification spec — do not
-  assume a field exists in the dataset without checking the actual files.
+  (**BDPM**, `base-donnees-publique.medicaments.gouv.fr`). The dataset's real content,
+  encodings, licence and the classification source are recorded in
+  [`docs/reference-data.md`](docs/reference-data.md): ATC codes exist only for about half of
+  the products and none of the household staples, so categories come from active substances,
+  route and form. Do not assume a field exists without checking the actual files.
 
 ## Task Tracking
 
@@ -206,10 +208,17 @@ violate one of these, flag it explicitly, even if the user asked for exactly tha
 - Pure, framework-free domain logic lives in the **core** of each platform — the local Swift
   package **`MediCabinetCore`** and the pure-Kotlin Gradle module **`:core`**:
   **GS1 DataMatrix parsing**, **expiry computation and status** (expired / expiring soon /
-  OK / unknown), **classification**, **stock movements**, and the **export archive format**
-  (encode, decode, validate, migrate). Each must be testable on the desktop (`swift test`,
-  `./gradlew :core:test`) — no simulator/emulator, no camera, no UI or storage framework.
-  The two cores are twins: same types, same names, same behaviour, proven by `fixtures/`.
+  OK / unknown), the **category taxonomy**, GTIN → CIP13 conversion and the product-lookup
+  port, **stock movements**, and the **export archive format** (encode, decode, validate,
+  migrate). Each must be testable on the desktop (`swift test`, `./gradlew :core:test`) — no
+  simulator/emulator, no camera, no UI or storage framework. The two cores are twins: same
+  types, same names, same behaviour, proven by `fixtures/`.
+- **Classification is computed once, when the reference database is built**
+  (`scripts/build-reference-db.py`, ordered rules in `reference-data/rules.json`, checked by
+  the golden list `reference-data/golden-list.json`), not at runtime: the category is stored
+  in the bundled reference database (`reference-data/bundle/`, one copy bundled by both
+  apps). The cores only apply the user's override (`ProductResolver`). A rule or data change is
+  a reviewed data-update commit, never code that classifies in two languages.
 - The schema evolves only through **versioned migrations** committed in the repo. Never edit
   a shipped migration. The v1 schema is identical on both platforms (`fixtures/schema-v1.json`);
   a schema change updates that fixture first, then both migrations.
@@ -767,6 +776,7 @@ complete until the docs reflect it.
 CLAUDE.md / AGENTS.md            # agent instructions (AGENTS.md and .agents/rules/CLAUDE.md are symlinks)
 README.md
 fixtures/                        # SHARED language-neutral test vectors (expiry-dates.json, schema-v1.json, …)
+reference-data/                  # bundle/ (reference.sqlite + manifest, bundled by both apps), rules.json, golden-list.json
 ios/
   project.yml                    # XcodeGen — the .xcodeproj is generated, not committed
   CHANGELOG.md  .swiftlint.yml  .swiftlint-baseline.json
@@ -788,6 +798,7 @@ scripts/
   local-ci.sh                    # shared checks + both gates
   ios-*.sh  android-*.sh         # per-product gate pieces (android-measure-launch.sh takes an adb serial)
   check-version.sh <ios|android>  check-fixtures.py  check-string-parity.py
+  build-reference-db.py          # BDPM files → reference-data/bundle (download | build | verify), stdlib only
   tests/                         # fixtures proving each lint rule / gate fails when it should
 docs/                            # architecture.md, development.md (+ one page per feature)
 specs/<feature-name>/            # requirements.md, design.md, tasks.md
@@ -808,7 +819,10 @@ under `ios/`, Android paths under `android/`; a change to a shared rule touches 
 | Add a rule that must match on both platforms | `fixtures/<name>.json` first (+ `fixtures/README.md`) → Swift core + test using `SharedFixtures` → Kotlin `:core` + test using `SharedFixtures` → `scripts/tests/test-shared-fixtures-break.sh` |
 | Add a persisted field | `fixtures/schema-v1.json` (or a new schema fixture) → iOS `Persistence/Migrations.swift` + `Records.swift` + core `Model.swift` → Android `persistence/Migrations.kt` (append a step, same SQL as iOS) + `Rows.kt` + core `Model.kt` → repository port/impl + `RepositoryContract` check on both → `docs/architecture.md` |
 | Add a repository method | core ports (`Repositories.swift` / `Repositories.kt`) → in-memory fake → `RepositoryContract` check → `GRDB*Repository.swift` / `Sql*Repository.kt` |
-| Add domain logic (parsing, expiry, classification) | both cores, tests next to the code; inject `Clock`, never call `Date()` / `Instant.now()` |
+| Add domain logic (parsing, expiry, stock) | both cores, tests next to the code; inject `Clock`, never call `Date()` / `Instant.now()` |
+| Update the BDPM reference data | `build-reference-db.py download` → `build --data-date …` → read the report → `verify` → commit `reference-data/bundle/` with the report in the commit body → bump both apps (About shows the data date); procedure in `docs/reference-data.md` |
+| Change a classification rule | `reference-data/rules.json` (bump `rulesVersion`) → add or adjust a `golden-list.json` case → rebuild the bundle (report shows what moved) → `scripts/tests/test-build-reference-db.py` priorities test if an order changed |
+| Change the category list | `fixtures/categories.json` first → both cores' `Taxonomy` + `CategoryID` constants → labels fr + en on both apps (`category.<id>`, `-` as `_`) → `rules.json` / golden list |
 | Add a screen / tab | iOS `Features/<Name>/` + `MainTabView.swift`; Android `features/<name>/` + `MainScaffold` → strings (fr + en, both platforms) → UI tests → `docs/<feature>.md` |
 | Add a user-facing string | iOS `Localizable.xcstrings`; Android `values/strings.xml` + `values-en/strings.xml` (same wording) → the string checks |
 | Add a launch/bootstrap step or failure | iOS `Persistence/Bootstrap.swift` + `BootstrapFailure` + `BootstrapErrorView`; Android `persistence/Bootstrap.kt` + `BootstrapErrorScreen` → bootstrap tests |
