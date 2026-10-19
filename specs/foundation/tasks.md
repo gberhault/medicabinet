@@ -101,6 +101,6 @@ for them to measure (T15–T16).
 - [x] **T19 — Full suite and CLAUDE.md refresh** — `bash scripts/local-ci.sh` green; core and
   app coverage % noted for the PR body; fill the Common Task Map and Build & Test Commands in
   `CLAUDE.md`; drop its "to be created" wording.
-- [ ] **T20 — Version confirmation commit** — `project.yml` 0.1.0 / build 1 and `CHANGELOG.md`
+- [x] **T20 — Version confirmation commit** — `project.yml` 0.1.0 / build 1 and `CHANGELOG.md`
   match (last commit on the branch). Close child issues as each completes; PR to `develop`
   only when the user asks.
