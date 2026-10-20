@@ -6,7 +6,10 @@ Requirements: [`requirements.md`](requirements.md) · Design: [`design.md`](desi
 One task = one commit (code + tests + docs it changes + this file ticked). Every commit builds and passes the unit
 tests of each product it touches. A shared fixture change lands on **both** cores in the same commit.
 
-Before T1: PR #55 (export-import epic) has merged; rebase this branch onto `origin/develop`.
+**Single branch (user decision 2026-10-20).** Shipped from `feature/56-57-leaflet-and-named-products` after
+`specs/leaflet-link/` (T1–T6 there come first). T1–T10 and T13–T18 need nothing from PR #55. **T11 and T12 (archive
+version 2) need PR #55 (export-import epic) merged**: before them, rebase onto `origin/develop` (never merge it) and,
+if #55 is still open, stop and ask the user.
 
 ## Schema and port (shared, both apps)
 
@@ -97,7 +100,7 @@ Before T1: PR #55 (export-import epic) has merged; rebase this branch onto `orig
 - [ ] **T19** `[shared]` **Docs.** `docs/named-products.md` (new) and its `docs/README.md` row. Check
   `docs/bulk-scan.md`, `docs/export-format.md` and `docs/architecture.md`, which were updated in their tasks.
   *(X5)*
-- [ ] **T20** `[ios]` `[android]` **Versions.** Minor bump of both apps with changelog entries;
+- [ ] **T20** `[ios]` `[android]` **Versions.** One minor bump of both apps for the whole branch (leaflet link + named products), one changelog entry each;
   `check-version.sh ios` and `android`. If the leaflet-link branch (#56) merged first, take the next minor after
   it. *(X6)*
 - [ ] **T21** `[shared]` **Gate.** `bash scripts/local-ci.sh`: full run, targeted reruns of failed steps, one final

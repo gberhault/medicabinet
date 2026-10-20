@@ -7,7 +7,10 @@ One task = one commit (code + tests + docs it changes + this file ticked). Every
 tests of each product it touches. The reference schema moves in one commit on the script **and** both readers,
 because the shared sample database would otherwise break the app suites.
 
-Before T1: rebase onto `origin/develop` if it has moved (the export-import epic, PR #55, may have merged).
+**Single branch (user decision 2026-10-20).** This spec and `specs/named-products/` ship from one branch,
+`feature/56-57-leaflet-and-named-products`, in one worktree. This spec goes **first**: it needs nothing from the
+export-import epic (PR #55). Both specs touch `ReferenceProduct`, `BoxDetailViewModel` and `AppEnvironment`, so the
+order avoids conflicts. Rebase onto `origin/develop` (never merge it) whenever develop has moved.
 
 ## Reference data (shared, both apps)
 
@@ -63,8 +66,6 @@ Before T1: rebase onto `origin/develop` if it has moved (the export-import epic,
 
 ## Release
 
-- [ ] **T7** `[ios]` `[android]` **Versions.** Minor bump of both apps with changelog entries (leaflet link, new
-  reference data date); `check-version.sh ios` and `android`. If the named-products branch (#57) merged first, take
-  the next minor after it. *(X6)*
-- [ ] **T8** `[shared]` **Gate.** `bash scripts/local-ci.sh`: full run, targeted reruns of failed steps, one final
-  full run. State the reference-database and app size change in the PR. *(R5, X7)*
+- [ ] **T7** `[ios]` `[android]` *(done once for the whole branch: see `specs/named-products/tasks.md` T20, which
+  bumps the minor version once with one changelog entry per app covering both features, and T21, the single gate
+  run.)*
