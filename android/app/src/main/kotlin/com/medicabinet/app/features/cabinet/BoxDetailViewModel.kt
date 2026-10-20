@@ -14,6 +14,8 @@ import com.medicabinet.core.RepositoryException
 import com.medicabinet.core.cabinet.BoxEdit
 import com.medicabinet.core.cabinet.BoxEditError
 import com.medicabinet.core.cabinet.BoxEditException
+import com.medicabinet.core.reference.LeafletLink
+import com.medicabinet.core.reference.ReferenceProduct
 import com.medicabinet.core.scan.ProductResolver
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
@@ -27,8 +29,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -104,6 +109,32 @@ class BoxDetailViewModel(
 
     fun acknowledgeWriteFailure() {
         mutableWriteFailed.value = false
+    }
+
+    /**
+     * The official BDPM page of the box's medicine (it carries the leaflet), or `null` while the code is looked up and
+     * when there is none to show: no code, a code the reference does not know, a withdrawn presentation. The code is
+     * looked up again only when it changes, so an edit of the box does not query the reference; the lookup runs off the
+     * main thread and never delays the box itself.
+     */
+    val leaflet: StateFlow<String?> = boxes.observeCabinet()
+        .map { all -> all.firstOrNull { it.id == boxId }?.product?.gtin }
+        .distinctUntilChanged()
+        .mapLatest { gtin -> gtin?.let { LeafletLink.address(referenceOf(it)) } }
+        .catch { error ->
+            AppLog.cabinetFailed("leaflet", error)
+            emit(null)
+        }
+        .flowOn(dispatcher)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), null)
+
+    private suspend fun referenceOf(gtin: String): ReferenceProduct? = try {
+        environment.reference.product(gtin)
+    } catch (error: CancellationException) {
+        throw error
+    } catch (@Suppress("TooGenericExceptionCaught") error: Exception) {
+        AppLog.cabinetFailed("leaflet", error)
+        null
     }
 
     private fun load(attempt: Int): Flow<BoxDetailState> = observe()
