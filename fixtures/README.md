@@ -31,12 +31,16 @@ Every file is JSON with:
 | `expiry-status.json` | `ExpiryRule` (status + days left from an expiry, today and the window) and how an instant + time zone becomes today (`todayCases`) |
 | `expiring-overview.json` | the Expiring view: sections, order, tie-breaks by folded name, badge count |
 | `expiry-digest.json` | the monthly reminder: counts per digest day (`cases`) and the next / due digest days (`scheduleCases`) |
+| `archive-cases.json` | `ArchiveDecoder`: golden file summary, every error kind with its field path, hostile files (inline, base64 or generated), limits |
+| `archive-code-points.json` | the code-point length used by every archive length limit |
+| `archive/v<N>/golden.medicabinet` | the canonical archive of `formatVersion` N, kept forever: every later version must import it, and the canonical encoder must reproduce it **byte for byte** |
 | `schema-v1.sql` | the exact v1 DDL both platforms run (each platform's test compares its own copy, ignoring whitespace and `--` comments) |
 | `schema-v2.sql` | the exact v2 migration step (box tombstone, unique serial among non-deleted boxes), run after v1 on both platforms |
 | `schema-v2.json` | the tables, columns and indexes of a database migrated to v2 (`schema-v1.json` is the v1-only state) |
 | `schema-v3.sql` | the exact v3 migration step (location tombstone `deletedAt`), run after v2 on both platforms |
 | `schema-v3.json` | the tables, columns and indexes of a database migrated to v3 (`schema-v1.json` / `schema-v2.json` are the earlier states) |
 | `schema-v1.json` | the tables, columns and indexes every platform's database v1 must have |
+| `archive-store-contract.json` | names of the `CabinetArchiveStore` contract checks both platforms run (the checks themselves are code) |
 | `repository-contract.json` | names of the repository contract checks both platforms run (the checks themselves are code) |
 | `text-normalization.json` | `TextNormalizer`: `normalize` (accent/case/ligature/whitespace folding) and `matches` (search: every query word is a substring) — also the comparison for location-name uniqueness and name ordering |
 | `location-names.json` | `LocationName.validate`: trim, 1…50 code points, no duplicate (normalized) name among the other locations |
@@ -66,6 +70,10 @@ These strings are identical on both platforms (storage values, error kinds, expo
 | Removal decisions | `remove`, `choose`, `alreadyRemoved`, `notInCabinet` |
 | Expiring-soon window choices (days) | `30`, `60`, `90`; default `60` |
 | Digest day and time | the `1`st of the month at `09:00` local (540 minutes) |
+| Archive error kinds | `tooLarge`, `notJSON`, `notArchive`, `unsupportedVersion`, `newerVersion`, `invalidStructure`, `invalidValue`, `tooManyItems`, `duplicateId`, `unknownLocation`, `defaultLocation`, `duplicateSerial` |
+| Archive platforms | `ios`, `android` |
+| Archive file | extension `medicabinet`, MIME `application/vnd.medicabinet+json`, iOS UTType `com.medicabinet.archive` |
+| Archive error path | field keys joined by `.` and list indexes as `[n]`, e.g. `boxes[12].expiry`; keys and indexes only, never a value; `null` when no field is involved |
 
 ## Adding a fixture
 

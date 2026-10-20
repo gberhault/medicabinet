@@ -1,0 +1,61 @@
+{
+  "formatVersion": 1,
+  "description": "Length of `text` in Unicode code points, the unit of every archive length limit (like SQLite length()). Not grapheme clusters (Swift Character) and not UTF-16 units (Kotlin String.length).",
+  "cases": [
+    {
+      "name": "empty",
+      "text": "",
+      "codePoints": 0
+    },
+    {
+      "name": "ASCII",
+      "text": "abc",
+      "codePoints": 3
+    },
+    {
+      "name": "precomposed accent",
+      "text": "\u00e9",
+      "codePoints": 1
+    },
+    {
+      "name": "combining accent",
+      "text": "e\u0301",
+      "codePoints": 2
+    },
+    {
+      "name": "emoji",
+      "text": "\ud83e\uddf3",
+      "codePoints": 1
+    },
+    {
+      "name": "family emoji with joiners",
+      "text": "\ud83d\udc68\u200d\ud83d\udc69\u200d\ud83d\udc67",
+      "codePoints": 5
+    },
+    {
+      "name": "flag",
+      "text": "\ud83c\uddeb\ud83c\uddf7",
+      "codePoints": 2
+    },
+    {
+      "name": "CJK",
+      "text": "\u65e5\u672c\u8a9e",
+      "codePoints": 3
+    },
+    {
+      "name": "NUL inside",
+      "text": "a\u0000b",
+      "codePoints": 3
+    },
+    {
+      "name": "astral plane letters",
+      "text": "\ud800\udf48\ud800\udf49",
+      "codePoints": 2
+    },
+    {
+      "name": "variation selector",
+      "text": "\u2764\ufe0f",
+      "codePoints": 2
+    }
+  ]
+}

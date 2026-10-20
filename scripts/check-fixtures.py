@@ -1,7 +1,8 @@
 """Validates the shared fixtures: valid JSON, `formatVersion` (int), `description` (str), and for
-files with a `cases` list: non-empty, every case named, names unique.
+files with a `cases` list: non-empty, every case named, names unique. Golden archives
+(`fixtures/archive/v<N>/*.medicabinet`) must be JSON with "archive": "medicabinet" and "formatVersion": N.
 
-    python3 -I scripts/check-fixtures.py [file.json ...]    # default: fixtures/*.json
+    python3 -I scripts/check-fixtures.py [file ...]    # default: fixtures/*.json and the golden archives
 """
 import json
 import pathlib
@@ -11,7 +12,23 @@ import sys
 MANIFEST_SUFFIX = "-manifest.json"
 
 
+def check_archive(path):
+    """A golden archive: the marker, and a formatVersion equal to the v<N> folder it lives in."""
+    try:
+        doc = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        return [f"{path}: cannot read as JSON ({error})"]
+    if not isinstance(doc, dict) or doc.get("archive") != "medicabinet":
+        return [f'{path}: not a MediCabinet archive ("archive": "medicabinet" expected)']
+    folder = pathlib.Path(path).parent.name
+    if not isinstance(doc.get("formatVersion"), int) or folder != f"v{doc['formatVersion']}":
+        return [f"{path}: formatVersion must be an integer equal to its folder name ({folder})"]
+    return []
+
+
 def check(path):
+    if str(path).endswith(".medicabinet"):
+        return check_archive(path)
     problems = []
     try:
         doc = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
@@ -38,7 +55,9 @@ def check(path):
 
 
 def main(argv):
-    paths = argv or sorted(str(p) for p in pathlib.Path("fixtures").glob("*.json") if not p.name.endswith(MANIFEST_SUFFIX))
+    fixtures = pathlib.Path("fixtures")
+    json_files = [p for p in fixtures.glob("*.json") if not p.name.endswith(MANIFEST_SUFFIX)]
+    paths = argv or sorted(str(p) for p in [*json_files, *fixtures.glob("archive/v*/*.medicabinet")])
     if not paths:
         print("no fixtures found", file=sys.stderr)
         return 1

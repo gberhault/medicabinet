@@ -1,0 +1,36 @@
+{
+  "formatVersion": 1,
+  "description": "Names, in order, of the checks every CabinetArchiveStore implementation (the in-memory fake, GRDB, plain SQLite) must pass (ArchiveStoreContract on each platform). Each platform asserts that its own contract check names equal this list, so the two contracts cannot drift.",
+  "cases": [
+    {
+      "name": "a new store snapshots as empty"
+    },
+    {
+      "name": "replace swaps the whole cabinet keeping ids, fields and dates"
+    },
+    {
+      "name": "snapshot includes removed and deleted boxes"
+    },
+    {
+      "name": "snapshot includes deleted locations"
+    },
+    {
+      "name": "replace hands the hook exactly the cabinet it replaces"
+    },
+    {
+      "name": "a throwing hook leaves the cabinet unchanged"
+    },
+    {
+      "name": "a box in an unknown location is rejected and changes nothing"
+    },
+    {
+      "name": "a duplicate id is rejected and changes nothing"
+    },
+    {
+      "name": "two default locations are rejected and changes nothing"
+    },
+    {
+      "name": "replacing with an empty cabinet empties the store"
+    }
+  ]
+}
