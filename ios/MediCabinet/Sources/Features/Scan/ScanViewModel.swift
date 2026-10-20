@@ -37,13 +37,27 @@ final class ScanViewModel {
         case removedEarlier(Box)
         case putBack(Box)
         case deleted(Box)
+        /// Remove mode: the box is out of the cabinet (stock movement written), with Undo.
+        case removed(Box, RemovalReason)
+        case alreadyRemoved(Box)
+        case notInCabinet
         case unrecognized
         case failed
     }
 
+    /// Several boxes match a scan in Remove mode: the user picks one. Recognitions are ignored while it is open.
+    struct Candidates: Equatable, Identifiable {
+        let id = UUID()
+        /// Ordered: the first is pre-selected.
+        let boxes: [Box]
+    }
+
     struct Summary: Equatable {
+        var mode: ScanMode = .add
         let added: Int
         let unknownExpiry: Int
+        var usedUp = 0
+        var thrownAway = 0
     }
 
     enum ManualError: Equatable {
@@ -54,10 +68,15 @@ final class ScanViewModel {
 
     private(set) var cameraState: CameraState = .starting
     var session = ScanSession()
+    var mode: ScanMode = .add
+    var removalReason: RemovalReason
+    /// The boxes taken out in the current Remove session (cleared by Done and by switching back to Add).
+    var removalSession = ScanSession()
+    var candidates: Candidates?
     private(set) var locations: [Location] = []
     private(set) var sessionLocation: Location?
     var notice: Notice?
-    private(set) var another: Another?
+    var another: Another?
     private(set) var scanner: (any CodeScanner)?
     private(set) var summary: Summary?
     /// Bumped by Retry and after the permission answer; the view restarts `run()` when it changes.
@@ -72,13 +91,16 @@ final class ScanViewModel {
     let intake: ScanIntake
     private let locationRepository: any LocationRepository
     let boxes: any BoxRepository
-    private let services: ScanServices
+    let removal: ScanRemoval
+    let services: ScanServices
     private var debouncer = ScanDebouncer()
     private var reportedUnrecognized = Set<String>()
 
     init(environment: AppEnvironment, services: ScanServices) {
         self.services = services
         intake = ScanIntake(boxes: environment.boxes, lookup: services.lookup, clock: environment.clock)
+        removal = ScanRemoval(boxes: environment.boxes, clock: environment.clock)
+        removalReason = services.preferences.removalReason
         locationRepository = environment.locations
         boxes = environment.boxes
         soundEnabled = services.preferences.soundEnabled
@@ -166,8 +188,8 @@ final class ScanViewModel {
         // Sightings always refresh the debouncer, even while a prompt is open, so a box still in front of the
         // camera is not counted again when the prompt closes.
         let scans = debouncer.observe(visible: snapshot.payloads, at: snapshot.instant)
-        guard completion == nil, !showsSummary else { return }
-        for payload in scans where completion == nil {
+        guard completion == nil, candidates == nil, !showsSummary else { return }
+        for payload in scans where completion == nil && candidates == nil {
             await process(payload)
         }
     }
@@ -179,6 +201,10 @@ final class ScanViewModel {
             code = try GS1Parser.parse(payload)
         } catch {
             if reportedUnrecognized.insert(payload).inserted { show(.unrecognized, feedback: .rejected) }
+            return
+        }
+        if mode == .remove {
+            await processRemoval(code)
             return
         }
         do {
@@ -231,59 +257,26 @@ final class ScanViewModel {
         }
     }
 
-    // MARK: Prompts
-
-    func confirmCompletion(name: String?, expiry: ExpiryDate?) async {
-        guard let current = completion else { return }
-        var draft = current.draft
-        if current.missing.contains(.name) { draft.name = name }
-        if current.missing.contains(.expiry) { draft.expiry = expiry }
-        completion = nil
-        await commit(draft)
-    }
-
-    func cancelCompletion() {
-        completion = nil
-    }
-
-    func confirmAnother() async {
-        guard let pending = another else { return }
-        another = nil
-        if pending.thenMissing.isEmpty {
-            await commit(pending.draft)
-        } else {
-            completion = Completion(draft: pending.draft, missing: pending.thenMissing, expiryUnreadable: pending.expiryUnreadable)
-        }
-    }
-
-    func dismissAnother() {
-        another = nil
-    }
-
-    func dismissNotice() {
-        notice = nil
-    }
-
-    func putBack(_ box: Box) async {
-        guard let location = sessionLocation else { return }
-        do {
-            let restored = try await intake.putBack(box, to: location.id)
-            session.add(restored)
-            show(.putBack(restored), feedback: .added)
-        } catch {
-            show(.failed, feedback: .rejected)
-        }
-    }
-
     // MARK: Done
 
     func finish() {
-        summary = Summary(added: session.count, unknownExpiry: session.unknownExpiryCount)
+        let removed = removalSession.newestFirst
+        summary = Summary(
+            mode: mode,
+            added: session.count,
+            unknownExpiry: session.unknownExpiryCount,
+            usedUp: removed.filter { $0.removal?.reason == .usedUp }.count,
+            thrownAway: removed.filter { $0.removal?.reason == .thrownAway }.count
+        )
     }
 
     func closeSummary() {
+        if summary?.mode == .remove {
+            removalSession = ScanSession()
+        } else {
+            session = ScanSession()
+        }
         summary = nil
-        session = ScanSession()
         debouncer = ScanDebouncer()
         reportedUnrecognized = []
         notice = nil

@@ -186,6 +186,6 @@ public enum RepositoryContract {
                 try await expect(.duplicate) { try await env.boxes.insert(box) }
                 try require(try await env.boxes.activeBoxes().count == 1, "rejected inserts must not persist")
             }
-        ] + deletionChecks
+        ] + deletionChecks + cabinetChecks + locationManagementChecks
     }
 }

@@ -1,0 +1,481 @@
+{
+  "formatVersion": 1,
+  "description": "The Expiring view: which boxes appear in which section and in what order. cases = {today, windowDays, boxes [{id, name, expiry (or null), inCabinet}], expect {expired, expiringSoon, unknown (ids in display order), badge (expired + expiringSoon), isEmpty}}. Expired: oldest last valid day first; expiring soon: soonest first; ties by folded name (lower case, accents removed, compared by code point) then lower-case id; unknown: folded name then id. OK boxes and boxes not in the cabinet are never listed. Expected values were computed independently with Python.",
+  "cases": [
+    {
+      "name": "sections, order and badge",
+      "today": "2027-03-15",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "id": "00000000-0000-0000-0000-000000000003",
+          "name": "Smecta",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000001",
+          "name": "éfferalgan",
+          "expiry": null,
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000002",
+          "name": "Doliprane",
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 2
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000004",
+          "name": "Spasfon",
+          "expiry": {
+            "year": 2026,
+            "month": 12,
+            "day": 1
+          },
+          "inCabinet": false
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000005",
+          "name": "Advil",
+          "expiry": {
+            "year": 2028,
+            "month": 6,
+            "day": 30
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": [
+          "00000000-0000-0000-0000-000000000003"
+        ],
+        "expiringSoon": [
+          "00000000-0000-0000-0000-000000000002"
+        ],
+        "unknown": [
+          "00000000-0000-0000-0000-000000000001"
+        ],
+        "badge": 2,
+        "isEmpty": false
+      }
+    },
+    {
+      "name": "an empty cabinet has nothing to show",
+      "today": "2027-03-15",
+      "windowDays": 60,
+      "boxes": [],
+      "expect": {
+        "expired": [],
+        "expiringSoon": [],
+        "unknown": [],
+        "badge": 0,
+        "isEmpty": true
+      }
+    },
+    {
+      "name": "only ok and removed boxes: nothing to show",
+      "today": "2027-03-15",
+      "windowDays": 30,
+      "boxes": [
+        {
+          "id": "00000000-0000-0000-0000-000000000001",
+          "name": "Advil",
+          "expiry": {
+            "year": 2029,
+            "month": 1,
+            "day": 1
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000002",
+          "name": "Spasfon",
+          "expiry": {
+            "year": 2020,
+            "month": 1,
+            "day": 1
+          },
+          "inCabinet": false
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000003",
+          "name": "Nurofen",
+          "expiry": null,
+          "inCabinet": false
+        }
+      ],
+      "expect": {
+        "expired": [],
+        "expiringSoon": [],
+        "unknown": [],
+        "badge": 0,
+        "isEmpty": true
+      }
+    },
+    {
+      "name": "expired boxes are oldest first, soon boxes soonest first",
+      "today": "2027-03-15",
+      "windowDays": 90,
+      "boxes": [
+        {
+          "id": "00000000-0000-0000-0000-000000000001",
+          "name": "A",
+          "expiry": {
+            "year": 2027,
+            "month": 2,
+            "day": 1
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000002",
+          "name": "B",
+          "expiry": {
+            "year": 2026,
+            "month": 11,
+            "day": 20
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000003",
+          "name": "C",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": 14
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000004",
+          "name": "D",
+          "expiry": {
+            "year": 2027,
+            "month": 5,
+            "day": 1
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000005",
+          "name": "E",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": 15
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000006",
+          "name": "F",
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 1
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": [
+          "00000000-0000-0000-0000-000000000002",
+          "00000000-0000-0000-0000-000000000001",
+          "00000000-0000-0000-0000-000000000003"
+        ],
+        "expiringSoon": [
+          "00000000-0000-0000-0000-000000000005",
+          "00000000-0000-0000-0000-000000000006",
+          "00000000-0000-0000-0000-000000000004"
+        ],
+        "unknown": [],
+        "badge": 6,
+        "isEmpty": false
+      }
+    },
+    {
+      "name": "ties on the same last valid day break by folded name then id",
+      "today": "2027-03-15",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "id": "00000000-0000-0000-0000-00000000000b",
+          "name": "zyrtec",
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 10
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-00000000000a",
+          "name": "Éfferalgan",
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 10
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-00000000000c",
+          "name": "efferalgan",
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 10
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-00000000000d",
+          "name": "Efferalgan",
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 10
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-00000000001f",
+          "name": "Advil",
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 10
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": [],
+        "expiringSoon": [
+          "00000000-0000-0000-0000-00000000001f",
+          "00000000-0000-0000-0000-00000000000a",
+          "00000000-0000-0000-0000-00000000000c",
+          "00000000-0000-0000-0000-00000000000d",
+          "00000000-0000-0000-0000-00000000000b"
+        ],
+        "unknown": [],
+        "badge": 5,
+        "isEmpty": false
+      }
+    },
+    {
+      "name": "month precision sorts on the last day of the month",
+      "today": "2027-03-15",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "id": "00000000-0000-0000-0000-000000000001",
+          "name": "Month",
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": null
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000002",
+          "name": "Day 29",
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 29
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000003",
+          "name": "Day 30",
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 30
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000004",
+          "name": "Day 1 May",
+          "expiry": {
+            "year": 2027,
+            "month": 5,
+            "day": 1
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": [],
+        "expiringSoon": [
+          "00000000-0000-0000-0000-000000000002",
+          "00000000-0000-0000-0000-000000000003",
+          "00000000-0000-0000-0000-000000000001",
+          "00000000-0000-0000-0000-000000000004"
+        ],
+        "unknown": [],
+        "badge": 4,
+        "isEmpty": false
+      }
+    },
+    {
+      "name": "unknown boxes are sorted by folded name and do not count in the badge",
+      "today": "2027-03-15",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "id": "00000000-0000-0000-0000-000000000001",
+          "name": "Zyrtec",
+          "expiry": null,
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000002",
+          "name": "éfferalgan",
+          "expiry": null,
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000003",
+          "name": "doliprane",
+          "expiry": null,
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000004",
+          "name": "Efferalgan",
+          "expiry": null,
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000005",
+          "name": "Ábilify",
+          "expiry": null,
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": [],
+        "expiringSoon": [],
+        "unknown": [
+          "00000000-0000-0000-0000-000000000005",
+          "00000000-0000-0000-0000-000000000003",
+          "00000000-0000-0000-0000-000000000002",
+          "00000000-0000-0000-0000-000000000004",
+          "00000000-0000-0000-0000-000000000001"
+        ],
+        "badge": 0,
+        "isEmpty": false
+      }
+    },
+    {
+      "name": "window boundaries: today, last day, one past, yesterday",
+      "today": "2027-03-15",
+      "windowDays": 30,
+      "boxes": [
+        {
+          "id": "00000000-0000-0000-0000-000000000001",
+          "name": "yesterday",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": 14
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000002",
+          "name": "today",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": 15
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000003",
+          "name": "last day",
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 14
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000004",
+          "name": "one past",
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 15
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": [
+          "00000000-0000-0000-0000-000000000001"
+        ],
+        "expiringSoon": [
+          "00000000-0000-0000-0000-000000000002",
+          "00000000-0000-0000-0000-000000000003"
+        ],
+        "unknown": [],
+        "badge": 3,
+        "isEmpty": false
+      }
+    },
+    {
+      "name": "the window changes the sections",
+      "today": "2027-03-15",
+      "windowDays": 90,
+      "boxes": [
+        {
+          "id": "00000000-0000-0000-0000-000000000001",
+          "name": "May",
+          "expiry": {
+            "year": 2027,
+            "month": 5,
+            "day": 31
+          },
+          "inCabinet": true
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000002",
+          "name": "June",
+          "expiry": {
+            "year": 2027,
+            "month": 6,
+            "day": 14
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": [],
+        "expiringSoon": [
+          "00000000-0000-0000-0000-000000000001"
+        ],
+        "unknown": [],
+        "badge": 1,
+        "isEmpty": false
+      }
+    }
+  ]
+}

@@ -7,7 +7,12 @@ struct ScanSummaryView: View {
     var body: some View {
         NavigationStack {
             List {
-                if let summary = model.summary {
+                if let summary = model.summary, summary.mode == .remove {
+                    Text(verbatim: ScanText.format("scan.removal.summary.usedUp", summary.usedUp))
+                        .accessibilityIdentifier("summary.usedUp")
+                    Text(verbatim: ScanText.format("scan.removal.summary.thrownAway", summary.thrownAway))
+                        .accessibilityIdentifier("summary.thrownAway")
+                } else if let summary = model.summary {
                     Text(verbatim: ScanText.format("scan.summary.added", summary.added))
                         .accessibilityIdentifier("summary.added")
                     if summary.unknownExpiry > 0 {
@@ -15,9 +20,9 @@ struct ScanSummaryView: View {
                             .accessibilityIdentifier("summary.unknownExpiry")
                     }
                 }
-                Text("scan.summary.message").foregroundStyle(.secondary)
+                Text(model.summary?.mode == .remove ? "scan.removal.summary.message" : "scan.summary.message").foregroundStyle(.secondary)
             }
-            .navigationTitle("scan.summary.title")
+            .navigationTitle(model.summary?.mode == .remove ? "scan.removal.summary.title" : "scan.summary.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

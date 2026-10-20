@@ -25,19 +25,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.NoPhotography
-import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.QrCodeScanner
-import androidx.compose.material.icons.outlined.VolumeOff
-import androidx.compose.material.icons.outlined.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -76,6 +69,7 @@ import kotlinx.coroutines.launch
 private const val HINT_ALPHA = 0.85f
 private const val BAR_ALPHA = 0.9f
 private const val PILL_PERCENT = 50
+private val CARD_CORNER = 24.dp
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
@@ -105,7 +99,11 @@ fun ScanScreen(model: ScanViewModel, services: ScanServices, modifier: Modifier 
         model.permissionRequested()
         refreshAccess()
     }
-    LaunchedEffect(Unit) { model.load() }
+    LaunchedEffect(Unit) {
+        // The tab was opened: Remove is never remembered (R1).
+        model.resetMode()
+        model.load()
+    }
     // Also when the user comes back from the system settings.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { refreshAccess() }
     FeedbackEffect(model)
@@ -122,33 +120,14 @@ fun ScanScreen(model: ScanViewModel, services: ScanServices, modifier: Modifier 
         )
     }
 
-    state.completion?.let { completion ->
-        CompletionSheet(
-            completion,
-            onConfirm = { name, expiry -> scope.launch { model.confirmCompletion(name, expiry) } },
-            onCancel = model::cancelCompletion
-        )
-    }
-    if (showsSessionList) {
-        SessionListSheet(
-            state.session,
-            state.locations,
-            state.notice,
-            onEdit = { box, name, expiry, location -> scope.launch { model.update(box, name, expiry, location) } },
-            onDelete = { scope.launch { model.delete(it) } },
-            onUndoDelete = { scope.launch { model.undoDelete(it) } },
-            onClose = { showsSessionList = false }
-        )
-    }
-    if (showsManualEntry) {
-        ManualEntrySheet(
-            state.locations,
-            state.sessionLocation?.id,
-            onAdd = { code, name, expiry, location -> model.addManually(code, name, expiry, location) },
-            onClose = { showsManualEntry = false }
-        )
-    }
-    state.summary?.let { SummaryDialog(it, onClose = model::closeSummary) }
+    ScanSheetHost(
+        model,
+        state,
+        showsSessionList,
+        showsManualEntry,
+        onCloseSessionList = { showsSessionList = false },
+        onCloseManual = { showsManualEntry = false }
+    )
 }
 
 @Composable
@@ -209,7 +188,7 @@ private fun ScannerContent(
         scanner.Preview(Modifier.fillMaxSize(), onFailure = {
             model.onCameraFailed()
         }, onStarted = model::onPreviewStarted)
-        Viewfinder(Modifier.align(Alignment.Center))
+        Viewfinder(Modifier.align(Alignment.Center), removing = state.mode == ScanMode.REMOVE)
         if (state.camera == CameraState.STARTING) {
             Column(
                 Modifier.align(Alignment.Center).testTag("scan.camera.starting"),
@@ -220,113 +199,35 @@ private fun ScannerContent(
             }
         }
         Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.SpaceBetween) {
-            TopBar(model, state, onManual)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Surface(
-                    Modifier.align(Alignment.CenterHorizontally),
-                    shape = RoundedCornerShape(PILL_PERCENT),
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = HINT_ALPHA)
-                ) {
-                    Text(
-                        stringResource(R.string.scan_camera_hint),
-                        Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                val scope = rememberCoroutineScope()
-                state.another?.let { another ->
-                    AnotherCard(another, onAdd = { scope.launch { model.confirmAnother() } })
-                }
-                state.notice?.let { notice ->
-                    NoticeCard(
-                        notice,
-                        NoticeActions(
-                            onUndoAdd = { scope.launch { model.delete(it) } },
-                            onPutBack = { scope.launch { model.putBack(it) } },
-                            onUndoDelete = { scope.launch { model.undoDelete(it) } },
-                            onDismiss = model::dismissNotice
-                        )
-                    )
-                }
-                BottomBar(state, onSessionList, onDone = model::finish)
+                ModePicker(state.mode, onSelect = model::setMode)
+                if (state.mode == ScanMode.REMOVE) RemoveBar(model, state) else TopBar(model, state, onManual)
             }
+            BottomArea(model, state, onSessionList)
         }
     }
 }
 
 @Composable
-private fun Viewfinder(modifier: Modifier) {
+private fun Viewfinder(modifier: Modifier, removing: Boolean) {
     // The decoded square (centre 70 % of the short side) is what this frame shows.
+    val color = if (removing) MaterialTheme.colorScheme.error else Color.White.copy(alpha = 0.8f)
     Box(
         modifier.fillMaxWidth(
             AnalysisSettings.CROP_FRACTION
-        ).aspectRatio(1f).border(3.dp, Color.White.copy(alpha = 0.8f), RoundedCornerShape(24.dp))
+        ).aspectRatio(1f).border(3.dp, color, RoundedCornerShape(24.dp))
     )
-}
-
-@Composable
-private fun TopBar(model: ScanViewModel, state: ScanUiState, onManual: () -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(PILL_PERCENT),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = BAR_ALPHA)
-    ) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            var open by remember { mutableStateOf(false) }
-            val change = stringResource(R.string.scan_location_change)
-            Box(Modifier.weight(1f)) {
-                OutlinedButton(
-                    onClick = { open = true },
-                    modifier = Modifier.heightIn(min = 48.dp).semantics {
-                        contentDescription = change
-                    }.testTag("scan.location")
-                ) {
-                    Icon(Icons.Outlined.Place, contentDescription = null)
-                    Text(
-                        stringResource(R.string.scan_location_label, state.sessionLocation?.name.orEmpty()),
-                        maxLines = 1
-                    )
-                }
-                DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-                    state.locations.forEach { location ->
-                        DropdownMenuItem(text = { Text(location.name) }, onClick = {
-                            model.selectLocation(location.id)
-                            open =
-                                false
-                        })
-                    }
-                }
-            }
-            val sound = stringResource(if (state.soundEnabled) R.string.scan_sound_on else R.string.scan_sound_off)
-            IconButton(
-                onClick = { model.setSound(!state.soundEnabled) },
-                modifier = Modifier.semantics {
-                    contentDescription =
-                        sound
-                }.testTag("scan.sound")
-            ) {
-                Icon(
-                    if (state.soundEnabled) Icons.Outlined.VolumeUp else Icons.Outlined.VolumeOff,
-                    contentDescription = null
-                )
-            }
-            val manual = stringResource(R.string.scan_manual_open)
-            IconButton(
-                onClick = onManual,
-                modifier = Modifier.semantics {
-                    contentDescription = manual
-                }.testTag("scan.manual.open")
-            ) {
-                Icon(Icons.Outlined.Edit, contentDescription = null)
-            }
-        }
-    }
 }
 
 @Composable
 private fun BottomBar(state: ScanUiState, onSessionList: () -> Unit, onDone: () -> Unit) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         val open = stringResource(R.string.scan_session_open)
-        val count = stringResource(R.string.scan_count, state.session.count)
+        val count = if (state.mode == ScanMode.REMOVE) {
+            stringResource(R.string.scan_removal_count, state.removalSession.count)
+        } else {
+            stringResource(R.string.scan_count, state.session.count)
+        }
         OutlinedButton(
             onClick = onSessionList,
             modifier = Modifier.heightIn(min = 48.dp).semantics {
@@ -406,4 +307,38 @@ fun ScanStatus(
 @Composable
 private fun StatusButton(label: Int, tag: String, onClick: () -> Unit) {
     Button(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp).testTag(tag)) { Text(stringResource(label)) }
+}
+
+@Composable
+private fun BottomArea(model: ScanViewModel, state: ScanUiState, onSessionList: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Surface(
+            Modifier.align(Alignment.CenterHorizontally),
+            shape = RoundedCornerShape(PILL_PERCENT),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = HINT_ALPHA)
+        ) {
+            Text(
+                stringResource(R.string.scan_camera_hint),
+                Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+        val scope = rememberCoroutineScope()
+        state.another?.let { another ->
+            AnotherCard(another, onAdd = { scope.launch { model.confirmAnother() } })
+        }
+        state.notice?.let { notice ->
+            NoticeCard(
+                notice,
+                NoticeActions(
+                    onUndoAdd = { scope.launch { model.delete(it) } },
+                    onPutBack = { scope.launch { model.putBack(it) } },
+                    onUndoDelete = { scope.launch { model.undoDelete(it) } },
+                    onUndoRemoval = { scope.launch { model.undoRemoval(it) } },
+                    onDismiss = model::dismissNotice
+                )
+            )
+        }
+        BottomBar(state, onSessionList, onDone = model::finish)
+    }
 }

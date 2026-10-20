@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -102,6 +103,54 @@ fun CompletionSheet(
                     enabled = canAdd,
                     modifier = Modifier.heightIn(min = 48.dp).testTag("completion.add")
                 ) { Text(stringResource(R.string.scan_complete_add)) }
+            }
+        }
+    }
+}
+
+/** The boxes taken out in this Remove session, newest first, each with Undo (R8). */
+@Composable
+fun RemovalSessionSheet(session: ScanSession, locations: List<Location>, onUndo: (Box) -> Unit, onClose: () -> Unit) {
+    val context = LocalContext.current
+    ModalBottomSheet(
+        onDismissRequest = onClose,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        Column(Modifier.padding(horizontal = 16.dp).testTag("session.sheet")) {
+            Text(stringResource(R.string.scan_removal_session_title), style = MaterialTheme.typography.titleLarge)
+            if (session.count == 0) {
+                Text(stringResource(R.string.scan_removal_session_empty), Modifier.padding(vertical = 24.dp))
+            } else {
+                LazyColumn(Modifier.testTag("session.list")) {
+                    items(session.newestFirst, key = { it.id }) { box ->
+                        Row(
+                            Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag("session.row"),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
+                                Text(box.product.name, style = MaterialTheme.typography.titleMedium)
+                                box.removal?.reason?.let {
+                                    Text(
+                                        stringResource(removalReasonLabel(it)),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                                Text(ScanText.expiry(context, box.expiry), style = MaterialTheme.typography.bodySmall)
+                                Text(
+                                    locations.firstOrNull { it.id == box.locationId }?.name.orEmpty(),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                            OutlinedButton(
+                                onClick = { onUndo(box) },
+                                modifier = Modifier.heightIn(min = 48.dp).testTag("session.undoRemoval")
+                            ) { Text(stringResource(R.string.scan_undo)) }
+                        }
+                    }
+                }
+            }
+            TextButton(onClick = onClose, modifier = Modifier.heightIn(min = 48.dp).testTag("session.close")) {
+                Text(stringResource(R.string.scan_session_close))
             }
         }
     }
@@ -366,6 +415,10 @@ private fun ManualFields(
 /** Shown after **Done**: the boxes are already saved; this only tells how the intake went. */
 @Composable
 fun SummaryDialog(summary: Summary, onClose: () -> Unit) {
+    if (summary.mode == ScanMode.REMOVE) {
+        RemovalSummaryDialog(summary, onClose)
+        return
+    }
     AlertDialog(
         onDismissRequest = onClose,
         title = { Text(stringResource(R.string.scan_summary_title)) },
@@ -385,6 +438,36 @@ fun SummaryDialog(summary: Summary, onClose: () -> Unit) {
                     }
                 }
                 Text(stringResource(R.string.scan_summary_message))
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onClose, modifier = Modifier.heightIn(min = 48.dp).testTag("summary.close")) {
+                Text(stringResource(R.string.scan_session_close))
+            }
+        }
+    )
+}
+
+@Composable
+private fun RemovalSummaryDialog(summary: Summary, onClose: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text(stringResource(R.string.scan_removal_summary_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    pluralStringResource(R.plurals.scan_removal_summary_usedUp, summary.usedUp, summary.usedUp),
+                    Modifier.testTag("summary.usedUp")
+                )
+                Text(
+                    pluralStringResource(
+                        R.plurals.scan_removal_summary_thrownAway,
+                        summary.thrownAway,
+                        summary.thrownAway
+                    ),
+                    Modifier.testTag("summary.thrownAway")
+                )
+                Text(stringResource(R.string.scan_removal_summary_message))
             }
         },
         confirmButton = {

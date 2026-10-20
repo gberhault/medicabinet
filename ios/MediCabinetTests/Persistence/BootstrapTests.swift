@@ -72,8 +72,8 @@ import Testing
         let kept = Location(name: "Kitchen", createdAt: clock.now)
         try await first.locations.insert(kept)
 
-        let withV3 = migrator(adding: [("v3", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
-        let second = try environment(await bootstrap(withV3).run())
+        let withV4 = migrator(adding: [("v4", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
+        let second = try environment(await bootstrap(withV4).run())
 
         #expect(backupFiles().count == 1)
         #expect(try await second.locations.all().map(\.name).sorted() == ["Armoire", "Kitchen"])
@@ -87,8 +87,8 @@ import Testing
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         for day in 1...6 { try Data().write(to: dir.appendingPathComponent("pre-migration-2026010\(day)-080000-v1.sqlite")) }
 
-        let withV3 = migrator(adding: [("v3", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
-        _ = try environment(await bootstrap(withV3).run())
+        let withV4 = migrator(adding: [("v4", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
+        _ = try environment(await bootstrap(withV4).run())
 
         #expect(backupFiles().count == 5)
         #expect(backupFiles().contains { $0.hasPrefix("pre-migration-20270115") })
@@ -101,10 +101,10 @@ import Testing
         let first = try environment(await bootstrap().run())
         try await first.locations.insert(Location(name: "Kitchen", createdAt: clock.now))
 
-        // v2 commits, v3 fails: without a restore the database would be left half-upgraded.
+        // v4 commits, v5 fails: without a restore the database would be left half-upgraded.
         let broken = migrator(adding: [
-            ("v3", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") }),
-            ("v4", { _ in throw Boom() })
+            ("v4", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") }),
+            ("v5", { _ in throw Boom() })
         ])
         let state = await bootstrap(broken).run()
 
@@ -113,7 +113,7 @@ import Testing
         #expect(!(try tableNames().contains("later")))
         let pool = try openRaw()
         defer { try? pool.close() }
-        #expect(try await pool.read { try Migrations.migrator.appliedIdentifiers($0) } == [Migrations.v1, Migrations.schemaV2])
+        #expect(try await pool.read { try Migrations.migrator.appliedIdentifiers($0) } == Set(Migrations.identifiers))
         #expect(try await pool.read { try String.fetchAll($0, sql: "SELECT name FROM location ORDER BY name") } == ["Armoire", "Kitchen"])
         #expect(backupFiles().count == 1)
     }
@@ -121,10 +121,10 @@ import Testing
     @Test func retryingAfterAFailedMigrationSucceedsOnceFixed() async throws {
         defer { try? FileManager.default.removeItem(at: root) }
         _ = try environment(await bootstrap().run())
-        let broken = migrator(adding: [("v3", { _ in throw Boom() })])
+        let broken = migrator(adding: [("v4", { _ in throw Boom() })])
         guard case .failed = await bootstrap(broken).run() else { throw Failure("expected failure") }
 
-        let fixed = migrator(adding: [("v3", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
+        let fixed = migrator(adding: [("v4", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
         let environment = try environment(await bootstrap(fixed).run())
         #expect(try await environment.locations.all().count == 1)
         #expect(try tableNames().contains("later"))
@@ -148,8 +148,8 @@ import Testing
         _ = try environment(await bootstrap().run())
         try Data("x".utf8).write(to: BackupService.defaultDirectory(in: root))   // a file blocks the folder
 
-        let withV3 = migrator(adding: [("v3", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
-        guard case .failed(let failure) = await bootstrap(withV3).run() else { throw Failure("expected failure") }
+        let withV4 = migrator(adding: [("v4", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
+        guard case .failed(let failure) = await bootstrap(withV4).run() else { throw Failure("expected failure") }
 
         #expect(failure == .backup)
         #expect(!(try tableNames().contains("later")))
@@ -180,7 +180,7 @@ import Testing
     @Test @MainActor func bootstrapWorkRunsOffTheMainThread() async throws {
         defer { try? FileManager.default.removeItem(at: root) }
         let probe = ThreadProbe()
-        let probing = migrator(adding: [("v3", { _ in probe.record(isMain: Thread.isMainThread) })])
+        let probing = migrator(adding: [("v4", { _ in probe.record(isMain: Thread.isMainThread) })])
         _ = try environment(await bootstrap(probing).run())
         #expect(probe.sawMigration)
         #expect(!probe.ranOnMain)

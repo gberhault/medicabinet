@@ -1,0 +1,1929 @@
+{
+  "formatVersion": 1,
+  "description": "DELIBERATELY WRONG copy used by test-shared-fixtures-break.sh. CabinetRows.build: groups the boxes in the cabinet into product rows under category sections. Filters (location, status of the box, then the search on the row name) apply before the row is built, so a row holds only the boxes that passed. Product key = GTIN, else the normalized name; a row is one (category, key). Row name = name of the most recently created box (then greater id). Row status = most urgent box (expired, expiringSoon, unknown, ok). Rows: status urgency, earliest expiry (month precision = last day of the month, none last), normalized name by code point, first box id. Boxes: expiry (none last), createdOrder, id. Sections: categoryOrder, then other categories by key, `uncategorized` always last. Box ids `bN` become UUIDs ending in N (zero-padded) so id order is numeric; `status` is given per box (the app supplies it from the expiry-status rule); `createdOrder` is a rank, not a date; locations are opaque labels.",
+  "cases": [
+    {
+      "name": "an empty cabinet has no sections",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 1,
+        "sections": []
+      }
+    },
+    {
+      "name": "a row's status is its most urgent box; unknown never shows as ok",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Doliprane 1000",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "DOLIPRANE 1000 mg cp",
+          "category": "pain-fever",
+          "location": "kitchen",
+          "expiry": null,
+          "status": "unknown",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 2,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "DOLIPRANE 1000 mg cp",
+                "boxes": [
+                  "b1",
+                  "b2"
+                ],
+                "status": "unknown",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 3,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "expired beats expiring soon beats ok; boxes are listed earliest expiry first",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Doliprane",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2028,
+            "month": 1,
+            "day": 15
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "Doliprane",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2026,
+            "month": 11,
+            "day": 20
+          },
+          "status": "expiringSoon",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000014",
+          "name": "Doliprane",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2026,
+            "month": 9,
+            "day": 1
+          },
+          "status": "expired",
+          "createdOrder": 3
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 3,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Doliprane",
+                "boxes": [
+                  "b3",
+                  "b2",
+                  "b1"
+                ],
+                "status": "expired",
+                "earliestExpiry": {
+                  "year": 2026,
+                  "month": 9,
+                  "day": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "the same GTIN in two categories gives one row in each",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Doliprane",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 5,
+            "day": 10
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "Doliprane",
+          "category": "cold-ent",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 6,
+            "day": 10
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 2,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Doliprane",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 5,
+                  "day": 10
+                }
+              }
+            ]
+          },
+          {
+            "category": "cold-ent",
+            "rows": [
+              {
+                "name": "Doliprane",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 6,
+                  "day": 10
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "without a GTIN the product key is the normalized name",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": null,
+          "name": "Pansement  Stérile",
+          "category": "uncategorized",
+          "location": "kitchen",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": null,
+          "name": "pansement sterile",
+          "category": "uncategorized",
+          "location": "kitchen",
+          "expiry": null,
+          "status": "unknown",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 2,
+        "sections": [
+          {
+            "category": "uncategorized",
+            "rows": [
+              {
+                "name": "pansement sterile",
+                "boxes": [
+                  "b1",
+                  "b2"
+                ],
+                "status": "unknown",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "a box with a GTIN and a box without one are different products even with the same name",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Doliprane",
+          "category": "uncategorized",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 5,
+            "day": 10
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": null,
+          "name": "Doliprane",
+          "category": "uncategorized",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 5,
+            "day": 10
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 2,
+        "sections": [
+          {
+            "category": "uncategorized",
+            "rows": [
+              {
+                "name": "Doliprane",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 5,
+                  "day": 10
+                }
+              },
+              {
+                "name": "Doliprane",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 5,
+                  "day": 10
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "rows are ordered by status urgency, then earliest expiry, then name",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Zeta",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2026,
+            "month": 12,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "Alpha",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 6,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000038",
+          "name": "Beta",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2026,
+            "month": 11,
+            "day": 1
+          },
+          "status": "expiringSoon",
+          "createdOrder": 3
+        },
+        {
+          "id": "b4",
+          "gtin": "03400930000045",
+          "name": "Gamma",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2026,
+            "month": 8,
+            "day": 1
+          },
+          "status": "expired",
+          "createdOrder": 4
+        },
+        {
+          "id": "b5",
+          "gtin": "03400930000052",
+          "name": "Delta",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": null,
+          "status": "unknown",
+          "createdOrder": 5
+        },
+        {
+          "id": "b6",
+          "gtin": "03400930000069",
+          "name": "Épsilon",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2026,
+            "month": 12,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 6
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 6,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Gamma",
+                "boxes": [
+                  "b4"
+                ],
+                "status": "expired",
+                "earliestExpiry": {
+                  "year": 2026,
+                  "month": 8,
+                  "day": 1
+                }
+              },
+              {
+                "name": "Beta",
+                "boxes": [
+                  "b3"
+                ],
+                "status": "expiringSoon",
+                "earliestExpiry": {
+                  "year": 2026,
+                  "month": 11,
+                  "day": 1
+                }
+              },
+              {
+                "name": "Delta",
+                "boxes": [
+                  "b5"
+                ],
+                "status": "unknown",
+                "earliestExpiry": null
+              },
+              {
+                "name": "Épsilon",
+                "boxes": [
+                  "b6"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2026,
+                  "month": 12,
+                  "day": 1
+                }
+              },
+              {
+                "name": "Zeta",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2026,
+                  "month": 12,
+                  "day": 1
+                }
+              },
+              {
+                "name": "Alpha",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 6,
+                  "day": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "a month-precise expiry sorts as the last day of its month",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Zed",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": 15
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "Abe",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 2,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Zed",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 3,
+                  "day": 15
+                }
+              },
+              {
+                "name": "Abe",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 3,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "boxes in a row: earliest expiry, unknown last, then creation order, then id",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Older",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": null,
+          "status": "unknown",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "Old",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": 10
+          },
+          "status": "ok",
+          "createdOrder": 5
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000014",
+          "name": "Old",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": 10
+          },
+          "status": "ok",
+          "createdOrder": 3
+        },
+        {
+          "id": "b4",
+          "gtin": "03400930000014",
+          "name": "Older",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": null,
+          "status": "unknown",
+          "createdOrder": 1
+        },
+        {
+          "id": "b5",
+          "gtin": "03400930000014",
+          "name": "Latest name",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2026,
+            "month": 12,
+            "day": 31
+          },
+          "status": "ok",
+          "createdOrder": 9
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 5,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Latest name",
+                "boxes": [
+                  "b5",
+                  "b3",
+                  "b2",
+                  "b1",
+                  "b4"
+                ],
+                "status": "unknown",
+                "earliestExpiry": {
+                  "year": 2026,
+                  "month": 12,
+                  "day": 31
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "the row name is the most recently created box; a tie goes to the greater id",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Old",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 4
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "New",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 2,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 4
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000014",
+          "name": "Older",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 3,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "New",
+                "boxes": [
+                  "b1",
+                  "b2",
+                  "b3"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "categories follow the taxonomy order, unlisted ones by key, uncategorized last",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "A",
+          "category": "uncategorized",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "B",
+          "category": "zzz-unlisted",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000038",
+          "name": "C",
+          "category": "cold-ent",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 3
+        },
+        {
+          "id": "b4",
+          "gtin": "03400930000045",
+          "name": "D",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 4
+        },
+        {
+          "id": "b5",
+          "gtin": "03400930000052",
+          "name": "E",
+          "category": "aaa-unlisted",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 5
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 5,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "D",
+                "boxes": [
+                  "b4"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          },
+          {
+            "category": "cold-ent",
+            "rows": [
+              {
+                "name": "C",
+                "boxes": [
+                  "b3"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          },
+          {
+            "category": "aaa-unlisted",
+            "rows": [
+              {
+                "name": "E",
+                "boxes": [
+                  "b5"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          },
+          {
+            "category": "zzz-unlisted",
+            "rows": [
+              {
+                "name": "B",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          },
+          {
+            "category": "uncategorized",
+            "rows": [
+              {
+                "name": "A",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "uncategorized stays last even when the taxonomy lists it first",
+      "categoryOrder": [
+        "uncategorized",
+        "pain-fever"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "A",
+          "category": "uncategorized",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "B",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 2,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "B",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          },
+          {
+            "category": "uncategorized",
+            "rows": [
+              {
+                "name": "A",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "with no taxonomy yet, categories are ordered by key",
+      "categoryOrder": [],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "A",
+          "category": "b-cat",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "B",
+          "category": "a-cat",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 2,
+        "sections": [
+          {
+            "category": "a-cat",
+            "rows": [
+              {
+                "name": "B",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          },
+          {
+            "category": "b-cat",
+            "rows": [
+              {
+                "name": "A",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "search ignores accents and case",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Doliprane 1000",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "EFFÉRALGAN 500",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 2,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000038",
+          "name": "Spasfon",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 3
+        }
+      ],
+      "filter": {
+        "query": "efferalgan",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 1,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "EFFÉRALGAN 500",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 2,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "search needs every word, in any order",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Doliprane 1000",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "EFFÉRALGAN 500",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 2,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000038",
+          "name": "Spasfon",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 3
+        }
+      ],
+      "filter": {
+        "query": "1000 doli",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 1,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Doliprane 1000",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "a search with no match gives nothing",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Doliprane 1000",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "EFFÉRALGAN 500",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 2,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000038",
+          "name": "Spasfon",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 3
+        }
+      ],
+      "filter": {
+        "query": "aspirine",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 0,
+        "sections": []
+      }
+    },
+    {
+      "name": "a whitespace-only search filters nothing",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Doliprane 1000",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "EFFÉRALGAN 500",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 2,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000038",
+          "name": "Spasfon",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 3
+        }
+      ],
+      "filter": {
+        "query": "  ",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 3,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Doliprane 1000",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              },
+              {
+                "name": "EFFÉRALGAN 500",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 2,
+                  "day": null
+                }
+              },
+              {
+                "name": "Spasfon",
+                "boxes": [
+                  "b3"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 3,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "search matches the row name, not the names of its other boxes",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Old name Doliprane",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "Spasfon",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 2,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "doliprane",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 0,
+        "sections": []
+      }
+    },
+    {
+      "name": "location filter keeps only the boxes there; a row with none disappears",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Alpha",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2026,
+            "month": 12,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "Alpha",
+          "category": "pain-fever",
+          "location": "kitchen",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000021",
+          "name": "Beta",
+          "category": "pain-fever",
+          "location": "kitchen",
+          "expiry": {
+            "year": 2026,
+            "month": 12,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 3
+        },
+        {
+          "id": "b4",
+          "gtin": "03400930000038",
+          "name": "Gamma",
+          "category": "pain-fever",
+          "location": "car",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 4
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": "kitchen",
+        "status": null
+      },
+      "expect": {
+        "boxCount": 2,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Beta",
+                "boxes": [
+                  "b3"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2026,
+                  "month": 12,
+                  "day": 1
+                }
+              },
+              {
+                "name": "Alpha",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "status filter keeps only the boxes with that status",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Alpha",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "Alpha",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2026,
+            "month": 1,
+            "day": null
+          },
+          "status": "expired",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000021",
+          "name": "Beta",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 2,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 3
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": "expired"
+      },
+      "expect": {
+        "boxCount": 1,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Alpha",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "expired",
+                "earliestExpiry": {
+                  "year": 2026,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "the unknown status filter finds the boxes without an expiry",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Alpha",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": null,
+          "status": "unknown",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "Alpha",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": "unknown"
+      },
+      "expect": {
+        "boxCount": 1,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Alpha",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "unknown",
+                "earliestExpiry": null
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "search, location and status combine",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Doliprane",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 2,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "Doliprane",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2026,
+            "month": 1,
+            "day": 1
+          },
+          "status": "expired",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000014",
+          "name": "Doliprane",
+          "category": "pain-fever",
+          "location": "kitchen",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 3
+        },
+        {
+          "id": "b4",
+          "gtin": "03400930000021",
+          "name": "Dolirhume",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 4
+        },
+        {
+          "id": "b5",
+          "gtin": "03400930000038",
+          "name": "Aspirine",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 5
+        }
+      ],
+      "filter": {
+        "query": "dol",
+        "location": "bath",
+        "status": "ok"
+      },
+      "expect": {
+        "boxCount": 2,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Dolirhume",
+                "boxes": [
+                  "b4"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": 1
+                }
+              },
+              {
+                "name": "Doliprane",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 2,
+                  "day": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "the search sees the row name of the filtered boxes only",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Doliprane",
+          "category": "pain-fever",
+          "location": "kitchen",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "Spasfon",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 2,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "doli",
+        "location": "kitchen",
+        "status": null
+      },
+      "expect": {
+        "boxCount": 1,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Doliprane",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

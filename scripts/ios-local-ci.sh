@@ -55,7 +55,11 @@ step "MediCabinetCore tests"
 
 # Serial: parallel simulator clones were killed (signal kill) once the UI suite grew to a dozen camera-less scan flows.
 step "app unit + UI tests (simulator)"
-DEST_ID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ && /Booted/ {print $2; exit}')"
+# IOS_SIMULATOR_ID pins a simulator no other session uses (a shared one made UI tests flake with "signal kill").
+DEST_ID="${IOS_SIMULATOR_ID:-}"
+if [[ -z "${DEST_ID:-}" ]]; then
+  DEST_ID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ && /Booted/ {print $2; exit}')"
+fi
 if [[ -z "${DEST_ID:-}" ]]; then
   DEST_ID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ {print $2; exit}')"
 fi

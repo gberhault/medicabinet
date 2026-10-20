@@ -28,11 +28,20 @@ Every file is JSON with:
 | `scan-debounce.json` | `ScanDebouncer`: which sightings count as a new scan (1 s re-scan gap) |
 | `scan-intake.json` | `IntakePolicy`: add / complete / confirmAnother / alreadyInCabinet / removedEarlier |
 | `product-resolution.json` | `ProductResolver`: name and category from reference data and the previous box |
+| `expiry-status.json` | `ExpiryRule` (status + days left from an expiry, today and the window) and how an instant + time zone becomes today (`todayCases`) |
+| `expiring-overview.json` | the Expiring view: sections, order, tie-breaks by folded name, badge count |
+| `expiry-digest.json` | the monthly reminder: counts per digest day (`cases`) and the next / due digest days (`scheduleCases`) |
 | `schema-v1.sql` | the exact v1 DDL both platforms run (each platform's test compares its own copy, ignoring whitespace and `--` comments) |
 | `schema-v2.sql` | the exact v2 migration step (box tombstone, unique serial among non-deleted boxes), run after v1 on both platforms |
 | `schema-v2.json` | the tables, columns and indexes of a database migrated to v2 (`schema-v1.json` is the v1-only state) |
+| `schema-v3.sql` | the exact v3 migration step (location tombstone `deletedAt`), run after v2 on both platforms |
+| `schema-v3.json` | the tables, columns and indexes of a database migrated to v3 (`schema-v1.json` / `schema-v2.json` are the earlier states) |
 | `schema-v1.json` | the tables, columns and indexes every platform's database v1 must have |
 | `repository-contract.json` | names of the repository contract checks both platforms run (the checks themselves are code) |
+| `text-normalization.json` | `TextNormalizer`: `normalize` (accent/case/ligature/whitespace folding) and `matches` (search: every query word is a substring) — also the comparison for location-name uniqueness and name ordering |
+| `location-names.json` | `LocationName.validate`: trim, 1…50 code points, no duplicate (normalized) name among the other locations |
+| `cabinet-rows.json` | `CabinetRows.build`: the Cabinet list — product rows under category sections, row status (most urgent box), ordering, location / status / search filters |
+| `scan-removal.json` | `RemovalPolicy` / `ScanRemoval`: what a scan in Remove mode does — remove, choose among candidates, alreadyRemoved, notInCabinet |
 
 ## Names that cross platforms
 
@@ -51,7 +60,12 @@ These strings are identical on both platforms (storage values, error kinds, expo
 | Intake decisions | `add`, `complete`, `confirmAnother`, `alreadyInCabinet`, `removedEarlier` |
 | Intake missing fields | `name`, `expiry` |
 | Barcode symbologies | `dataMatrix`, `ean13` |
-| Repository errors | `notFound`, `unknownLocation`, `duplicate`, `duplicateDefault`, `duplicateSerial` |
+| Repository errors | `notFound`, `unknownLocation`, `duplicate`, `duplicateDefault`, `duplicateSerial`, `duplicateName`, `defaultLocation`, `locationNotEmpty` |
+| Location-name errors | `empty`, `tooLong`, `duplicateName` |
+| Box edit errors | `emptyName`, `nameTooLong`, `categoryNotSelectable` |
+| Removal decisions | `remove`, `choose`, `alreadyRemoved`, `notInCabinet` |
+| Expiring-soon window choices (days) | `30`, `60`, `90`; default `60` |
+| Digest day and time | the `1`st of the month at `09:00` local (540 minutes) |
 
 ## Adding a fixture
 

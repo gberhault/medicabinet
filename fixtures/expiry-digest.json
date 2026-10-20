@@ -1,0 +1,543 @@
+{
+  "formatVersion": 1,
+  "description": "The monthly reminder. countCases = {digestDay, windowDays, boxes [{expiry or null, inCabinet}], expect (null = nothing is sent, else {expired, expiringSoon})}: counts are computed as of the digest day, unknown and removed boxes are never counted. scheduleCases = {today, minutesSinceMidnight (local), count, expect {upcoming: the next `count` digest days strictly after now, due: the most recent digest day at or before now}}. A digest day is the 1st of a month at 09:00 local time (540 minutes). Expected values were computed independently with Python.",
+  "cases": [
+    {
+      "name": "an empty cabinet sends nothing",
+      "digestDay": "2027-04-01",
+      "windowDays": 60,
+      "boxes": [],
+      "expect": null
+    },
+    {
+      "name": "only unknown boxes: nothing to send",
+      "digestDay": "2027-04-01",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "expiry": null,
+          "inCabinet": true
+        },
+        {
+          "expiry": null,
+          "inCabinet": true
+        }
+      ],
+      "expect": null
+    },
+    {
+      "name": "only ok boxes: nothing to send",
+      "digestDay": "2027-04-01",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2028,
+            "month": 1,
+            "day": 1
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": null
+    },
+    {
+      "name": "a box expiring exactly on the digest date counts as expiring soon",
+      "digestDay": "2027-04-01",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 1
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": 0,
+        "expiringSoon": 1
+      }
+    },
+    {
+      "name": "a box that expired the day before counts as expired",
+      "digestDay": "2027-04-01",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": 31
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": 1,
+        "expiringSoon": 0
+      }
+    },
+    {
+      "name": "month precision March has expired by 1 April",
+      "digestDay": "2027-04-01",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": 1,
+        "expiringSoon": 0
+      }
+    },
+    {
+      "name": "month precision April is expiring soon on 1 April",
+      "digestDay": "2027-04-01",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": null
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": 0,
+        "expiringSoon": 1
+      }
+    },
+    {
+      "name": "expired and expiring soon together",
+      "digestDay": "2027-04-01",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": 1
+          },
+          "inCabinet": true
+        },
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 2,
+            "day": 1
+          },
+          "inCabinet": true
+        },
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 20
+          },
+          "inCabinet": true
+        },
+        {
+          "expiry": null,
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": 2,
+        "expiringSoon": 1
+      }
+    },
+    {
+      "name": "removed boxes are never counted",
+      "digestDay": "2027-04-01",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": 1
+          },
+          "inCabinet": false
+        },
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 4,
+            "day": 20
+          },
+          "inCabinet": false
+        }
+      ],
+      "expect": null
+    },
+    {
+      "name": "unknown boxes are not counted next to a counted one",
+      "digestDay": "2027-04-01",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "expiry": null,
+          "inCabinet": true
+        },
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 5,
+            "day": 1
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": 0,
+        "expiringSoon": 1
+      }
+    },
+    {
+      "name": "last day of the window counts",
+      "digestDay": "2027-04-01",
+      "windowDays": 30,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 5,
+            "day": 1
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": 0,
+        "expiringSoon": 1
+      }
+    },
+    {
+      "name": "one day past the window does not count",
+      "digestDay": "2027-04-01",
+      "windowDays": 30,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 5,
+            "day": 2
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": null
+    },
+    {
+      "name": "a box not yet in the window of the first digest",
+      "digestDay": "2027-04-01",
+      "windowDays": 30,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 6,
+            "day": 15
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": null
+    },
+    {
+      "name": "the same box has entered the window by the next digest",
+      "digestDay": "2027-05-01",
+      "windowDays": 30,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 6,
+            "day": 15
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": null
+    },
+    {
+      "name": "an expired box is counted every month (April)",
+      "digestDay": "2027-04-01",
+      "windowDays": 30,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": 15
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": 1,
+        "expiringSoon": 0
+      }
+    },
+    {
+      "name": "an expired box is counted every month (May)",
+      "digestDay": "2027-05-01",
+      "windowDays": 30,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": 15
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": 1,
+        "expiringSoon": 0
+      }
+    },
+    {
+      "name": "a wider window counts more boxes",
+      "digestDay": "2027-04-01",
+      "windowDays": 90,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 6,
+            "day": 30
+          },
+          "inCabinet": true
+        },
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 7,
+            "day": 1
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": 0,
+        "expiringSoon": 1
+      }
+    },
+    {
+      "name": "a year end digest",
+      "digestDay": "2028-01-01",
+      "windowDays": 60,
+      "boxes": [
+        {
+          "expiry": {
+            "year": 2027,
+            "month": 12,
+            "day": 31
+          },
+          "inCabinet": true
+        },
+        {
+          "expiry": {
+            "year": 2028,
+            "month": 2,
+            "day": 29
+          },
+          "inCabinet": true
+        }
+      ],
+      "expect": {
+        "expired": 1,
+        "expiringSoon": 1
+      }
+    }
+  ],
+  "scheduleCases": [
+    {
+      "name": "mid-month: next digest is the 1st of next month",
+      "today": "2027-03-15",
+      "minutesSinceMidnight": 600,
+      "count": 3,
+      "expect": {
+        "upcoming": [
+          "2027-04-01",
+          "2027-05-01",
+          "2027-06-01"
+        ],
+        "due": "2027-03-01"
+      }
+    },
+    {
+      "name": "on the 1st before 09:00 today's digest is still to come",
+      "today": "2027-04-01",
+      "minutesSinceMidnight": 539,
+      "count": 3,
+      "expect": {
+        "upcoming": [
+          "2027-04-01",
+          "2027-05-01",
+          "2027-06-01"
+        ],
+        "due": "2027-03-01"
+      }
+    },
+    {
+      "name": "on the 1st at 09:00 today's digest is due",
+      "today": "2027-04-01",
+      "minutesSinceMidnight": 540,
+      "count": 2,
+      "expect": {
+        "upcoming": [
+          "2027-05-01",
+          "2027-06-01"
+        ],
+        "due": "2027-04-01"
+      }
+    },
+    {
+      "name": "on the 1st just after 09:00",
+      "today": "2027-04-01",
+      "minutesSinceMidnight": 541,
+      "count": 2,
+      "expect": {
+        "upcoming": [
+          "2027-05-01",
+          "2027-06-01"
+        ],
+        "due": "2027-04-01"
+      }
+    },
+    {
+      "name": "on the 2nd the digest of the 1st is due",
+      "today": "2027-04-02",
+      "minutesSinceMidnight": 0,
+      "count": 1,
+      "expect": {
+        "upcoming": [
+          "2027-05-01"
+        ],
+        "due": "2027-04-01"
+      }
+    },
+    {
+      "name": "last day of the month at 23:59",
+      "today": "2027-03-31",
+      "minutesSinceMidnight": 1439,
+      "count": 2,
+      "expect": {
+        "upcoming": [
+          "2027-04-01",
+          "2027-05-01"
+        ],
+        "due": "2027-03-01"
+      }
+    },
+    {
+      "name": "December rolls into January",
+      "today": "2027-12-15",
+      "minutesSinceMidnight": 600,
+      "count": 3,
+      "expect": {
+        "upcoming": [
+          "2028-01-01",
+          "2028-02-01",
+          "2028-03-01"
+        ],
+        "due": "2027-12-01"
+      }
+    },
+    {
+      "name": "1 January before 09:00",
+      "today": "2028-01-01",
+      "minutesSinceMidnight": 0,
+      "count": 2,
+      "expect": {
+        "upcoming": [
+          "2028-01-01",
+          "2028-02-01"
+        ],
+        "due": "2027-12-01"
+      }
+    },
+    {
+      "name": "twelve digests ahead",
+      "today": "2027-03-15",
+      "minutesSinceMidnight": 600,
+      "count": 12,
+      "expect": {
+        "upcoming": [
+          "2027-04-01",
+          "2027-05-01",
+          "2027-06-01",
+          "2027-07-01",
+          "2027-08-01",
+          "2027-09-01",
+          "2027-10-01",
+          "2027-11-01",
+          "2027-12-01",
+          "2028-01-01",
+          "2028-02-01",
+          "2028-03-01"
+        ],
+        "due": "2027-03-01"
+      }
+    },
+    {
+      "name": "twelve digests ahead from the 1st at 09:00",
+      "today": "2027-04-01",
+      "minutesSinceMidnight": 540,
+      "count": 12,
+      "expect": {
+        "upcoming": [
+          "2027-05-01",
+          "2027-06-01",
+          "2027-07-01",
+          "2027-08-01",
+          "2027-09-01",
+          "2027-10-01",
+          "2027-11-01",
+          "2027-12-01",
+          "2028-01-01",
+          "2028-02-01",
+          "2028-03-01",
+          "2028-04-01"
+        ],
+        "due": "2027-04-01"
+      }
+    },
+    {
+      "name": "zero digests requested",
+      "today": "2027-03-15",
+      "minutesSinceMidnight": 600,
+      "count": 0,
+      "expect": {
+        "upcoming": [],
+        "due": "2027-03-01"
+      }
+    },
+    {
+      "name": "February in a leap year",
+      "today": "2028-02-29",
+      "minutesSinceMidnight": 1200,
+      "count": 2,
+      "expect": {
+        "upcoming": [
+          "2028-03-01",
+          "2028-04-01"
+        ],
+        "due": "2028-02-01"
+      }
+    }
+  ]
+}

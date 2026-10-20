@@ -51,9 +51,9 @@ import Testing
 
     @Test func migrationsAreRecordedAndIdempotent() throws {
         let applied = try database.writer.read { db in try Migrations.migrator.appliedIdentifiers(db) }
-        #expect(applied == [Migrations.v1, Migrations.schemaV2])
+        #expect(applied == Set(Migrations.identifiers))
         try Migrations.migrator.migrate(database.writer)
-        #expect(try database.writer.read { db in try Migrations.migrator.appliedIdentifiers(db) } == [Migrations.v1, Migrations.schemaV2])
+        #expect(try database.writer.read { db in try Migrations.migrator.appliedIdentifiers(db) } == Set(Migrations.identifiers))
     }
 
     @Test func aValidBoxIsAccepted() throws {

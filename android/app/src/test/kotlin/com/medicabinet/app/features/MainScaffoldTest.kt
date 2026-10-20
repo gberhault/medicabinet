@@ -3,6 +3,7 @@ package com.medicabinet.app.features
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -35,11 +36,11 @@ class MainScaffoldTest {
     }
 
     @Test
-    fun scanIsTheStartDestinationAndEachUnbuiltFeatureExplainsItself() {
+    fun scanIsTheStartDestinationTheCabinetShowsItsEmptyStateAndUnbuiltFeaturesExplainThemselves() {
         show()
         compose.onNodeWithText("Allow the camera").assertIsDisplayed()
         compose.onNodeWithText("Cabinet").performClick()
-        compose.onNodeWithText("Your cabinet is coming soon").assertIsDisplayed()
+        waitForText("The cabinet is empty")
         compose.onNodeWithText("Expiring").performClick()
         compose.onNodeWithText("Expiry tracking is coming soon").assertIsDisplayed()
     }
@@ -52,7 +53,15 @@ class MainScaffoldTest {
             compose.onNodeWithText(it).assertIsDisplayed().assertHasClickAction()
         }
         compose.onNodeWithText("Cabinet").performClick()
-        compose.onNodeWithText("Your cabinet is coming soon").assertIsDisplayed()
+        waitForText("The cabinet is empty")
+    }
+
+    private fun waitForText(text: String) = compose.waitUntil(WAIT_MS) {
+        compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+    }
+
+    private companion object {
+        const val WAIT_MS = 10_000L
     }
 }
 

@@ -91,7 +91,7 @@ import Testing
         }
         #expect(ids == ["A", "B"])
         #expect(tombstones == 0)
-        #expect(applied == [Migrations.v1, Migrations.schemaV2])
+        #expect(applied == Set(Migrations.identifiers))
     }
 
     @Test func aV1CabinetWithDuplicateSerialsFailsToUpgradeAndStaysOnV1() throws {

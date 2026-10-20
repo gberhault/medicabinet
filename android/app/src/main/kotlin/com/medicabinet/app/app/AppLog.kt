@@ -19,4 +19,14 @@ object AppLog {
         val cause = error?.let { ", ${it::class.java.simpleName}" }.orEmpty()
         Log.e(TAG, "reference data unavailable: ${reason.rawValue}$cause")
     }
+
+    /** A change to the locations failed; [what] is a fixed word such as `rename`, never a name. */
+    fun locationsFailed(what: String, error: Throwable) {
+        Log.e(TAG, "locations $what failed: ${error::class.java.simpleName}")
+    }
+
+    /** The Cabinet list or a box could not be read or written; [what] is a fixed word, never a name or a code. */
+    fun cabinetFailed(what: String, error: Throwable) {
+        Log.e(TAG, "cabinet $what failed: ${error::class.java.simpleName}")
+    }
 }

@@ -12,6 +12,7 @@ expect_fail() { # fixture, expected message fragment
 }
 expect_pass good.xcstrings
 expect_pass untranslatable.xcstrings
+expect_pass plural_good.xcstrings
 expect_fail missing_en.xcstrings "no en translation"
 expect_fail needs_review.xcstrings "not translated"
 expect_fail empty_value.xcstrings "not translated"

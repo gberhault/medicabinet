@@ -26,12 +26,12 @@ final class MainTabUITests: XCTestCase {
         }
     }
 
-    func testEachUnbuiltFeatureShowsAnExplanationNotABlankScreen() {
+    func testEachTabWithNothingToShowExplainsItself() {
         let app = UITestApp.launch()
         let bar = app.tabBars.firstMatch
         XCTAssertTrue(bar.waitForExistence(timeout: 15))
         let expectations = [
-            ("Cabinet", "Your cabinet is coming soon"),
+            ("Cabinet", "The cabinet is empty"),
             ("Expiring", "Expiry tracking is coming soon")
         ]
         for (tab, title) in expectations {

@@ -3,6 +3,16 @@
 Newest entry first. The top entry must match `MARKETING_VERSION` in `project.yml`
 (checked by `scripts/check-version.sh`).
 
+## 0.3.0 — 2026-10-20
+
+Cabinet inventory, locations and removal by scan.
+
+- Cabinet tab: everything in the cabinet as one row per product, grouped by category, with the box count, the earliest expiry and a status (expired, expiring soon, expiry unknown, OK — as text and icon; never OK while a box has no known date). Search by name (accents and case ignored) and filter by location and expiry status; the list updates by itself.
+- Box detail: edit the name, expiry (never guessed) and location, mark a box opened, change its category (or hand it back to the automatic one), and take it out as used up, thrown away or added by mistake — each with Undo.
+- Remove mode in the scanner: an Add / Remove switch (always opens in Add), a used-up / thrown-away reason remembered between sessions, a picker when several boxes match, Undo per box and a summary.
+- Locations: manage them from Settings (add, rename, reorder, default, delete with the boxes moved elsewhere).
+- Database schema v3 (location tombstone); existing cabinets are backed up and migrated.
+
 ## 0.2.0 — 2026-10-19
 
 Bulk scan intake.

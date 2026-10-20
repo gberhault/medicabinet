@@ -32,7 +32,7 @@ class ScanFeedbackPlayer(context: Context) : Closeable {
 
     fun play(view: View, request: FeedbackRequest) {
         view.performHapticFeedback(constant(request.event))
-        if (request.sound && request.event == FeedbackEvent.ADDED && loaded) {
+        if (request.sound && request.event in setOf(FeedbackEvent.ADDED, FeedbackEvent.REMOVED) && loaded) {
             pool.play(tone, VOLUME, VOLUME, 1, 0, 1f)
         }
     }
@@ -49,6 +49,7 @@ class ScanFeedbackPlayer(context: Context) : Closeable {
                 modern && event == FeedbackEvent.ADDED -> HapticFeedbackConstants.CONFIRM
                 modern && event == FeedbackEvent.REJECTED -> HapticFeedbackConstants.REJECT
                 event == FeedbackEvent.ATTENTION -> HapticFeedbackConstants.LONG_PRESS
+                event == FeedbackEvent.REMOVED -> HapticFeedbackConstants.CONTEXT_CLICK
                 else -> HapticFeedbackConstants.KEYBOARD_TAP
             }
         }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextDecoration
@@ -35,12 +37,22 @@ import com.medicabinet.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onOpenAbout: () -> Unit, modifier: Modifier = Modifier, extraRows: @Composable () -> Unit = {}) {
+fun SettingsScreen(
+    onOpenAbout: () -> Unit,
+    modifier: Modifier = Modifier,
+    onOpenLocations: () -> Unit = {},
+    extraRows: @Composable () -> Unit = {}
+) {
     Scaffold(
         modifier = modifier,
         topBar = { TopAppBar(title = { Text(stringResource(R.string.settings_title)) }) }
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_locations)) },
+                leadingContent = { Icon(Icons.Outlined.Place, contentDescription = null) },
+                modifier = Modifier.clickable(onClick = onOpenLocations).testTag("settings.locations")
+            )
             ListItem(
                 headlineContent = { Text(stringResource(R.string.settings_about)) },
                 leadingContent = { Icon(Icons.Outlined.Info, contentDescription = null) },

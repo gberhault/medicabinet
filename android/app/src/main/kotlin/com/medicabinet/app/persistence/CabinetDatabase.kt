@@ -5,6 +5,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import java.io.Closeable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 /**
  * The cabinet database on the platform SQLite. Opening it ([database]) creates the schema on first use and
@@ -25,17 +28,25 @@ class CabinetDatabase(
     /** Opens (and if needed creates or migrates) the database. Call off the main thread. */
     val database: SupportSQLiteDatabase get() = helper.writableDatabase
 
+    private val changeCounter = MutableStateFlow(0L)
+
+    /**
+     * A counter bumped after every committed [transaction]: the observation flows of the repositories re-query when
+     * it changes. Every write goes through [transaction], so none is missed.
+     */
+    val changes: StateFlow<Long> = changeCounter
+
     /** Runs [block] in one transaction; any exception rolls it back and is rethrown. */
     fun <T> transaction(block: (SupportSQLiteDatabase) -> T): T {
         val db = database
         db.beginTransaction()
-        try {
-            val result = block(db)
-            db.setTransactionSuccessful()
-            return result
+        val result = try {
+            block(db).also { db.setTransactionSuccessful() }
         } finally {
             db.endTransaction()
         }
+        changeCounter.update { it + 1 }
+        return result
     }
 
     override fun close() = helper.close()

@@ -33,10 +33,40 @@ struct GRDBBoxRepository: BoxRepository {
         }
     }
 
+    func observeCabinet() -> AsyncThrowingStream<[Box], any Error> {
+        let observation = ValueObservation.tracking { db in
+            try BoxRecord.filter(Column("removedAt") == nil && Column("deletedAt") == nil)
+                .order(Column("createdAt"), Column("id")).fetchAll(db).map { try $0.model() }
+        }
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await boxes in observation.values(in: database.writer) { continuation.yield(boxes) }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    /// The location exists and is not deleted: boxes can only live in such a location.
+    private static func locationIsLive(_ id: Location.ID, _ db: Database) throws -> Bool {
+        try LocationRecord.filter(Column("id") == id.uuidString && Column("deletedAt") == nil).fetchCount(db) > 0
+    }
+
+    func cabinetBoxes(gtin: String) async throws -> [Box] {
+        try await database.writer.read { db in
+            try BoxRecord.filter(Column("gtin") == gtin && Column("removedAt") == nil && Column("deletedAt") == nil)
+                .order(Column("createdAt"), Column("id")).fetchAll(db).map { try $0.model() }
+        }
+    }
+
     func insert(_ box: Box) async throws {
         try await database.writer.write { db in
             if try BoxRecord.fetchOne(db, key: box.id.uuidString) != nil { throw RepositoryError.duplicate }
-            guard try LocationRecord.fetchOne(db, key: box.locationID.uuidString) != nil else {
+            guard try Self.locationIsLive(box.locationID, db) else {
                 throw RepositoryError.unknownLocation
             }
             try Self.requireFreeSerial(db, for: box)
@@ -52,7 +82,7 @@ struct GRDBBoxRepository: BoxRepository {
         let now = clock.now
         try await database.writer.write { db in
             guard let stored = try Self.liveRecord(db, box.id) else { throw RepositoryError.notFound }
-            guard try LocationRecord.fetchOne(db, key: box.locationID.uuidString) != nil else {
+            guard try Self.locationIsLive(box.locationID, db) else {
                 throw RepositoryError.unknownLocation
             }
             try Self.requireFreeSerial(db, for: box)

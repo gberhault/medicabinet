@@ -11,6 +11,8 @@ struct LocationRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
     var sortOrder: Int
     var createdAt: Date
     var updatedAt: Date
+    /// Tombstone of a location the user deleted; `nil` for every location the app shows.
+    var deletedAt: Date?
 
     init(_ location: Location) {
         id = location.id.uuidString

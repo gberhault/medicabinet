@@ -37,7 +37,7 @@ generated from `ios/project.yml` and not committed. Never commit keystores or `l
 ```bash
 bash scripts/local-ci.sh                 # everything: shared checks + iOS gate + Android gate (mandatory before a PR)
 bash scripts/local-ci.sh shared|ios|android     # one part
-bash scripts/ios-local-ci.sh             # iOS gate only
+bash scripts/ios-local-ci.sh             # iOS gate only (IOS_SIMULATOR_ID=<udid> pins the simulator)
 bash scripts/android-local-ci.sh         # Android gate only
 
 swift test --package-path ios/Packages/MediCabinetCore      # iOS core tests (fast, no simulator)
@@ -90,6 +90,10 @@ to hide a new finding.
   to**: use `ANDROID_SERIAL=emulator-5554` (the launch script takes an explicit serial for this reason).
 - Launch time: iOS `TEST_RUNNER_MEDICABINET_MEASURE_LAUNCH=1 xcodebuild … -only-testing:MediCabinetUITests/LaunchPerformanceUITests`;
   Android `bash scripts/android-measure-launch.sh [adb-serial]`. Results are recorded in `reports/`.
+- Cabinet timings on a phone: build a side-by-side copy (`./gradlew -PperfBuild=true :app:assembleDebug :app:assembleDebugAndroidTest`,
+  package `com.medicabinet.app.perf`, own data), install **only** that with `adb -s <serial> install -t`, run
+  `adb -s <serial> shell am instrument -w -e medicabinet.measure true -e class com.medicabinet.app.CabinetDeviceMeasurementTest com.medicabinet.app.perf.test/androidx.test.runner.AndroidJUnitRunner`,
+  then uninstall both `.perf` packages. Never use `connectedDebugAndroidTest` on a phone with the real app: Gradle uninstalls the app (and its data) afterwards.
 
 ## Localization
 

@@ -75,7 +75,7 @@ class ExpiryDate private constructor(
         private const val LEAP_CENTURY_CYCLE = 400
         private val SHORT_MONTHS = setOf(4, 6, 9, 11)
 
-        private fun daysInMonth(year: Int, month: Int): Int = when {
+        internal fun daysInMonth(year: Int, month: Int): Int = when {
             month == FEBRUARY -> if (isLeap(year)) LEAP_FEBRUARY else COMMON_FEBRUARY
             month in SHORT_MONTHS -> SHORT_MONTH
             else -> LONG_MONTH

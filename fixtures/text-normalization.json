@@ -1,0 +1,192 @@
+{
+  "formatVersion": 1,
+  "description": "TextNormalizer: `normalize` (NFD, lower-case per code point, drop non-spacing marks, fold oe/ae/ss and typographic apostrophes, collapse White_Space, trim) and `matches` (every whitespace-separated word of the query is a substring of the normalized text; an empty query matches everything). Used by search, location-name uniqueness and name ordering.",
+  "cases": [
+    {
+      "name": "accents, case, ligature and no-break space fold",
+      "kind": "normalize",
+      "input": "Œdème  ÉFFÉRALGAN 500",
+      "normalized": "oedeme efferalgan 500"
+    },
+    {
+      "name": "lower-case French accents",
+      "kind": "normalize",
+      "input": "àâäçéèêëîïôöùûüÿ",
+      "normalized": "aaaceeeeiioouuuy"
+    },
+    {
+      "name": "upper-case French accents",
+      "kind": "normalize",
+      "input": "ÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸ",
+      "normalized": "aaaceeeeiioouuuy"
+    },
+    {
+      "name": "oe and ae ligatures",
+      "kind": "normalize",
+      "input": "Œuf Æon",
+      "normalized": "oeuf aeon"
+    },
+    {
+      "name": "sharp s, lower and capital",
+      "kind": "normalize",
+      "input": "Straße STRAẞE",
+      "normalized": "strasse strasse"
+    },
+    {
+      "name": "typographic apostrophes become plain",
+      "kind": "normalize",
+      "input": "L’aspirine ‘test’",
+      "normalized": "l'aspirine 'test'"
+    },
+    {
+      "name": "no-break and narrow no-break space are spaces",
+      "kind": "normalize",
+      "input": "a b c",
+      "normalized": "a b c"
+    },
+    {
+      "name": "tabs, newlines and edge spaces",
+      "kind": "normalize",
+      "input": "  a\t\tb\nc  ",
+      "normalized": "a b c"
+    },
+    {
+      "name": "Turkish dotted capital I is locale-independent",
+      "kind": "normalize",
+      "input": "İstanbul ISTANBUL",
+      "normalized": "istanbul istanbul"
+    },
+    {
+      "name": "digits and percent are kept",
+      "kind": "normalize",
+      "input": "Ibuprofène 400 mg 5%",
+      "normalized": "ibuprofene 400 mg 5%"
+    },
+    {
+      "name": "emoji are kept",
+      "kind": "normalize",
+      "input": "Kit 💊 voyage",
+      "normalized": "kit 💊 voyage"
+    },
+    {
+      "name": "decomposed accent equals precomposed (decomposed input)",
+      "kind": "normalize",
+      "input": "é",
+      "normalized": "e"
+    },
+    {
+      "name": "decomposed accent equals precomposed (precomposed input)",
+      "kind": "normalize",
+      "input": "é",
+      "normalized": "e"
+    },
+    {
+      "name": "combining mark after a word",
+      "kind": "normalize",
+      "input": "Café",
+      "normalized": "cafe"
+    },
+    {
+      "name": "only whitespace gives an empty string",
+      "kind": "normalize",
+      "input": "   \t ",
+      "normalized": ""
+    },
+    {
+      "name": "empty stays empty",
+      "kind": "normalize",
+      "input": "",
+      "normalized": ""
+    },
+    {
+      "name": "Greek final sigma is not context-dependent",
+      "kind": "normalize",
+      "input": "ΟΔΥΣΣΕΥΣ",
+      "normalized": "οδυσσευσ"
+    },
+    {
+      "name": "every word of the query must match, in any order",
+      "kind": "match",
+      "text": "DOLIPRANE 1000 mg cp",
+      "query": "1000 doli",
+      "matches": true
+    },
+    {
+      "name": "accent-insensitive on the text side",
+      "kind": "match",
+      "text": "EFFÉRALGAN 500 mg",
+      "query": "efferalgan",
+      "matches": true
+    },
+    {
+      "name": "accent-insensitive on the query side",
+      "kind": "match",
+      "text": "Efferalgan",
+      "query": "ÉFFÉRALGAN",
+      "matches": true
+    },
+    {
+      "name": "case-insensitive",
+      "kind": "match",
+      "text": "doliprane",
+      "query": "DOLI",
+      "matches": true
+    },
+    {
+      "name": "a missing word fails the match",
+      "kind": "match",
+      "text": "Doliprane",
+      "query": "doliprane 500",
+      "matches": false
+    },
+    {
+      "name": "a query cannot span a word boundary",
+      "kind": "match",
+      "text": "Vitamine C 500",
+      "query": "ec",
+      "matches": false
+    },
+    {
+      "name": "a repeated query word still matches",
+      "kind": "match",
+      "text": "doliprane",
+      "query": "dol dol",
+      "matches": true
+    },
+    {
+      "name": "ligature in the text, plain query",
+      "kind": "match",
+      "text": "Œdème",
+      "query": "oedeme",
+      "matches": true
+    },
+    {
+      "name": "empty query matches everything",
+      "kind": "match",
+      "text": "X",
+      "query": "",
+      "matches": true
+    },
+    {
+      "name": "whitespace-only query matches everything",
+      "kind": "match",
+      "text": "X",
+      "query": "    ",
+      "matches": true
+    },
+    {
+      "name": "query with extra spaces",
+      "kind": "match",
+      "text": "Doliprane 1000",
+      "query": "  doli    1000 ",
+      "matches": true
+    },
+    {
+      "name": "empty text with a real query",
+      "kind": "match",
+      "text": "",
+      "query": "a",
+      "matches": false
+    }
+  ]
+}

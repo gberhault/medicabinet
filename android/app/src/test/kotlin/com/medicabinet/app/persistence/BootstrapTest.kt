@@ -31,7 +31,7 @@ class BootstrapTest {
     private val name = "bootstrap-${UUID.randomUUID()}.db"
     private val databaseFile: File get() = context.getDatabasePath(name)
     private val backups: File get() = AppPaths(context).backupsDirectory
-    private val createLater = Migration("v3", "CREATE TABLE later (id INTEGER NOT NULL)")
+    private val createLater = Migration("v4", "CREATE TABLE later (id INTEGER NOT NULL)")
 
     @After
     fun cleanUp() {
@@ -104,7 +104,7 @@ class BootstrapTest {
     fun aFailingMigrationLeavesTheDatabaseAsItWasAndKeepsTheBackup() = runBlocking<Unit> {
         val first = ready(bootstrap().run())
         first.locations.insert(Location(name = "Kitchen", createdAt = clock.now()))
-        val broken = Migration("v3", "CREATE TABLE half_done (id INTEGER); THIS IS NOT SQL")
+        val broken = Migration("v4", "CREATE TABLE half_done (id INTEGER); THIS IS NOT SQL")
 
         assertEquals(BootstrapFailure.MIGRATION, failure(bootstrap(Migrations.all + broken).run()))
 
@@ -119,7 +119,7 @@ class BootstrapTest {
         ready(bootstrap().run())
         assertEquals(
             BootstrapFailure.MIGRATION,
-            failure(bootstrap(Migrations.all + Migration("v3", "NOT SQL")).run())
+            failure(bootstrap(Migrations.all + Migration("v4", "NOT SQL")).run())
         )
         ready(bootstrap(Migrations.all + createLater).run())
         assertTrue("later" in tableNames())
@@ -164,7 +164,7 @@ class BootstrapTest {
     fun restorePutsTheBackupBackAsTheDatabase() = runBlocking<Unit> {
         val first = ready(bootstrap().run())
         first.locations.insert(Location(name = "Kitchen", createdAt = clock.now()))
-        val service = BackupService(databaseFile, backups, clock, schemaVersion = 3)
+        val service = BackupService(databaseFile, backups, clock, schemaVersion = Migrations.all.size + 1)
         val backup = checkNotNull(service.backupIfNeeded())
 
         // Damage the live database, then restore.

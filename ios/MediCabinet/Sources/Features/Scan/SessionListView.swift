@@ -8,6 +8,14 @@ struct SessionListView: View {
     @State private var editing: Box?
 
     var body: some View {
+        if model.mode == .remove {
+            RemovalSessionListView(model: model)
+        } else {
+            addedList
+        }
+    }
+
+    private var addedList: some View {
         NavigationStack {
             Group {
                 if model.session.count == 0 {
@@ -106,5 +114,56 @@ struct EditBoxSheet: View {
                 }
             }
         }
+    }
+}
+
+/// The boxes taken out in this Remove session, newest first, each with Undo (R8).
+private struct RemovalSessionListView: View {
+    let model: ScanViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if model.removalSession.count == 0 {
+                    ContentUnavailableView("scan.removal.session.empty", systemImage: "tray")
+                } else {
+                    List(model.removalSession.newestFirst) { box in
+                        HStack {
+                            row(box)
+                            Button("scan.undo") { Task { await model.undoRemoval(box) } }
+                                .buttonStyle(.bordered)
+                                .frame(minHeight: 44)
+                                .accessibilityIdentifier("session.undoRemoval")
+                        }
+                    }
+                    .accessibilityIdentifier("session.list")
+                }
+            }
+            .navigationTitle("scan.removal.session.title")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("scan.session.close") { dismiss() }.accessibilityIdentifier("session.close")
+                }
+            }
+        }
+    }
+
+    private func row(_ box: Box) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(verbatim: box.product.name).font(.headline)
+            if let reason = box.removal?.reason {
+                Text(reason == .usedUp ? "scan.removal.usedUp" : "scan.removal.thrownAway").font(.subheadline)
+            }
+            Label(ScanText.expiry(box.expiry), systemImage: box.expiry == nil ? "exclamationmark.triangle" : "calendar")
+                .font(.footnote)
+            Label(model.locationName(box.locationID), systemImage: "mappin.and.ellipse")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(minHeight: 44)
+        .accessibilityElement(children: .combine)
     }
 }

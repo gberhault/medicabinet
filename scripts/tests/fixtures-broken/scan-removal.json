@@ -1,0 +1,631 @@
+{
+  "formatVersion": 1,
+  "description": "DELIBERATELY WRONG copy used by test-shared-fixtures-break.sh. RemovalPolicy / ScanRemoval: what a scan in Remove mode does. A serial that matches a non-deleted box decides directly (in the cabinet: remove; already removed: alreadyRemoved). Otherwise the candidates are the boxes in the cabinet with the scanned GTIN (when the scan has a serial, only those without a serial), ordered: same expiry as the scan first, then earliest expiry (month precision = last day of the month, unknown last), then createdOrder, then id. None: notInCabinet; one: remove; several: choose. `state` is inCabinet | removed | deleted. Box ids `bN` become UUIDs ending in N (zero-padded) so id order is numeric. The first listed candidate is the one the picker pre-selects.",
+  "cases": [
+    {
+      "name": "serial match in the cabinet is removed directly",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": "S1",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        }
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": "S1",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "serial": "S2",
+          "expiry": {
+            "year": 2026,
+            "month": 1,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 2
+        }
+      ],
+      "expect": {
+        "decision": "notInCabinet"
+      }
+    },
+    {
+      "name": "serial match wins even when the expiry differs",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": "S1",
+        "expiry": {
+          "year": 2030,
+          "month": 1,
+          "day": null
+        }
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": "S1",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2030,
+            "month": 1,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 2
+        }
+      ],
+      "expect": {
+        "decision": "remove",
+        "box": "b1"
+      }
+    },
+    {
+      "name": "serial match already removed says so and removes nothing",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": "S1",
+        "expiry": null
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": "S1",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "removed",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 2
+        }
+      ],
+      "expect": {
+        "decision": "alreadyRemoved",
+        "box": "b1"
+      }
+    },
+    {
+      "name": "a deleted serial match is ignored; the unserialised box is the only candidate",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": "S1",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        }
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": "S1",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "deleted",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 2
+        }
+      ],
+      "expect": {
+        "decision": "remove",
+        "box": "b2"
+      }
+    },
+    {
+      "name": "a serial scan with only boxes carrying other serials is not in the cabinet",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": "S9",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        }
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": "S1",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "serial": "S2",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 2
+        }
+      ],
+      "expect": {
+        "decision": "notInCabinet"
+      }
+    },
+    {
+      "name": "serial scan with no serial match picks among unserialised boxes, same expiry first",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": "S9",
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        }
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2026,
+            "month": 11,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000014",
+          "serial": "S1",
+          "expiry": null,
+          "state": "inCabinet",
+          "createdOrder": 3
+        }
+      ],
+      "expect": {
+        "decision": "choose",
+        "candidates": [
+          "b2",
+          "b1"
+        ]
+      }
+    },
+    {
+      "name": "a scan without a serial considers serialised and unserialised boxes",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": null,
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        }
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": "S1",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2028,
+            "month": 1,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 2
+        }
+      ],
+      "expect": {
+        "decision": "choose",
+        "candidates": [
+          "b1",
+          "b2"
+        ]
+      }
+    },
+    {
+      "name": "exactly one candidate is removed without asking",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": null,
+        "expiry": null
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": "S1",
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "removed",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "deleted",
+          "createdOrder": 3
+        }
+      ],
+      "expect": {
+        "decision": "remove",
+        "box": "b1"
+      }
+    },
+    {
+      "name": "candidates: earliest expiry first, unknown last, then creation order, then id",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": null,
+        "expiry": null
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": null,
+          "state": "inCabinet",
+          "createdOrder": 5
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": 10
+          },
+          "state": "inCabinet",
+          "createdOrder": 4
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2026,
+            "month": 12,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 9
+        },
+        {
+          "id": "b4",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": 10
+          },
+          "state": "inCabinet",
+          "createdOrder": 2
+        },
+        {
+          "id": "b5",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": null,
+          "state": "inCabinet",
+          "createdOrder": 5
+        }
+      ],
+      "expect": {
+        "decision": "choose",
+        "candidates": [
+          "b3",
+          "b4",
+          "b2",
+          "b1",
+          "b5"
+        ]
+      }
+    },
+    {
+      "name": "a month-precise expiry sorts as the last day of its month",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": null,
+        "expiry": null
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": 15
+          },
+          "state": "inCabinet",
+          "createdOrder": 2
+        }
+      ],
+      "expect": {
+        "decision": "choose",
+        "candidates": [
+          "b2",
+          "b1"
+        ]
+      }
+    },
+    {
+      "name": "the same expiry means the same date and the same precision",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": null,
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        }
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": 31
+          },
+          "state": "inCabinet",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 2
+        }
+      ],
+      "expect": {
+        "decision": "choose",
+        "candidates": [
+          "b2",
+          "b1"
+        ]
+      }
+    },
+    {
+      "name": "a scan without an expiry has no same-expiry bucket",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": null,
+        "expiry": null
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2026,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 2
+        }
+      ],
+      "expect": {
+        "decision": "choose",
+        "candidates": [
+          "b2",
+          "b1"
+        ]
+      }
+    },
+    {
+      "name": "other GTINs are ignored",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": null,
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        }
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000021",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "inCabinet",
+          "createdOrder": 1
+        }
+      ],
+      "expect": {
+        "decision": "notInCabinet"
+      }
+    },
+    {
+      "name": "an empty cabinet has nothing to remove",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": null,
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        }
+      },
+      "cabinet": [],
+      "expect": {
+        "decision": "notInCabinet"
+      }
+    },
+    {
+      "name": "a removed box is not a candidate",
+      "scan": {
+        "gtin": "03400930000014",
+        "serial": null,
+        "expiry": {
+          "year": 2027,
+          "month": 3,
+          "day": null
+        }
+      },
+      "cabinet": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "serial": null,
+          "expiry": {
+            "year": 2027,
+            "month": 3,
+            "day": null
+          },
+          "state": "removed",
+          "createdOrder": 1
+        }
+      ],
+      "expect": {
+        "decision": "notInCabinet"
+      }
+    }
+  ]
+}
