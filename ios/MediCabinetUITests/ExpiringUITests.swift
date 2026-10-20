@@ -21,12 +21,20 @@ final class ExpiringUITests: XCTestCase {
     @discardableResult
     private func launch(seeded: Bool = true, openExpiring: Bool = true, extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITestingTemporaryStorage", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
+        app.launchArguments = [
+            "-UITestingTemporaryStorage", "-UITestNotifications", "notDetermined",
+            "-AppleLanguages", "(en)", "-AppleLocale", "en_US"
+        ] + extra
         if seeded { app.launchEnvironment["MEDICABINET_UI_TEST_CABINET"] = seed }
         app.launch()
         let bar = app.tabBars.firstMatch
         XCTAssertTrue(bar.waitForExistence(timeout: 15))
-        if openExpiring { bar.buttons["Expiring"].tap() }
+        if openExpiring {
+            bar.buttons["Expiring"].tap()
+            // The reminder offer sits above the list: these tests are about the list (ReminderUITests cover the card).
+            let notNow = app.buttons["reminder.card.notNow"]
+            if notNow.waitForExistence(timeout: 10) { notNow.tap() }
+        }
         return app
     }
 

@@ -5,7 +5,10 @@ import XCTest
 enum UITestApp {
     static func launch(extraArguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITestingTemporaryStorage", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extraArguments
+        app.launchArguments = [
+            "-UITestingTemporaryStorage", "-UITestNotifications", "notDetermined",
+            "-AppleLanguages", "(en)", "-AppleLocale", "en_US"
+        ] + extraArguments
         app.launch()
         return app
     }

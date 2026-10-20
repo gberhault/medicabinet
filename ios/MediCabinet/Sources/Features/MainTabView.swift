@@ -6,14 +6,17 @@ struct MainTabView: View {
     @State private var undoCenter: UndoCenter
     /// Owned here, not by the Expiring tab, so the tab badge is live whichever tab is selected.
     @State private var expiring: ExpiringViewModel
+    @State private var reminder: ReminderModel
     @Environment(\.scenePhase) private var scenePhase
 
-    init(environment: AppEnvironment, router: TabRouter = TabRouter()) {
+    init(environment: AppEnvironment, router: TabRouter = TabRouter(), notifications: any NotificationClient) {
         self.environment = environment
         let undo = UndoCenter()
         _router = State(initialValue: router)
         _undoCenter = State(initialValue: undo)
         _expiring = State(initialValue: ExpiringViewModel(environment: environment, undo: undo))
+        _reminder = State(initialValue: ReminderModel(
+            preferences: environment.preferences, client: notifications, openSystemSettings: Self.openSystemSettings))
     }
 
     var body: some View {
@@ -29,7 +32,7 @@ struct MainTabView: View {
                 .tabItem { Label("tab.cabinet", systemImage: "cross.case") }
                 .tag(AppTab.cabinet)
 
-            ExpiringView(model: expiring)
+            ExpiringView(model: expiring, reminder: reminder)
                 .undoBanner()
                 .tabItem {
                     Label("tab.expiring", systemImage: "calendar.badge.exclamationmark")
@@ -44,12 +47,22 @@ struct MainTabView: View {
                 .tag(AppTab.settings)
         }
         .environment(\.undoCenter, undoCenter)
+        .environment(\.reminderModel, reminder)
         .animation(.default, value: undoCenter.pending?.id)
         // The badge and the list follow the cabinet from launch, whichever tab is selected; a retry restarts it.
         .task(id: expiring.attempt) { await expiring.observe() }
+        // The permission can be changed in the system settings: read it at launch and whenever the app is back.
+        .task { await reminder.refresh() }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { expiring.refreshToday() }
+            guard phase == .active else { return }
+            expiring.refreshToday()
+            Task { await reminder.refresh() }
         }
+    }
+
+    @MainActor private static func openSystemSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
 
     /// The badge in words ("3 boxes need attention"); nothing when no box needs attention.

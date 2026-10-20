@@ -3,6 +3,7 @@ import SwiftUI
 struct RootView: View {
     let model: BootstrapModel
     let router: TabRouter
+    let notifications: any NotificationClient
 
     var body: some View {
         Group {
@@ -17,7 +18,7 @@ struct RootView: View {
                     Task { await model.start() }
                 }
             case .ready(let environment):
-                MainTabView(environment: environment, router: router)
+                MainTabView(environment: environment, router: router, notifications: notifications)
                     .environment(\.appEnvironment, environment)
             }
         }

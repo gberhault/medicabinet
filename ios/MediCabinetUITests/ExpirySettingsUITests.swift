@@ -14,7 +14,10 @@ final class ExpirySettingsUITests: XCTestCase {
 
     private func launch(extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITestingTemporaryStorage", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
+        app.launchArguments = [
+            "-UITestingTemporaryStorage", "-UITestNotifications", "notDetermined",
+            "-AppleLanguages", "(en)", "-AppleLocale", "en_US"
+        ] + extra
         app.launchEnvironment["MEDICABINET_UI_TEST_CABINET"] = seed
         app.launch()
         XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 15))

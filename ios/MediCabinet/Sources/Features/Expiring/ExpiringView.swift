@@ -5,6 +5,7 @@ import SwiftUI
 /// listed. The rows open nothing (editing a box's date comes with the box detail).
 struct ExpiringView: View {
     let model: ExpiringViewModel
+    let reminder: ReminderModel
 
     var body: some View {
         NavigationStack {
@@ -35,6 +36,9 @@ struct ExpiringView: View {
     @ViewBuilder private var list: some View {
         if let overview = model.overview {
             List {
+                if reminder.showsCard {
+                    Section { ReminderCard(model: reminder) }
+                }
                 if overview.isEmpty {
                     Section {
                         ContentUnavailableView {

@@ -4,10 +4,11 @@ import SwiftUI
 struct MediCabinetApp: App {
     @State private var model = BootstrapModel(run: AppLaunch.bootstrapRun)
     @State private var router = TabRouter()
+    private let notifications = AppLaunch.notificationClient()
 
     var body: some Scene {
         WindowGroup {
-            RootView(model: model, router: router)
+            RootView(model: model, router: router, notifications: notifications)
         }
     }
 }
@@ -15,6 +16,23 @@ struct MediCabinetApp: App {
 enum AppLaunch {
     /// UI tests pass this argument so they never touch the real cabinet.
     static let temporaryStorageArgument = "-UITestingTemporaryStorage"
+
+    /// UI tests: `-UITestNotifications <notDetermined|denied|authorized|refuseOnPrompt>` replaces the system's
+    /// notification center with one in memory (no system prompt, nothing posted). Honoured only with
+    /// `-UITestingTemporaryStorage`.
+    static let notificationsArgument = "-UITestNotifications"
+
+    static func notificationClient(arguments: [String] = ProcessInfo.processInfo.arguments) -> any NotificationClient {
+        guard arguments.contains(temporaryStorageArgument),
+              let index = arguments.firstIndex(of: notificationsArgument), index + 1 < arguments.count
+        else { return LiveNotificationClient() }
+        switch arguments[index + 1] {
+        case "denied": return InMemoryNotificationClient(status: .denied)
+        case "authorized": return InMemoryNotificationClient(status: .authorized)
+        case "refuseOnPrompt": return InMemoryNotificationClient(status: .notDetermined, grantsOnRequest: false)
+        default: return InMemoryNotificationClient(status: .notDetermined)
+        }
+    }
 
     @Sendable static func bootstrapRun() async -> BootstrapState {
         do {
