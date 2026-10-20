@@ -15,7 +15,12 @@ final class BoxDetailViewModel {
     var actionFailed = false
     /// The "expiring soon" window in force; it follows Settings, so the status below is never stale.
     private(set) var window: ExpiryWindow
+    /// The official BDPM page of the box's medicine, once its code has been looked up; `nil` while looking up and when
+    /// there is none to show (no code, a code the reference does not know, a withdrawn presentation).
+    private(set) var leaflet: URL?
 
+    @ObservationIgnored private var leafletGTIN: String?
+    @ObservationIgnored private var leafletLookup: Task<Void, Never>?
     private let environment: AppEnvironment
     private let undo: UndoCenter?
 
@@ -32,6 +37,7 @@ final class BoxDetailViewModel {
         async let locations: Void = followLocations()
         async let window: Void = followWindow()
         _ = await (boxes, locations, window)
+        leafletLookup?.cancel()
     }
 
     private func followWindow() async {
@@ -45,6 +51,7 @@ final class BoxDetailViewModel {
             for try await cabinet in environment.boxes.observeCabinet() {
                 box = cabinet.first { $0.id == boxID }
                 isGone = box == nil
+                refreshLeaflet(for: box?.product.gtin)
             }
         } catch {
             guard !(error is CancellationError) else { return }
@@ -62,6 +69,27 @@ final class BoxDetailViewModel {
             guard !(error is CancellationError) else { return }
             Log.persistence.error("Observing the locations failed: \(String(describing: type(of: error)))")
         }
+    }
+
+    /// Looks the code up again only when it changed: an edit of the box (same code) does not query the reference. The
+    /// lookup runs off the main actor (the reference source is an actor) and never blocks the box's own observation.
+    private func refreshLeaflet(for gtin: String?) {
+        guard gtin != leafletGTIN else { return }
+        leafletGTIN = gtin
+        leafletLookup?.cancel()
+        leaflet = nil
+        guard let gtin else { return }
+        let reference = environment.reference
+        leafletLookup = Task { [weak self] in
+            let product = try? await reference.product(gtin: gtin)
+            guard !Task.isCancelled, let self else { return }
+            self.leaflet = LeafletLink.address(for: product).flatMap { URL(string: $0) }
+        }
+    }
+
+    /// The system refused to open the page: say so, with no Undo.
+    func openLeafletFailed() {
+        undo?.show(String(localized: "box.leaflet.openFailed"))
     }
 
     // MARK: What the screen shows

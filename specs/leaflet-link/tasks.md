@@ -47,7 +47,7 @@ order avoids conflicts. Rebase onto `origin/develop` (never merge it) whenever d
 
 ## iOS
 
-- [ ] **T3** `[ios]` **View model.** `BoxDetailViewModel.leaflet` and `openLeafletFailed()` (design §4.2). Unit tests:
+- [x] **T3** `[ios]` **View model.** `BoxDetailViewModel.leaflet` and `openLeafletFailed()` (design §4.2). Unit tests:
   known GTIN → URL; unknown, withdrawn, no GTIN, throwing lookup → `nil`; an update of the same box does not look up
   again (counting `ProductLookup` fake); the failure message is shown. *(L1, L3, L4, L5)*
 - [ ] **T4** `[ios]` **View and strings.** The link section (design §4.3) and the four strings (fr + en). Extend
