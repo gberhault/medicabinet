@@ -65,6 +65,7 @@ final class ExportViewModel {
     /// Continue after the warning: one snapshot, encoded and validated, written to `tmp/Export` (E3, E4, E6).
     func confirm() async {
         state = .writing
+        announce(TransferText.string("transfer.export.writing"))
         let name = CabinetTransfer.fileName(for: clock.now, in: timeZone())
         let (transfer, files) = (transfer, files)
         do {

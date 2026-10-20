@@ -88,7 +88,7 @@ import Testing
         #expect(kit.backupFiles().count == 1)
         #expect(kit.backupFiles().first?.hasPrefix("pre-import-") == true)
         #expect(revision.value == 1)
-        #expect(recorder.messages.count == 1)
+        #expect(recorder.messages == [TransferText.string("transfer.import.backingUp"), TransferText.string("transfer.import.done")])
     }
 
     @Test func replaceIsIgnoredBeforeThePreview() async throws {
@@ -180,7 +180,7 @@ import Testing
         let model = model(kit, source: .file(try file(kit, Array("not json".utf8))), recorder: recorder)
         await model.start()
         #expect(model.stage == .failed(.notArchive))
-        #expect(recorder.messages.count == 1)
+        #expect(recorder.messages == [TransferText.string("transfer.error.notArchive")])
     }
 
     @Test func aFileFromANewerAppAsksForAnUpdate() async throws {

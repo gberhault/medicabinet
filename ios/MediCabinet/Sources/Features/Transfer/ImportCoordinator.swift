@@ -181,6 +181,11 @@ struct ImportBusyModifier: ViewModifier {
             }
             .onAppear { coordinator?.beginBusy(token) }
             .onDisappear { coordinator?.endBusy(token) }
+            .onChange(of: coordinator?.hasWaitingFile == true) { _, waiting in
+                if waiting {
+                    AccessibilityNotification.Announcement(TransferText.string("transfer.import.pendingBanner")).post()
+                }
+            }
     }
 }
 

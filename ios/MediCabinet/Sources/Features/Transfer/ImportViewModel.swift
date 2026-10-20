@@ -121,6 +121,7 @@ final class ImportViewModel {
             return
         }
         stage = .applying(backingUp: preview.willBackUp)
+        announce(TransferText.string(preview.willBackUp ? "transfer.import.backingUp" : "transfer.import.applying"))
         do {
             let result = try await transfer.apply(preview, reason: request.reason)
             if result.pruneFailed { Log.archive.error("Old automatic backups could not be deleted") }

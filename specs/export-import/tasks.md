@@ -132,10 +132,14 @@ independent of each other.
   `BackupsView` (newest first, reason, count, unreadable row, empty state) → restore through
   the import flow (`beforeRestore`). *Tests:* view-model; UI test: import then restore
   brings the first cabinet back.
-- [ ] **T16 — iOS accessibility pass** `[ios]` (X3, X4)
+- [x] **T16 — iOS accessibility pass** `[ios]` (X3, X4)
   Accessibility text sizes, dark mode, VoiceOver labels and announcements for progress and
   results, 44 pt targets, statuses not by colour alone. *Tests:* UI tests at accessibility
   sizes.
+  Done 2026-10-20: "Replace my cabinet" uses a darker red (`DestructiveFill`, 5.6:1 light, 5.4:1 dark
+  with white) because the system red under white text is 3.6:1; the result's Done is pinned like the
+  preview's buttons. VoiceOver hears each long step (making the file, backing up / importing), each
+  result and failure, and the waiting-file banner; the flow is a modal container over the hidden tabs.
 
 ## 5. Android app (#28, #29)
 

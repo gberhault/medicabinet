@@ -79,7 +79,7 @@ import Testing
 
         #expect(model.state == .idle)
         #expect(!FileManager.default.fileExists(atPath: url.path))
-        #expect(recorder.messages.isEmpty)
+        #expect(recorder.messages == [TransferText.string("transfer.export.writing")], "progress only, no saved message")
     }
 
     @Test func savingToFilesIsConfirmedAndTheTemporaryFileStillGoes() async throws {
@@ -95,7 +95,7 @@ import Testing
 
         #expect(model.state == .saved)
         #expect(!FileManager.default.fileExists(atPath: url.path))
-        #expect(recorder.messages == ["File saved"] || recorder.messages == ["Fichier enregistré"])
+        #expect(recorder.messages.last == TransferText.string("transfer.export.saved"))
     }
 
     @Test func sharingWithAnotherAppEndsWithoutASavedMessage() async throws {
@@ -121,7 +121,7 @@ import Testing
 
         await model.confirm()
         #expect(model.state == .failed(.file))
-        #expect(recorder.messages.count == 1)
+        #expect(recorder.messages.last == TransferText.string("transfer.export.failed"))
 
         try FileManager.default.removeItem(at: parent)
         await model.retry()

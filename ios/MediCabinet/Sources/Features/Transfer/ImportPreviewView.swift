@@ -40,7 +40,8 @@ struct ImportPreviewView: View {
                         .frame(maxWidth: .infinity, minHeight: 44)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(.red)
+                // A darker red than the system's, so the white label meets 4.5:1 in light and dark mode.
+                .tint(Color("DestructiveFill"))
                 .accessibilityIdentifier("transfer.import.replace")
                 Button(role: .cancel, action: onCancel) {
                     Text("transfer.import.cancel").frame(maxWidth: .infinity, minHeight: 44)
@@ -109,15 +110,15 @@ struct ImportResultView: View {
                         .accessibilityIdentifier("transfer.import.done.backupKept")
                 }
             }
-            Section {
-                Button(action: onClose) {
-                    Text("transfer.import.done.close").frame(maxWidth: .infinity, minHeight: 44)
-                }
-                .buttonStyle(.borderedProminent)
-                .accessibilityIdentifier("transfer.import.done.close")
+        }
+        .safeAreaInset(edge: .bottom) {
+            Button(action: onClose) {
+                Text("transfer.import.done.close").frame(maxWidth: .infinity, minHeight: 44)
             }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+            .buttonStyle(.borderedProminent)
+            .accessibilityIdentifier("transfer.import.done.close")
+            .padding()
+            .background(.bar)
         }
     }
 }
