@@ -38,7 +38,7 @@ each other once T2 and T4 are done.
     coordinates; stroke attributes; `translate`/`scale`/`rotate(a cx cy)` → nested groups in
     SVG order; monochrome = alpha-only paints; the output is identical when run twice. Plus a
     `check` test that fails on an edited XML.
-- [ ] **T3 — Use the icon in the Android app** `[android]` (A1, A2, A4, A5; §3, §9)
+- [x] **T3 — Use the icon in the Android app** `[android]` (A1, A2, A4, A5; §3, §9)
   - In `AndroidManifest.xml`, set `android:icon="@mipmap/ic_launcher"` and
     `android:roundIcon="@mipmap/ic_launcher_round"`. `check` fails on any `@android:drawable`
     icon.

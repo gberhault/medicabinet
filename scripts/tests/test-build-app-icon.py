@@ -171,6 +171,9 @@ class AndroidOutputs(unittest.TestCase):
         self.root = Path(self._tmp.name)
         (self.root / "design" / "app-icon").mkdir(parents=True)
         shutil.copy(ROOT / icon.SOURCE_RELATIVE, self.root / icon.SOURCE_RELATIVE)
+        self.manifest = self.root / icon.MANIFEST_RELATIVE
+        self.manifest.parent.mkdir(parents=True)
+        shutil.copy(ROOT / icon.MANIFEST_RELATIVE, self.manifest)
         icon.command_build(self.root)
 
     def test_build_writes_every_android_file_and_check_passes(self):
@@ -197,6 +200,24 @@ class AndroidOutputs(unittest.TestCase):
         with self.assertRaises(icon.IconError) as ctx:
             icon.command_check(self.root)
         self.assertIn("-night", str(ctx.exception))
+
+    def assert_manifest_rejected(self, old, new, *needles):
+        self.manifest.write_text(self.manifest.read_text().replace(old, new))
+        with self.assertRaises(icon.IconError) as ctx:
+            icon.command_check(self.root)
+        for needle in needles:
+            self.assertIn(needle, str(ctx.exception))
+
+    def test_check_fails_when_the_manifest_goes_back_to_a_system_icon(self):
+        self.assert_manifest_rejected('android:icon="@mipmap/ic_launcher"',
+                                      'android:icon="@android:drawable/sym_def_app_icon"', "android:icon")
+
+    def test_check_fails_when_the_manifest_has_no_round_icon(self):
+        self.assert_manifest_rejected('android:roundIcon="@mipmap/ic_launcher_round"', "", "android:roundIcon")
+
+    def test_check_fails_when_the_round_icon_is_a_system_icon(self):
+        self.assert_manifest_rejected('android:roundIcon="@mipmap/ic_launcher_round"',
+                                      'android:roundIcon="@android:drawable/sym_def_app_icon"', "android:roundIcon")
 
     def test_check_fails_when_the_source_changes_without_a_rebuild(self):
         source = self.root / icon.SOURCE_RELATIVE
