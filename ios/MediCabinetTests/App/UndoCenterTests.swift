@@ -55,6 +55,15 @@ private final class Counter {
         #expect(counter.value == 10)
     }
 
+    @Test func aPlainMessageHasNoUndoAndPerformingItJustClearsIt() async {
+        let center = UndoCenter()
+        center.show("Can't restore")
+        #expect(center.pending?.message == "Can't restore")
+        #expect(center.pending?.undo == nil)
+        await center.perform()
+        #expect(center.pending == nil)
+    }
+
     @Test func theMessageExpiresAfterTheDisplayDuration() async {
         let gate = Gate()
         let center = UndoCenter(sleep: { _ in await gate.wait() })

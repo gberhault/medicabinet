@@ -93,7 +93,7 @@ iOS and Android UI blocks of each section are independent of each other.
 
 ## 4. Cabinet list (#19)
 
-- [ ] **T19 — iOS Cabinet tab** `[ios]` [#19] (C1–C10, S1–S7, P1–P3; §5) — **blocked by #23**
+- [x] **T19 — iOS Cabinet tab** `[ios]` [#19] (C1–C10, S1–S7, P1–P3; §5)
   `CabinetView`, `CabinetViewModel`, `CabinetFilterBar`, `ProductBoxesView`,
   `ExpiryStatusLabel`; `AppEnvironment.expiryStatus` bound to #23, `categoryOrder = []`;
   `MainTabView` selection for the empty-state button; day-change refresh.
@@ -108,12 +108,12 @@ iOS and Android UI blocks of each section are independent of each other.
 
 ## 5. Box detail (#20)
 
-- [ ] **T21 — iOS box detail and edit** `[ios]` [#20] (B1–B3, B5–B8; §5, §7.3, §7.4)
+- [x] **T21 — iOS box detail and edit** `[ios]` [#20] (B1–B3, B5–B8; §5, §7.3, §7.4)
   `BoxDetailView`, `BoxDetailViewModel`, `BoxEditView` (#12 `ExpiryField`). *Tests:*
   view-model (edit/save/cancel, opened toggle, used up / thrown away → Undo restores
   everything, mistake → Undo, `duplicateSerial` message, pops when the box leaves); UI test.
 - [x] **T22 — Android box detail and edit** `[android]` [#20] (as T21)
-- [ ] **T23 — Category editing** `[ios]` `[android]` [#20] (B4; §3.4) — **blocked by #10**
+- [x] **T23 — Category editing** `[ios]` `[android]` [#20] (B4; §3.4)
   `BoxEdit.category` / `resetCategory()` in both cores (tests first), category picker on both
   platforms, `categoryOrder` bound to the taxonomy. (T23a iOS, T23b Android.)
 

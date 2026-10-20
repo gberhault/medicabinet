@@ -13,13 +13,20 @@ struct UndoBanner: View {
                     .font(.subheadline)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityIdentifier("undo.message")
-                Button("undo.action") {
-                    Task { await center.perform() }
+                if pending.undo != nil {
+                    Button("undo.action") {
+                        Task { await center.perform() }
+                    }
+                    .buttonStyle(.bordered)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .accessibilityIdentifier("undo.action")
+                    .accessibilityFocused($buttonFocused)
+                } else {
+                    Button("locations.changeFailed.ok") { center.dismiss() }
+                        .buttonStyle(.bordered)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .accessibilityIdentifier("undo.dismiss")
                 }
-                .buttonStyle(.bordered)
-                .frame(minWidth: 44, minHeight: 44)
-                .accessibilityIdentifier("undo.action")
-                .accessibilityFocused($buttonFocused)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)

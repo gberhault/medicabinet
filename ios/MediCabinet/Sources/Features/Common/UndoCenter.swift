@@ -8,7 +8,8 @@ final class UndoCenter {
     struct Pending: Identifiable {
         let id = UUID()
         let message: String
-        let undo: @MainActor @Sendable () async -> Void
+        /// `nil` for a plain message with no Undo button (an undo that could not be done).
+        let undo: (@MainActor @Sendable () async -> Void)?
     }
 
     /// Matches Android's long Snackbar.
@@ -28,11 +29,17 @@ final class UndoCenter {
         startTimer()
     }
 
+    /// A message with no action, for what an Undo could not restore.
+    func show(_ message: String) {
+        pending = Pending(message: message, undo: nil)
+        startTimer()
+    }
+
     /// Runs the pending undo, once. The message goes away first, so a second tap does nothing.
     func perform() async {
         guard let current = pending else { return }
         dismiss()
-        await current.undo()
+        await current.undo?()
     }
 
     func dismiss() {

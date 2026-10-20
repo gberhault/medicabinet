@@ -24,11 +24,17 @@ enum AppLaunch {
             } else {
                 directory = try AppDatabase.defaultDirectory()
             }
-            return await Bootstrap(
+            let state = await Bootstrap(
                 directory: directory,
                 defaultLocationName: String(localized: "location.default.name"),
                 referenceURL: Bundle.main.url(forResource: "reference", withExtension: "sqlite")
             ).run()
+            if case .ready(let environment) = state {
+                let process = ProcessInfo.processInfo
+                await UITestSeed.apply(
+                    UITestSeed.items(from: process.environment, arguments: process.arguments), to: environment)
+            }
+            return state
         } catch {
             return .failed(.storage)
         }

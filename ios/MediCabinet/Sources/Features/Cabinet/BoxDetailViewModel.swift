@@ -1,0 +1,135 @@
+import MediCabinetCore
+import Observation
+import SwiftUI
+
+/// Presentation state of a box's detail screen: the box and the locations follow the repositories; **Opened** saves
+/// at once; taking a box out (used up, thrown away, added by mistake) writes, leaves the screen and offers Undo.
+@MainActor @Observable
+final class BoxDetailViewModel {
+    let boxID: Box.ID
+    private(set) var box: Box?
+    private(set) var locations: [Location] = []
+    /// The box is no longer in the cabinet (taken out here, or elsewhere): the screen goes away.
+    private(set) var isGone = false
+    /// A write failed and nothing was changed: the screen shows an alert.
+    var actionFailed = false
+
+    private let environment: AppEnvironment
+    private let undo: UndoCenter?
+
+    init(boxID: Box.ID, environment: AppEnvironment, undo: UndoCenter?) {
+        self.boxID = boxID
+        self.environment = environment
+        self.undo = undo
+    }
+
+    /// Follows the box and the locations until the screen goes away.
+    func observe() async {
+        async let boxes: Void = followBox()
+        async let locations: Void = followLocations()
+        _ = await (boxes, locations)
+    }
+
+    private func followBox() async {
+        do {
+            for try await cabinet in environment.boxes.observeCabinet() {
+                box = cabinet.first { $0.id == boxID }
+                isGone = box == nil
+            }
+        } catch {
+            guard !(error is CancellationError) else { return }
+            Log.persistence.error("Observing a box failed: \(String(describing: type(of: error)))")
+            actionFailed = true
+        }
+    }
+
+    private func followLocations() async {
+        do {
+            for try await current in environment.locations.observeAll() {
+                locations = current
+            }
+        } catch {
+            guard !(error is CancellationError) else { return }
+            Log.persistence.error("Observing the locations failed: \(String(describing: type(of: error)))")
+        }
+    }
+
+    // MARK: What the screen shows
+
+    var status: ExpiryStatus? {
+        box.map { environment.expiryStatus(of: $0.expiry, on: environment.today()) }
+    }
+
+    var locationName: String {
+        box.flatMap { box in locations.first { $0.id == box.locationID }?.name } ?? ""
+    }
+
+    // MARK: Changes
+
+    func setOpened(_ opened: Bool) async {
+        guard var edited = box, edited.isOpened != opened else { return }
+        edited.isOpened = opened
+        do {
+            try await environment.boxes.update(edited)
+            box = edited
+        } catch {
+            fail(error)
+        }
+    }
+
+    /// Used up or thrown away: a stock movement dated now, then Undo.
+    func takeOut(_ reason: RemovalReason) async {
+        guard let box else { return }
+        let boxes = environment.boxes
+        let id = box.id
+        do {
+            try await boxes.markRemoved(id: id, reason: reason, at: environment.clock.now)
+        } catch {
+            fail(error)
+            return
+        }
+        isGone = true
+        let key = reason == .usedUp ? "undo.usedUp" : "undo.thrownAway"
+        offerUndo(CabinetText.undoMessage(key, name: box.product.name)) { try await boxes.undoRemoval(id: id) }
+    }
+
+    /// Added by mistake: the box is deleted without being counted as used or thrown away, then Undo.
+    func deleteAsMistake() async {
+        guard let box else { return }
+        let boxes = environment.boxes
+        let id = box.id
+        do {
+            try await boxes.delete(id: id)
+        } catch {
+            fail(error)
+            return
+        }
+        isGone = true
+        offerUndo(CabinetText.undoMessage("undo.deleted", name: box.product.name)) { try await boxes.undoDelete(id: id) }
+    }
+
+    private func offerUndo(_ message: String, restore: @escaping @Sendable () async throws -> Void) {
+        guard let undo else { return }
+        undo.show(message) { [weak undo] in
+            do {
+                try await restore()
+            } catch RepositoryError.duplicateSerial {
+                // Another box took this serial number meanwhile: say why it cannot come back.
+                undo?.show(String(localized: "undo.restoreFailed"))
+            } catch {
+                Log.persistence.error("Undo failed: \(String(describing: type(of: error)))")
+                undo?.show(String(localized: "box.error"))
+            }
+        }
+    }
+
+    func makeEditor() -> BoxEditViewModel? {
+        guard let box else { return nil }
+        return BoxEditViewModel(box: box, locations: locations, boxes: environment.boxes, lookup: environment.reference)
+    }
+
+    private func fail(_ error: any Error) {
+        Log.persistence.error("A box change failed: \(String(describing: type(of: error)))")
+        actionFailed = true
+    }
+}
