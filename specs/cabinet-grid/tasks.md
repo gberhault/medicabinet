@@ -42,7 +42,7 @@ change would otherwise break the other platform's suite.
   - Add `clearLocation()`, `clearStatus()` and `activeFilterCount`, and remove `activeFilterParts`.
   - Unit tests: the VM order uses the injected labels; the fr and en bundle labels give the order in the fixture; the
     single-filter clear methods; `activeFilterCount`. *(G2, F4)*
-- [ ] **T9** `[ios]` **Header.**
+- [x] **T9** `[ios]` **Header.**
   - Add `CabinetHeader`: the title and count, the custom search field, the filter `Menu` (Location and Expiry
     sections, *Clear filters*), and the removable chips.
   - Hide the root navigation bar, and delete `CabinetFilterBar.swift`.

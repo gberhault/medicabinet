@@ -180,20 +180,6 @@ final class CabinetViewModel {
         (filter.locationID == nil ? 0 : 1) + (filter.status == nil ? 0 : 1)
     }
 
-    /// The active filters as short texts (the search text, the location name, the status).
-    var activeFilterParts: [String] {
-        var parts: [String] = []
-        let query = TextNormalizer.trimmed(filter.query)
-        if !query.isEmpty { parts.append("\u{201C}\(query)\u{201D}") }
-        if let id = filter.locationID, let location = locations.first(where: { $0.id == id }) {
-            parts.append(location.name)
-        }
-        if let status = filter.status {
-            parts.append(String(localized: String.LocalizationValue(ExpiryStatusStyle.key(status))))
-        }
-        return parts
-    }
-
     func locationName(_ id: Location.ID) -> String {
         locations.first { $0.id == id }?.name ?? ""
     }

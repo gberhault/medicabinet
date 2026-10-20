@@ -825,18 +825,42 @@
         }
       }
     },
-    "cabinet.filter.active": {
+    "cabinet.filter.activeCount": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Filters: %1$@"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld active filter"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld active filters"
+                }
+              }
+            }
           }
         },
         "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Filtres : %1$@"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld filtre actif"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld filtres actifs"
+                }
+              }
+            }
           }
         }
       }
@@ -873,6 +897,22 @@
         }
       }
     },
+    "cabinet.filter.button": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filters"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtres"
+          }
+        }
+      }
+    },
     "cabinet.filter.clear": {
       "localizations": {
         "en": {
@@ -901,6 +941,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lieu"
+          }
+        }
+      }
+    },
+    "cabinet.filter.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove filter %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer le filtre %1$@"
           }
         }
       }
@@ -1021,6 +1077,22 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "cabinet.search.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear search"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer la recherche"
           }
         }
       }

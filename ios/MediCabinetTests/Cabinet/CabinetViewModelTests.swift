@@ -141,7 +141,7 @@ import Testing
         running.model.searchText = "zzz"
         #expect(await eventually { running.model.hasNoResults })
         #expect(!running.model.isEmptyCabinet, "a cabinet with boxes is not the empty cabinet")
-        #expect(running.model.activeFilterParts == ["\u{201C}zzz\u{201D}"])
+        #expect(running.model.filter.isActive)
 
         running.model.clearFilters()
         #expect(running.model.searchText.isEmpty)
@@ -158,7 +158,7 @@ import Testing
         running.model.searchText = "   "
         #expect(await eventually { running.model.filter.query == "   " })
         #expect(await eventually { rowNames(running.model) == ["Doliprane"] })
-        #expect(running.model.activeFilterParts.isEmpty)
+        #expect(running.model.activeFilterCount == 0)
     }
 
     // MARK: Location and status filters
@@ -173,7 +173,7 @@ import Testing
         #expect(await eventually { running.model.locations.count == 2 })
         running.model.selectLocation(car.id)
         #expect(await eventually { running.model.snapshot.boxCount == 1 })
-        #expect(running.model.activeFilterParts == ["Car"])
+        #expect(running.model.activeFilterCount == 1)
         #expect(running.model.locationName(car.id) == "Car")
     }
 
@@ -206,7 +206,7 @@ import Testing
         #expect(await eventually { running.model.snapshot.boxCount == 1 })
     }
 
-    @Test func filtersCombineAndTheSummaryListsThem() async throws {
+    @Test func filtersCombineAndEachOneCounts() async throws {
         let kit = try await CabinetTestKit()
         let car = try await kit.locations.create(named: "Car")
         try await kit.add("Doliprane", in: car, expiryInDays: -1, serial: "S1")
@@ -217,8 +217,7 @@ import Testing
         running.model.selectLocation(car.id)
         running.model.selectStatus(.expired)
         #expect(await eventually { running.model.snapshot.boxCount == 1 })
-        #expect(running.model.activeFilterParts.count == 2)
-        #expect(running.model.activeFilterParts.first == "Car")
+        #expect(running.model.activeFilterCount == 2)
     }
 
     // MARK: Day change

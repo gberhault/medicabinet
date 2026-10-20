@@ -12,6 +12,16 @@ enum CabinetText {
         plural("cabinet.row.boxes", count, bundle: bundle, locale: locale)
     }
 
+    /// "1 active filter" / "2 active filters": the filter button's spoken value.
+    static func activeFilters(_ count: Int, bundle: Bundle = .main, locale: Locale = .current) -> String {
+        plural("cabinet.filter.activeCount", count, bundle: bundle, locale: locale)
+    }
+
+    /// "Remove filter Expired": the spoken label of a filter chip.
+    static func removeFilter(_ filter: String, bundle: Bundle = .main) -> String {
+        String(format: bundle.localizedString(forKey: "cabinet.filter.remove", value: nil, table: nil), filter)
+    }
+
     /// The code shown on a box: the 13 digits (CIP13 / EAN-13) when the GTIN-14 starts with `0`, else the GTIN-14;
     /// "No code" when the box has none.
     static func code(gtin: String?, bundle: Bundle = .main) -> String {

@@ -3,39 +3,17 @@ import XCTest
 /// The Cabinet tab, box detail and edit on a seeded cabinet (English), through the real screens.
 @MainActor
 final class CabinetUITests: XCTestCase {
-    /// Statuses are relative to today, so the seed never rots: Doliprane x2 (one expired, one ok), Spasfon (ok),
-    /// a thermometer with no expiry, Gaviscon in the car (expiring soon).
-    private let seed = """
-    [{"name":"Doliprane 1000","gtin":"03400930000014","category":"pain-fever","expiryInDays":-5,"serial":"A1"},
-     {"name":"Doliprane 1000","gtin":"03400930000014","category":"pain-fever","expiryInDays":500,"serial":"A2","opened":true,"lot":"LOT9"},
-     {"name":"Spasfon","gtin":"03400930000021","category":"digestion","expiryInDays":400},
-     {"name":"Thermometer","category":"first-aid"},
-     {"name":"Gaviscon","gtin":"03400930000038","category":"digestion","expiryInDays":20,"location":"Car"}]
-    """
-
     override func setUp() {
         continueAfterFailure = false
     }
 
     private func launch(seeded: Bool = true, extra: [String] = []) -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments = ["-UITestingTemporaryStorage", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
-        if seeded { app.launchEnvironment["MEDICABINET_UI_TEST_CABINET"] = seed }
-        app.launch()
-        let bar = app.tabBars.firstMatch
-        XCTAssertTrue(bar.waitForExistence(timeout: 15))
-        bar.buttons["Cabinet"].tap()
-        return app
+        CabinetUI.launch(seeded: seeded, extra: extra)
     }
 
-    /// A static text by its visible text (identifiers set on a container would hide it from `staticTexts["…"]`).
-    private func text(_ app: XCUIApplication, _ label: String) -> XCUIElement {
-        app.staticTexts.matching(NSPredicate(format: "label ==[c] %@ OR label ENDSWITH[c] %@", label, ", " + label)).firstMatch
-    }
+    private func text(_ app: XCUIApplication, _ label: String) -> XCUIElement { CabinetUI.text(app, label) }
 
-    private func row(_ app: XCUIApplication, _ name: String) -> XCUIElement {
-        app.cells.containing(.staticText, identifier: name).firstMatch
-    }
+    private func row(_ app: XCUIApplication, _ name: String) -> XCUIElement { CabinetUI.row(app, name) }
 
     // MARK: List
 
@@ -56,7 +34,7 @@ final class CabinetUITests: XCTestCase {
 
     func testSearchNarrowsTheListAndAnUnmatchedSearchOffersClear() {
         let app = launch()
-        let search = app.searchFields.firstMatch
+        let search = app.textFields["cabinet.search"]
         XCTAssertTrue(search.waitForExistence(timeout: 10))
         search.tap()
         search.typeText("spas")
@@ -69,26 +47,6 @@ final class CabinetUITests: XCTestCase {
         app.buttons["cabinet.noResults.clear"].tap()
         XCTAssertTrue(row(app, "Thermometer").waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["cabinet.count"].label, "5 boxes")
-    }
-
-    func testTheStatusAndLocationFiltersShowTheirActiveStateAndClear() {
-        let app = launch()
-        app.buttons["cabinet.filter.status"].tap()
-        app.buttons["Expired"].tap()
-        XCTAssertTrue(app.staticTexts["cabinet.filter.summary"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.staticTexts["cabinet.filter.summary"].label, "Filters: Expired")
-        XCTAssertEqual(app.staticTexts["cabinet.count"].label, "1 box")
-        XCTAssertFalse(row(app, "Spasfon").exists)
-
-        app.buttons["cabinet.filter.clear"].tap()
-        XCTAssertTrue(row(app, "Spasfon").waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["cabinet.filter.summary"].exists)
-
-        app.buttons["cabinet.filter.location"].tap()
-        app.buttons["Car"].tap()
-        XCTAssertTrue(row(app, "Gaviscon").waitForExistence(timeout: 5))
-        XCTAssertFalse(row(app, "Spasfon").exists)
-        XCTAssertEqual(app.staticTexts["cabinet.filter.summary"].label, "Filters: Car")
     }
 
     func testAnEmptyCabinetExplainsItselfAndTheButtonOpensTheScanTab() {
@@ -241,8 +199,12 @@ final class CabinetUITests: XCTestCase {
             "-AppleInterfaceStyle", "Dark"
         ])
         XCTAssertTrue(app.staticTexts["cabinet.count"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["cabinet.filter.status"].exists)
-        XCTAssertTrue(app.buttons["cabinet.filter.location"].exists)
+        XCTAssertTrue(app.textFields["cabinet.search"].exists)
+        // A Menu has a nested button over the same frame, so `isHittable` of the outer element is false.
+        let filter = app.buttons["cabinet.filter.button"]
+        XCTAssertTrue(filter.exists)
+        XCTAssertGreaterThanOrEqual(filter.frame.height, 44)
+        XCTAssertTrue(app.frame.contains(filter.frame), "the filter button stays on screen")
         let spasfon = row(app, "Spasfon")
         for _ in 0..<8 where !(spasfon.exists && spasfon.isHittable) { app.swipeUp() }
         XCTAssertTrue(spasfon.isHittable, "rows stay reachable (and wrap) at the largest text size")

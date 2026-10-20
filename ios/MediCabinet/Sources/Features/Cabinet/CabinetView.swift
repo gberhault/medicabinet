@@ -26,22 +26,33 @@ struct CabinetView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            content
-                .navigationTitle("cabinet.title")
-                .navigationDestination(for: CabinetRoute.self) { route in
-                    switch route {
-                    case .product(let id):
-                        ProductBoxesView(model: model, rowID: id) { path.removeAll { $0 == .product(id) } }
-                    case .box(let id):
-                        BoxDetailView(boxID: id, environment: environment, undo: undo) { path.removeAll { $0 == .box(id) } }
-                    }
+            VStack(spacing: 0) {
+                CabinetHeader(model: model, showsControls: showsList)
+                content
+            }
+            // The header shows the title; the name stays for the back button of the screens pushed from here.
+            .navigationTitle("cabinet.title")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: CabinetRoute.self) { route in
+                switch route {
+                case .product(let id):
+                    ProductBoxesView(model: model, rowID: id) { path.removeAll { $0 == .product(id) } }
+                case .box(let id):
+                    BoxDetailView(boxID: id, environment: environment, undo: undo) { path.removeAll { $0 == .box(id) } }
                 }
+            }
         }
         // Follows the cabinet only while the tab is on screen; a retry restarts it.
         .task(id: model.attempt) { await model.observe() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { model.refreshToday() }
         }
+    }
+
+    /// Search and filters show once the cabinet is loaded and not empty.
+    private var showsList: Bool {
+        model.phase == .loaded && !model.isEmptyCabinet
     }
 
     @ViewBuilder private var content: some View {
@@ -76,14 +87,7 @@ struct CabinetView: View {
     }
 
     private var list: some View {
-        @Bindable var model = model
-        return List {
-            Section {
-                Text(verbatim: CabinetText.boxCount(model.snapshot.boxCount))
-                    .font(.headline)
-                    .accessibilityIdentifier("cabinet.count")
-                CabinetFilterBar(model: model)
-            }
+        List {
             if model.hasNoResults {
                 Section {
                     ContentUnavailableView {
@@ -108,7 +112,6 @@ struct CabinetView: View {
                 }
             }
         }
-        .searchable(text: $model.searchText, prompt: Text("cabinet.search.prompt"))
         .accessibilityIdentifier("cabinet.list")
     }
 
