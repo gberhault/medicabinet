@@ -522,20 +522,32 @@ android/app/src/main/kotlin/com/medicabinet/app/features/transfer/
     <category android:name="android.intent.category.DEFAULT" />
     <data android:mimeType="application/vnd.medicabinet+json" />
   </intent-filter>
-  <!-- saved files often come back as octet-stream: only when the path ends in .medicabinet -->
+  <!-- files come back as octet-stream (saved, or opened from another app's own provider):
+       content scheme + type only, no host, no path (amended 2026-10-20, see below) -->
   <intent-filter>
     <action android:name="android.intent.action.VIEW" />
     <category android:name="android.intent.category.DEFAULT" />
-    <data android:scheme="content" android:host="*" android:mimeType="application/octet-stream"
-          android:pathPattern=".*\\.medicabinet" />
-    <!-- + the usual ".*\\..*\\.medicabinet" variants for dotted paths -->
+    <data android:scheme="content" android:mimeType="application/octet-stream" />
   </intent-filter>
 </activity>
 ```
 
-- No `application/json`, no `*/*`. A file that matches none of these (the extension was lost
-  in transit) goes through **Import a cabinet** in Settings. The import screen says so in its
-  empty state.
+- No `application/json`, no `*/*`, no `file:` scheme, no host, no path. A file that matches
+  none of these (an app that opens it with another MIME type) goes through **Import a
+  cabinet** in Settings.
+- **Amendment 2026-10-20 (device report, #28).** The first design restricted the octet-stream
+  filter to paths ending in `.medicabinet`. That cannot work for WhatsApp: it opens a
+  received document through its own provider (`content://com.whatsapp.provider.media/item/<id>`:
+  no file name, no extension) with a MIME type it derives itself (`application/octet-stream`
+  for an unknown extension), so neither filter matched and MediCabinet was not offered. A
+  manifest filter never sees the display name, only the address and the type. **Accepted
+  trade-off:** MediCabinet may now be offered in the chooser for any unknown binary file.
+  This is safe because (a) only `content:` addresses are read (`file:` is refused, the
+  activity is exported), (b) the import reads the file at once through the content resolver
+  (never by file name), validates the whole file and refuses anything that is not a cabinet
+  with "This file is not a MediCabinet cabinet." (`notArchive`), changing nothing, and (c) the
+  user always sees the preview and confirms before anything is replaced. The share-out side
+  keeps `application/vnd.medicabinet+json`.
 - `onCreate` / `onNewIntent` → `ImportCoordinator.receive(intent)`. The coordinator reads
   the bytes at once (the URI grant ends with the activity), then gates on bootstrap and
   `busy` exactly like iOS (O4, O5).

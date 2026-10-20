@@ -49,8 +49,12 @@ preference that pointed at a location that no longer exists falls back to the de
 - **iOS**: the exported type `com.medicabinet.archive` (extension `medicabinet`) and a document type declared in
   `project.yml`; the file is copied to `Documents/Inbox`, and that copy is deleted when the flow ends and at launch.
 - **Android**: intent filters on the app's own MIME type (`application/vnd.medicabinet+json`) and on
-  `application/octet-stream` when the path ends in `.medicabinet`. Never `application/json` or `*/*`. A file whose
-  extension was lost in transit is not offered: use **Import a cabinet** (the screen says so). The file is read
+  `application/octet-stream` for `content:` addresses, with no restriction on the path or file name (WhatsApp, for
+  one, opens a received file through its own provider address that has no file name, so a file-name filter could
+  never match). Never `application/json`, `*/*` or `file:`. As a consequence MediCabinet can appear in the "Open
+  with" list for any unknown binary file; that is harmless: a file that is not a cabinet is refused with "This file
+  is not a MediCabinet cabinet." and nothing changes, and a real one always shows the preview and asks for
+  confirmation. A file opened under another MIME type is not offered: use **Import a cabinet**. The file is read
   immediately, capped, because the URI grant can end with the activity; only `content:` addresses are read.
 - A file opened while a form with unsaved input is open waits behind a banner until that form closes. The camera
   stops while the import is shown. If the cabinet storage is unavailable, the file is refused with that reason.

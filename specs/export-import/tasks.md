@@ -170,6 +170,10 @@ independent of each other.
   Done: only `content:` addresses are read (the activity is exported: a `file:` address could
   name the app's own files); anything else is refused as unreadable. A file that cannot be
   opened at launch (storage unavailable) is refused in a dialog over the launch error.
+  Amended 2026-10-20 (device report, #28): WhatsApp did not offer the app. The octet-stream
+  filter is now `content` + type only, with no path (§7.3 amendment, O2 note); tests: exact
+  filters without host/path, a WhatsApp-style `content://…/item/42` address, and a garbage
+  file refused with `notArchive`.
 - [x] **T20 — Import flow** `[android]` [#29] (I1–I10, V5, O3; §7.2, flows 3–6, 8)
   `OpenDocument`, `ImportViewModel`, `ImportPreviewScreen`, confirmation `AlertDialog`,
   `ImportResultScreen`, error screens, the "file not offered?" hint. *Tests:* as T14
@@ -198,6 +202,9 @@ independent of each other.
   (`ANDROID_SERIAL`, never an unnamed device) plus the emulator (Files / Downloads, Gmail,
   Quick Share or Bluetooth). Results in `reports/export-import/README.md`. If the filters
   must change, update the design first.
+  Include the **WhatsApp case**: share the exported file to a WhatsApp chat, tap the received
+  file, check that MediCabinet is listed in "Open with" and opens the import preview; also
+  open a non-cabinet file of unknown type and check the "not a MediCabinet cabinet" message.
 - [ ] **T24 — Cross-platform round trip on devices** `[shared]` (F7, X7)
   **Needs the user:** export on iPhone → import on Android → export → import on iPhone;
   compare the summaries; result in the report.
