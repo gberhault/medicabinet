@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +42,7 @@ fun SettingsScreen(
     onOpenAbout: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenLocations: () -> Unit = {},
+    onOpenNamedProducts: () -> Unit = {},
     expirySection: @Composable () -> Unit = {},
     transferSection: @Composable () -> Unit = {},
     extraRows: @Composable () -> Unit = {}
@@ -54,6 +56,11 @@ fun SettingsScreen(
                 headlineContent = { Text(stringResource(R.string.settings_locations)) },
                 leadingContent = { Icon(Icons.Outlined.Place, contentDescription = null) },
                 modifier = Modifier.clickable(onClick = onOpenLocations).testTag("settings.locations")
+            )
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_namedProducts)) },
+                leadingContent = { Icon(Icons.AutoMirrored.Outlined.Label, contentDescription = null) },
+                modifier = Modifier.clickable(onClick = onOpenNamedProducts).testTag("settings.namedProducts")
             )
             expirySection()
             transferSection()

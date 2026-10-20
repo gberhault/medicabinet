@@ -68,6 +68,7 @@ import com.medicabinet.app.features.settings.ExpirySettingsSection
 import com.medicabinet.app.features.settings.PackageAppInfo
 import com.medicabinet.app.features.settings.SettingsScreen
 import com.medicabinet.app.features.settings.locations.LocationsRoute
+import com.medicabinet.app.features.settings.namedproducts.NamedProductsRoute
 import com.medicabinet.app.features.transfer.ImportCoordinator
 import com.medicabinet.app.features.transfer.LocalImportCoordinator
 import com.medicabinet.app.features.transfer.OpenIncomingImport
@@ -85,6 +86,7 @@ import kotlinx.coroutines.launch
 private const val SETTINGS_HOME = "settings/home"
 private const val SETTINGS_ABOUT = "settings/about"
 private const val SETTINGS_LOCATIONS = "settings/locations"
+private const val SETTINGS_NAMED_PRODUCTS = "settings/namedProducts"
 
 /** The models shared by several tabs: the Expiring list and its badge, and the monthly-reminder setting. */
 private class MainModels(
@@ -265,6 +267,7 @@ private fun MainNavHost(
                 SettingsScreen(
                     onOpenAbout = { navController.navigate(SETTINGS_ABOUT) },
                     onOpenLocations = { navController.navigate(SETTINGS_LOCATIONS) },
+                    onOpenNamedProducts = { navController.navigate(SETTINGS_NAMED_PRODUCTS) },
                     expirySection = {
                         ExpirySettingsSection(environment.expiryPreferences, models.reminder, models.reminderActions)
                     },
@@ -278,6 +281,9 @@ private fun MainNavHost(
             }
             composable(SETTINGS_ABOUT) { AboutScreen(aboutViewModel, onBack = { navController.popBackStack() }) }
             composable(SETTINGS_LOCATIONS) { LocationsRoute(environment, onBack = { navController.popBackStack() }) }
+            composable(SETTINGS_NAMED_PRODUCTS) {
+                NamedProductsRoute(environment, onBack = { navController.popBackStack() })
+            }
             transferRoutes(navController, environment)
             debugRoutes()
         }
