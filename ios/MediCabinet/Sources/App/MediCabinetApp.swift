@@ -3,10 +3,11 @@ import SwiftUI
 @main
 struct MediCabinetApp: App {
     @State private var model = BootstrapModel(run: AppLaunch.bootstrapRun)
+    @State private var router = TabRouter()
 
     var body: some Scene {
         WindowGroup {
-            RootView(model: model)
+            RootView(model: model, router: router)
         }
     }
 }

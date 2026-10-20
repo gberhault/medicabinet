@@ -119,18 +119,7 @@ final class BoxDetailViewModel {
     }
 
     private func offerUndo(_ message: String, restore: @escaping @Sendable () async throws -> Void) {
-        guard let undo else { return }
-        undo.show(message) { [weak undo] in
-            do {
-                try await restore()
-            } catch RepositoryError.duplicateSerial {
-                // Another box took this serial number meanwhile: say why it cannot come back.
-                undo?.show(String(localized: "undo.restoreFailed"))
-            } catch {
-                Log.persistence.error("Undo failed: \(String(describing: type(of: error)))")
-                undo?.show(String(localized: "box.error"))
-            }
-        }
+        undo?.offerRestore(message, restore: restore)
     }
 
     func makeEditor() -> BoxEditViewModel? {

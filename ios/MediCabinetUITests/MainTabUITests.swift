@@ -32,7 +32,7 @@ final class MainTabUITests: XCTestCase {
         XCTAssertTrue(bar.waitForExistence(timeout: 15))
         let expectations = [
             ("Cabinet", "The cabinet is empty"),
-            ("Expiring", "Expiry tracking is coming soon")
+            ("Expiring", "All clear")
         ]
         for (tab, title) in expectations {
             bar.buttons[tab].tap()

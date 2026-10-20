@@ -1,3 +1,4 @@
+import MediCabinetCore
 import Observation
 import SwiftUI
 
@@ -27,6 +28,21 @@ final class UndoCenter {
     func show(_ message: String, undo: @escaping @MainActor @Sendable () async -> Void) {
         pending = Pending(message: message, undo: undo)
         startTimer()
+    }
+
+    /// A message with **Undo** that runs `restore`. A restore that fails says so in a plain message: another box took
+    /// the serial number meanwhile, or the write failed. Nothing is logged but the failure kind.
+    func offerRestore(_ message: String, restore: @escaping @Sendable () async throws -> Void) {
+        show(message) { [weak self] in
+            do {
+                try await restore()
+            } catch RepositoryError.duplicateSerial {
+                self?.show(String(localized: "undo.restoreFailed"))
+            } catch {
+                Log.persistence.error("Undo failed: \(String(describing: type(of: error)))")
+                self?.show(String(localized: "box.error"))
+            }
+        }
     }
 
     /// A message with no action, for what an Undo could not restore.

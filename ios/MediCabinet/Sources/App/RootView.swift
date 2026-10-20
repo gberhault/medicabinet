@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RootView: View {
     let model: BootstrapModel
+    let router: TabRouter
 
     var body: some View {
         Group {
@@ -16,7 +17,7 @@ struct RootView: View {
                     Task { await model.start() }
                 }
             case .ready(let environment):
-                MainTabView(environment: environment)
+                MainTabView(environment: environment, router: router)
                     .environment(\.appEnvironment, environment)
             }
         }
