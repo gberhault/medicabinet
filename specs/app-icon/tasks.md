@@ -86,7 +86,7 @@ each other once T2 and T4 are done.
 
 ## 4. Gate, docs, verification
 
-- [ ] **T7 — Gate wiring and break test** `[shared]` (R5, X2; §4.1)
+- [x] **T7 — Gate wiring and break test** `[shared]` (R5, X2; §4.1)
   - Add the step "shared: app icon is generated from its source" to `scripts/local-ci.sh`.
     It runs `test-build-app-icon.py`, then `build-app-icon.py check`, then the new
     `scripts/tests/test-app-icon-break.sh`.
