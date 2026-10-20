@@ -107,7 +107,7 @@ final class ExpiringUITests: XCTestCase {
     // MARK: Badge
 
     func testTheTabBadgeCountsExpiredAndExpiringSoonBoxesWhicheverTabIsSelected() {
-        let app = launch(openExpiring: false)  // the Scan tab is selected
+        let app = launch(openExpiring: false)  // the Cabinet tab is selected
         let tab = app.tabBars.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Expiring'")).firstMatch
         XCTAssertTrue(tab.waitForExistence(timeout: 10))
         let predicate = NSPredicate(format: "label CONTAINS '4' OR value CONTAINS '4'")

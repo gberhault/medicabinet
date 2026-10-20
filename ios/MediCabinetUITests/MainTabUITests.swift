@@ -29,6 +29,17 @@ final class MainTabUITests: XCTestCase {
         }
     }
 
+    // Issue #53: the app opens on the Cabinet, not on the camera.
+    func testTheAppOpensOnTheCabinetTabWithoutStartingTheCamera() {
+        let app = UITestApp.launch()
+        let bar = app.tabBars.firstMatch
+        XCTAssertTrue(bar.waitForExistence(timeout: 15))
+        XCTAssertTrue(bar.buttons["Cabinet"].isSelected)
+        XCTAssertTrue(app.staticTexts["The cabinet is empty"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["scan.permission.allow"].exists)
+        XCTAssertFalse(app.buttons["scan.count"].exists)
+    }
+
     func testEachTabWithNothingToShowExplainsItself() {
         let app = UITestApp.launch()
         let bar = app.tabBars.firstMatch
