@@ -28,7 +28,7 @@ each other once T2 and T4 are done.
 
 ## 2. Android
 
-- [ ] **T2 — SVG → VectorDrawable and adaptive-icon generation** `[shared]` (A1, A3–A6, R3–R5; §1.5, §3, §3.1)
+- [x] **T2 — SVG → VectorDrawable and adaptive-icon generation** `[shared]` (A1, A3–A6, R3–R5; §1.5, §3, §3.1)
   - `build` writes the three `drawable/ic_launcher_*.xml` layers and the two
     `mipmap-anydpi/ic_launcher*.xml` files.
   - `check` regenerates them in memory and compares them byte for byte. It also fails when
