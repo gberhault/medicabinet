@@ -5497,6 +5497,22 @@
         }
       }
     },
+    "transfer.import.preview.namedProducts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Products you named: %1$lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Produits nommés par vous : %1$lld"
+          }
+        }
+      }
+    },
     "transfer.import.preview.noBackupNeeded": {
       "localizations": {
         "en": {

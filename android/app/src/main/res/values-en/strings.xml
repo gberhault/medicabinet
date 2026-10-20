@@ -315,6 +315,7 @@
     <string name="transfer_export_title">Export the cabinet</string>
     <string name="transfer_export_warning">This file contains health data (your medicines). It is not encrypted: anyone who gets it can read it. Share it only with people you trust.</string>
     <string name="transfer_export_writing">Creating the file…</string>
+    <string name="transfer_import_preview_namedProducts">Products you named: %1$d</string>
     <string name="transfer_section_footer">A .medicabinet file holds the whole cabinet. Use it as a backup or to move to another phone, iPhone or Android.</string>
     <string name="transfer_section_title">Backup and transfer</string>
     <string name="transfer_error_close">Close</string>

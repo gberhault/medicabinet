@@ -315,6 +315,7 @@
     <string name="transfer_export_title">Exporter l\'armoire</string>
     <string name="transfer_export_warning">Ce fichier contient des données de santé (vos médicaments). Il n\'est pas chiffré : toute personne qui l\'obtient peut le lire. Ne le partagez qu\'avec des personnes de confiance.</string>
     <string name="transfer_export_writing">Création du fichier…</string>
+    <string name="transfer_import_preview_namedProducts">Produits nommés par vous : %1$d</string>
     <string name="transfer_section_footer">Un fichier .medicabinet contient toute l\'armoire. Il sert de sauvegarde ou à passer sur un autre téléphone, iPhone ou Android.</string>
     <string name="transfer_section_title">Sauvegarde et transfert</string>
     <string name="transfer_error_close">Fermer</string>
