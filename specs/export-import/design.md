@@ -6,8 +6,9 @@ Epic: #26 · Requirements: [`requirements.md`](requirements.md) · Platforms: iO
 The archive format is written **once as shared fixtures** (golden files and validation
 cases) and implemented **twice in the cores**: reader, writer, validator, migration and the
 transfer use case. The apps add file I/O, the persistence transaction and the screens. This
-design assumes the state of `develop` **after the bulk-scan epic (#12) has merged**: schema
-v2 (`box.deletedAt`, unique live serial), the scan tab and its view model. Section numbers
+design assumes the state of `develop` **after the bulk-scan epic (#12) and the cabinet-inventory
+epic have merged**: schema v3 (`box.deletedAt`, unique live serial, `location.deletedAt`), the scan tab
+and its view model. Section numbers
 are referenced from `tasks.md`.
 
 ## 1. Key decisions
@@ -135,7 +136,8 @@ session **ends** on a change, because its review list points at boxes that no lo
       "isDefault": true,
       "sortOrder": 0,
       "createdAt": "2026-10-01T09:00:00.000Z",
-      "updatedAt": "2026-10-01T09:00:00.000Z"
+      "updatedAt": "2026-10-01T09:00:00.000Z",
+      "deletedAt": null
     }
   ],
   "boxes": [
@@ -176,15 +178,16 @@ session **ends** on a change, because its review list points at boxes that no lo
 | `app.name` | string | 1–50 code points |
 | `app.platform` | string | `ios` or `android` |
 | `app.version`, `app.build` | string | 1–20 code points (`?` allowed: what `AppInfo` reports when unknown) |
-| `locations` | array | 1…`maxLocations` items; exactly one with `isDefault: true` |
+| `locations` | array | 1…`maxLocations` items (deleted ones included); exactly one with `isDefault: true`, and it is not deleted |
 | `location.id`, `box.id` | UUID | canonical 8-4-4-4-12 hex, either case, stored upper-case. Unique among locations and, separately, among boxes (the database rule) |
 | `location.name` | string | 1–100 code points (SQL `CHECK`) |
 | `location.sortOrder` | integer | 32-bit signed range (the Kotlin model is `Int`) |
+| `location.deletedAt` | date or null | tombstone of a deleted location (schema v3). Its name is free for a new location, so names are not compared |
 | `boxes` | array | 0…`maxBoxes` items |
 | `box.gtin` | string or null | exactly 14 ASCII digits (SQL `CHECK`; the check digit is **not** verified, because the database does not verify it) |
 | `box.productName` | string | 1–200 code points |
 | `box.category` | string | 1–100 code points. Unknown ids kept as written (F10) |
-| `box.locationId` | UUID | must be a location in the file → else `unknownLocation` |
+| `box.locationId` | UUID | must be a location in the file → else `unknownLocation`; a box in the cabinet (neither removed nor deleted) must not be in a deleted location either (the app moves such boxes away before it deletes a location), also `unknownLocation` |
 | `box.expiry` | object or null | `year`, `month`, `day` (integer or null) passed through `ExpiryDate.make`. Any error → `invalidValue` (V3, never "unknown") |
 | `box.lot`, `box.serial` | string or null | 1–20 code points |
 | `box.removal` | object or null | `reason` ∈ `usedUp`, `thrownAway`; `at`: date |
@@ -257,14 +260,16 @@ appears in tests and logs, not in the UI.
 4. After the read, `ArchiveValidator` runs on the model, in this order: field limits (lengths
    in code points, platform, GTIN of 14 ASCII digits) as `invalidValue`; `duplicateId`
    (locations, then boxes; path of the second occurrence); `defaultLocation` (not exactly one
-   default, path `locations`, which includes an empty list); `unknownLocation` (path
+   default, or the default is deleted; path `locations`, which includes an empty list);
+   `unknownLocation` (a location missing from the file, or deleted while the box is in the cabinet; path
    `boxes[i].locationId`); `duplicateSerial` (same GTIN and serial among boxes that are not
    deleted; boxes without a GTIN are never compared, like the unique index; path of the second
    box's `serial`). The encoder runs the same validator before writing.
 5. `CabinetSummary.unknownExpiry` counts the boxes **in the cabinet** (not removed, not
    deleted) without an expiry. `needsBackup` is false only when the cabinet has no box of any
-   kind and at most one location (a database with no location at all has nothing to lose either, and no
-   archive could hold it).
+   kind and at most one location that is not deleted (a database with no location at all has nothing to
+   lose either, and no archive could hold it). `CabinetSummary.locations` counts the locations that are
+   not deleted; the preview counts what the user can see.
 
 ## 3. Shared fixtures
 
@@ -275,10 +280,11 @@ fixtures/
   archive/v1/golden.medicabinet     # canonical v1 file, every field variant; kept forever
 ```
 
-- `golden.medicabinet` holds 3 locations (one default) and boxes covering: day and month
+- `golden.medicabinet` holds 4 locations (one default, one deleted) and boxes covering: day and month
   precision, unknown expiry, the 2000 and 2099 year bounds, removed (both reasons),
   deleted, deleted with a serial that a live box reuses, unknown category, no GTIN, maximum
-  lengths (200-code-point name with combining accents and emoji), every optional field null.
+  lengths (200-code-point name with combining accents and emoji), every optional field null, a removed box
+  and a deleted box in the deleted location.
 - `archive-cases.json` cases:
   `{ "name", "file": "archive/v1/golden.medicabinet" | "content": "<inline JSON text>" | "contentBase64": "<bytes>" | "generate": {"boxes": n, "locations": n, "padNameTo": n}, "expect": { "summary": {…}, "needsBackup": bool } | { "error": { "kind", "path" } } }`
   (`contentBase64` for byte-level cases: invalid UTF-8, a BOM).
@@ -322,11 +328,12 @@ public struct ArchiveLimits: Sendable {               // §1.5, named defaults
     public static let `default` = ArchiveLimits()
 }
 
+public struct ArchivedLocation: Hashable, Sendable { public var location: Location; public var deletedAt: Date? }
 public struct ArchivedBox: Hashable, Sendable { public var box: Box; public var deletedAt: Date? }
 public struct CabinetContents: Hashable, Sendable {
-    public var locations: [Location]; public var boxes: [ArchivedBox]
-    public var summary: CabinetSummary { get }        // inCabinet, removed, deleted, unknownExpiry, locations
-    public var needsBackup: Bool { get }              // false when no box and only the default location (B3)
+    public var locations: [ArchivedLocation]; public var boxes: [ArchivedBox]
+    public var summary: CabinetSummary { get }        // inCabinet, removed, deleted, unknownExpiry, locations (not deleted)
+    public var needsBackup: Bool { get }              // false when no box and at most one location that is not deleted (B3)
 }
 public struct ArchiveApp: Hashable, Sendable { public var name, platform, version, build: String }
 public struct Archive: Hashable, Sendable {

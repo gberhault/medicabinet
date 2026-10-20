@@ -23,12 +23,13 @@ refused, and nothing on the phone changes.
 
 ### Decisions taken in the challenge (2026-10-19)
 
-1. **Built on schema v2.** The archive is specified against schema v2 from the bulk-scan epic
-   (#40: `box.deletedAt`, unique serial), so archive v1 carries tombstones and can double as
+1. **Built on schema v3.** The archive is specified against schema v3 (bulk-scan #40: `box.deletedAt`,
+   unique serial; cabinet-inventory: `location.deletedAt`), so archive v1 carries box **and location**
+   tombstones and can double as
    the future sync payload. Implementation starts after #12 is merged into `develop` and this
    branch is rebased onto it. Until then, only the spec is written.
 2. **The archive holds every box:** boxes in the cabinet, removed boxes (used up / thrown
-   away, with reason and date) and deleted boxes (tombstones), plus every location. A restore
+   away, with reason and date) and deleted boxes (tombstones), plus every location, deleted ones included. A restore
    or a move loses no history.
 3. **Android entry points:** export offers **Save to file** (system document picker) and
    **Share** (share sheet). Import goes through the in-app document picker. The app also
@@ -46,9 +47,12 @@ refused, and nothing on the phone changes.
 - **Archive** — one `.medicabinet` file holding a whole cabinet, in the format of this spec.
 - **`formatVersion`** — the integer version of the archive format. It changes whenever the
   shape or meaning of the file changes. Every version ever shipped stays importable.
-- **Cabinet data** — every location and every box, including removed and deleted boxes.
+- **Cabinet data** — every location and every box, including removed and deleted boxes and deleted
+  locations.
 - **Removed box** — used up or thrown away (`removalReason`, `removedAt`): a stock movement,
   still part of the history.
+- **Deleted location** — a location the user deleted, kept only as a tombstone (`deletedAt`) because removed
+  and deleted boxes still point at it; invisible in the app (cabinet-inventory spec).
 - **Deleted box** — added by mistake, kept only as a tombstone (`deletedAt`) and invisible in
   the app (bulk-scan spec, V).
 - **Replace** — the import operation: the cabinet data on the phone becomes exactly the
@@ -75,8 +79,8 @@ on any phone and in any later version, can read back, so that a backup never goe
    identifying itself as a MediCabinet archive and carrying its `formatVersion` (`1` for this
    spec).
 3. An archive SHALL contain: the export date and time (UTC); the exporting app's name,
-   platform (`ios` / `android`), version and build number; every location; every box
-   (in the cabinet, removed, deleted).
+   platform (`ios` / `android`), version and build number; every location
+   (deleted ones too); every box (in the cabinet, removed, deleted).
 4. Each location and box SHALL keep its stable id (UUID), its `createdAt` and `updatedAt`,
    and every persisted field. The expiry SHALL be stored as year, month and optional day, so
    month precision (GS1 `DD = 00`) is never turned into a day. An unknown expiry SHALL be
@@ -121,8 +125,10 @@ anything happens, so that importing can never break or empty my cabinet.*
    - a field with the wrong type, an unknown field, or a value outside the database's rules
      (text lengths, 14-digit GTIN, expiry parts that `ExpiryDate` rejects, removal reason and
      date not set together, unknown removal reason, malformed UUID or date);
-   - duplicate ids; a box referring to a location that is not in the file; not exactly one
-     default location; two boxes that are not deleted sharing the same GTIN and serial.
+   - duplicate ids; a box referring to a location that is not in the file, or a box in the cabinet
+     (neither removed nor deleted) referring to a deleted location; not exactly one default
+     location, or a default location that is deleted; two boxes that are not deleted sharing the
+     same GTIN and serial.
 3. An expiry that fails validation SHALL make the file invalid. It SHALL never be clamped,
    corrected, or turned into "unknown".
 4. Validation and decoding SHALL never crash or throw an unexpected exception, whatever the
@@ -278,8 +284,9 @@ so that importing the wrong file is never final.*
 ## Open points to confirm during design
 
 1. **Schema at freeze time.** Archive v1 is frozen against the schema on `develop` when this
-   epic's implementation starts (v2 expected). If another schema change lands first (e.g.
-   location tombstones from #18), this spec is updated before the format is frozen.
+   epic's implementation starts. *Resolved 2026-10-20: schema v3 (location tombstones) landed
+   first and is part of v1. Any further schema change before the format ships is handled the
+   same way: the spec is updated first.*
 2. **Android open-with filters (O2).** Custom extensions are matched unreliably on Android. The
    design picks the MIME type / path filters, verified on a real device, and states what
    happens with a file whose name lost its extension (e.g. some mail apps).
