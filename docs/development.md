@@ -90,6 +90,10 @@ to hide a new finding.
   to**: use `ANDROID_SERIAL=emulator-5554` (the launch script takes an explicit serial for this reason).
 - Launch time: iOS `TEST_RUNNER_MEDICABINET_MEASURE_LAUNCH=1 xcodebuild … -only-testing:MediCabinetUITests/LaunchPerformanceUITests`;
   Android `bash scripts/android-measure-launch.sh [adb-serial]`. Results are recorded in `reports/`.
+- Cabinet timings on a phone: build a side-by-side copy (`./gradlew -PperfBuild=true :app:assembleDebug :app:assembleDebugAndroidTest`,
+  package `com.medicabinet.app.perf`, own data), install **only** that with `adb -s <serial> install -t`, run
+  `adb -s <serial> shell am instrument -w -e medicabinet.measure true -e class com.medicabinet.app.CabinetDeviceMeasurementTest com.medicabinet.app.perf.test/androidx.test.runner.AndroidJUnitRunner`,
+  then uninstall both `.perf` packages. Never use `connectedDebugAndroidTest` on a phone with the real app: Gradle uninstalls the app (and its data) afterwards.
 
 ## Localization
 

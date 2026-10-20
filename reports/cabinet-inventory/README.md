@@ -14,13 +14,30 @@ Date: 2026-10-20 · Spec: [`specs/cabinet-inventory/`](../../specs/cabinet-inven
 The 100 ms removal budget is a third of the 300 ms "code recognised → removal confirmed" target; the unit tests do not
 include the camera or the decoder.
 
-## Not measured — needs a phone
+## Measured on a phone (Android)
 
-No emulator was running and the phone attached to this machine was not named for this work, so nothing below was
-run and no number is claimed:
+Samsung Galaxy A35 (SM-A356B, Android 16, 120 Hz screen), debug build installed **side by side** as
+`com.medicabinet.app.perf` (`./gradlew -PperfBuild=true :app:assembleDebug :app:assembleDebugAndroidTest`) so the
+installed app and its data were never touched; both `.perf` packages were uninstalled afterwards. A seeded cabinet of
+1 000 boxes (300 products, 8 categories, 4 % unknown expiry) built by the opt-in instrumented test
+`CabinetDeviceMeasurementTest` (it refuses to run unless the package ends in `.perf`).
 
-1. Scrolling a 1 000-box Cabinet list without dropped frames, on the oldest iPhone and Android phone available.
-2. Code recognised → removal confirmed < 300 ms on a phone (suggested method as in `reports/bulk-scan/`).
+| What | Budget | Result (median of 10, first runs included) |
+|------|--------|--------------------------------------------|
+| Query behind the Cabinet tab: `activeBoxes()` on 1 000 boxes | ≤ 50 ms | **53 ms** — just over the budget on this phone; it runs on an I/O thread, never the main thread |
+| `CabinetRows.build` with a search, 1 000 boxes | ≤ 100 ms | 68 ms (off the main thread) |
+| `ScanRemoval.handle` on a 1 000-box cabinet | ≤ 100 ms (< 300 ms to confirm) | **4 ms** (runs 3, 1, 11, 6, 4, 4, 4, 4, 4, 4) |
+| Scrolling the Cabinet list (990 boxes), 8 swipes up and 8 down through the real app, `dumpsys gfxinfo` | no dropped frames | 600 frames; 50th percentile 7 ms, 90th 15 ms, 95th 18 ms, 99th 26 ms; 63 janky frames (10.5 %) by Android's definition |
+
+Reading the scroll result: the screen runs at 120 Hz, so a frame has 8.3 ms, and this is an unoptimised **debug**
+build (Compose is markedly slower than in release). The list is not yet "without dropped frames" by that strict
+measure; a release build, and the phone at 60 Hz, were not measured. The 53 ms query is the number to watch if the
+cabinet grows.
+
+## Not measured — needs an iPhone
+
+Scrolling a 1 000-box Cabinet list and removal latency on the oldest iPhone available: no iPhone was connected, and
+nothing is claimed for iOS beyond the simulator tests above.
 
 ## Accessibility review (T26)
 

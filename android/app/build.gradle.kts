@@ -21,6 +21,8 @@ android {
     buildTypes {
         debug {
             enableUnitTestCoverage = true
+            // `-PperfBuild=true`: a side-by-side debug build (own data) for on-device measurements that seed a cabinet.
+            if (project.hasProperty("perfBuild")) applicationIdSuffix = ".perf"
         }
         release {
             isMinifyEnabled = false
