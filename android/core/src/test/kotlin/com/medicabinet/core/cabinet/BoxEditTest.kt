@@ -86,6 +86,64 @@ class BoxEditTest {
     fun errorKindsUseThePlatformNeutralNames() {
         assertEquals("emptyName", BoxEditError.EMPTY_NAME.kind)
         assertEquals("nameTooLong", BoxEditError.NAME_TOO_LONG.kind)
-        assertTrue(BoxEditError.entries.size == 2)
+        assertTrue(BoxEditError.entries.size == 3)
+    }
+
+    // category (B4)
+
+    private fun autoBox() = Box(
+        product = ProductRef("03400930000014", "Doliprane"),
+        category = CategoryID.PAIN_FEVER,
+        locationId = kitchen,
+        createdAt = Instant.ofEpochSecond(100)
+    )
+
+    @Test
+    fun aChosenCategoryMarksTheBoxUserChosen() {
+        val edit = BoxEdit.from(autoBox()).chooseCategory(CategoryID.FIRST_AID)
+        val edited = edit.applyTo(autoBox())
+        assertEquals(CategoryID.FIRST_AID, edited.category)
+        assertTrue(edited.categoryOverridden)
+    }
+
+    @Test
+    fun onlyACategoryTheUserMayPickCanBeChosen() {
+        val edit = BoxEdit.from(autoBox())
+        listOf(CategoryID.UNCATEGORIZED, CategoryID("from-the-future")).forEach {
+            val failure = assertFailsWith<BoxEditException> { edit.chooseCategory(it) }
+            assertEquals(BoxEditError.CATEGORY_NOT_SELECTABLE, failure.error)
+        }
+        // A refused choice changes nothing.
+        assertNull(edit.categoryChange)
+    }
+
+    @Test
+    fun automaticCategoryGivesTheBoxBackToTheClassifier() {
+        val userChosen = autoBox().copy(category = CategoryID.FIRST_AID, categoryOverridden = true)
+        val edited = BoxEdit.from(userChosen).resetCategory(CategoryID.PAIN_FEVER).applyTo(userChosen)
+        assertEquals(CategoryID.PAIN_FEVER, edited.category)
+        assertEquals(false, edited.categoryOverridden)
+    }
+
+    @Test
+    fun aLaterChoiceReplacesAnEarlierOne() {
+        val edit = BoxEdit.from(autoBox())
+            .chooseCategory(CategoryID.FIRST_AID)
+            .resetCategory(CategoryID.UNCATEGORIZED)
+            .chooseCategory(CategoryID.EYES)
+        assertEquals(CategoryID.EYES, edit.applyTo(autoBox()).category)
+    }
+
+    @Test
+    fun withoutACategoryChangeTheCategoryIsUntouched() {
+        val chosen = autoBox().copy(category = CategoryID.EYES, categoryOverridden = true)
+        val edited = BoxEdit("Doliprane", null, kitchen).applyTo(chosen)
+        assertEquals(CategoryID.EYES, edited.category)
+        assertTrue(edited.categoryOverridden)
+    }
+
+    @Test
+    fun theCategoryErrorKeepsItsPlatformNeutralName() {
+        assertEquals("categoryNotSelectable", BoxEditError.CATEGORY_NOT_SELECTABLE.kind)
     }
 }

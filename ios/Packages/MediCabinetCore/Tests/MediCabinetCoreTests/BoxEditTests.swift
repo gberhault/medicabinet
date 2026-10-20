@@ -74,5 +74,57 @@ import MediCabinetCore
     @Test func errorKindsUseThePlatformNeutralNames() {
         #expect(BoxEditError.emptyName.kind == "emptyName")
         #expect(BoxEditError.nameTooLong.kind == "nameTooLong")
+        #expect(BoxEditError.categoryNotSelectable.kind == "categoryNotSelectable")
+    }
+
+    // MARK: category (B4)
+
+    private func autoBox() -> Box {
+        Box(
+            product: ProductRef(gtin: "03400930000014", name: "Doliprane"), category: .painFever, locationID: kitchen,
+            createdAt: Date(timeIntervalSince1970: 100))
+    }
+
+    @Test func aChosenCategoryMarksTheBoxUserChosen() throws {
+        var edit = BoxEdit(from: autoBox())
+        try edit.chooseCategory(.firstAid)
+        let edited = try edit.applied(to: autoBox())
+        #expect(edited.category == .firstAid)
+        #expect(edited.categoryOverridden)
+    }
+
+    @Test func onlyACategoryTheUserMayPickCanBeChosen() {
+        var edit = BoxEdit(from: autoBox())
+        #expect(throws: BoxEditError.categoryNotSelectable) { try edit.chooseCategory(.uncategorized) }
+        #expect(throws: BoxEditError.categoryNotSelectable) { try edit.chooseCategory(CategoryID(rawValue: "from-the-future")) }
+        // A refused choice changes nothing.
+        #expect(edit.categoryChange == nil)
+    }
+
+    @Test func automaticCategoryGivesTheBoxBackToTheClassifier() throws {
+        var userChosen = autoBox()
+        userChosen.category = .firstAid
+        userChosen.categoryOverridden = true
+        var edit = BoxEdit(from: userChosen)
+        edit.resetCategory(to: .painFever)
+        let edited = try edit.applied(to: userChosen)
+        #expect(edited.category == .painFever)
+        #expect(!edited.categoryOverridden)
+    }
+
+    @Test func aLaterChoiceReplacesAnEarlierOne() throws {
+        var edit = BoxEdit(from: autoBox())
+        try edit.chooseCategory(.firstAid)
+        edit.resetCategory(to: .uncategorized)
+        try edit.chooseCategory(.eyes)
+        #expect(try edit.applied(to: autoBox()).category == .eyes)
+    }
+
+    @Test func withoutACategoryChangeTheCategoryIsUntouched() throws {
+        var chosen = autoBox()
+        chosen.category = .eyes
+        chosen.categoryOverridden = true
+        let edited = try BoxEdit(name: "Doliprane", expiry: nil, locationID: kitchen).applied(to: chosen)
+        #expect(edited.category == .eyes && edited.categoryOverridden)
     }
 }

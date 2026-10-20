@@ -62,7 +62,7 @@ These strings are identical on both platforms (storage values, error kinds, expo
 | Barcode symbologies | `dataMatrix`, `ean13` |
 | Repository errors | `notFound`, `unknownLocation`, `duplicate`, `duplicateDefault`, `duplicateSerial`, `duplicateName`, `defaultLocation`, `locationNotEmpty` |
 | Location-name errors | `empty`, `tooLong`, `duplicateName` |
-| Box edit errors | `emptyName`, `nameTooLong` |
+| Box edit errors | `emptyName`, `nameTooLong`, `categoryNotSelectable` |
 | Removal decisions | `remove`, `choose`, `alreadyRemoved`, `notInCabinet` |
 | Expiring-soon window choices (days) | `30`, `60`, `90`; default `60` |
 | Digest day and time | the `1`st of the month at `09:00` local (540 minutes) |
