@@ -136,11 +136,14 @@ independent of each other.
   separate Continue step; `transfer_export_continue` exists for parity only). The provider
   authority is `${applicationId}.export` (= `com.medicabinet.app.export` in the shipped app),
   so the side-by-side `.perf` build can be installed too (design §7.1 amended).
-- [ ] **T19 — Open-with filters and coordinator** `[android]` [#28, #29] (O2, O4, O5; §7.3)
+- [x] **T19 — Open-with filters and coordinator** `[android]` [#28, #29] (O2, O4, O5; §7.3)
   The §7.3 intent filters, `singleTop`, `onNewIntent`, `ImportCoordinator` (immediate capped
   read, gating like iOS); busy registration in the scan sheets. *Tests:* manifest test (the
   filters exactly, no JSON, no `*/*`); Robolectric `ACTION_VIEW` / `ACTION_SEND` intents;
   coordinator unit tests.
+  Done: only `content:` addresses are read (the activity is exported: a `file:` address could
+  name the app's own files); anything else is refused as unreadable. A file that cannot be
+  opened at launch (storage unavailable) is refused in a dialog over the launch error.
 - [ ] **T20 — Import flow** `[android]` [#29] (I1–I10, V5, O3; §7.2, flows 3–6, 8)
   `OpenDocument`, `ImportViewModel`, `ImportPreviewScreen`, confirmation `AlertDialog`,
   `ImportResultScreen`, error screens, the "file not offered?" hint. *Tests:* as T14

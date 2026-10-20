@@ -12,6 +12,7 @@ import androidx.core.content.FileProvider
 import androidx.test.core.app.ApplicationProvider
 import com.medicabinet.app.persistence.AppPaths
 import com.medicabinet.core.archive.ArchiveFormat
+import com.medicabinet.core.archive.ArchiveLimits
 import java.io.File
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -50,6 +51,17 @@ class ArchiveFilesTest {
         val target = File(context.filesDir, "chosen.medicabinet").apply { writeText("a much longer older file") }
         files.writeDocument(Uri.fromFile(target), bytes)
         assertContentEquals(bytes, target.readBytes())
+    }
+
+    @Test
+    fun anOpenedFileIsReadUpToOneByteOverTheLimitOnly() {
+        val source = File(context.filesDir, "picked.medicabinet").apply {
+            writeBytes(ByteArray(5_000) { 'x'.code.toByte() })
+        }
+        val small = ArchiveFiles(context, exports, ArchiveLimits(maxFileBytes = 100))
+        assertEquals(101, small.read(Uri.fromFile(source)).size)
+        assertEquals(5_000, files.read(Uri.fromFile(source)).size)
+        assertFailsWith<Exception> { files.read(Uri.parse("content://nobody/document/1")) }
     }
 
     @Test

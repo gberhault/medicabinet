@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.medicabinet.app.R
 import com.medicabinet.app.features.MainScaffold
+import com.medicabinet.app.features.transfer.ImportCoordinator
+import com.medicabinet.app.features.transfer.RefusedImportDialog
 
 /** Set once bootstrap succeeded; `null` only before that. */
 val LocalAppEnvironment = staticCompositionLocalOf<AppEnvironment?> { null }
@@ -24,7 +26,9 @@ val LocalAppEnvironment = staticCompositionLocalOf<AppEnvironment?> { null }
 fun RootScreen(
     viewModel: BootstrapViewModel,
     modifier: Modifier = Modifier,
-    tabRouter: TabRouter = remember { TabRouter() }
+    tabRouter: TabRouter = remember { TabRouter() },
+    /** Archives opened with the app; `null` in tests that do not open any. */
+    importCoordinator: ImportCoordinator? = null
 ) {
     val state by viewModel.state.collectAsState()
     when (val current = state) {
@@ -36,13 +40,17 @@ fun RootScreen(
             CircularProgressIndicator()
             Text(stringResource(R.string.bootstrap_loading))
         }
-        is BootstrapUiState.Failed -> BootstrapErrorScreen(
-            current.failure,
-            onRetry = viewModel::start,
-            modifier = modifier
-        )
+        is BootstrapUiState.Failed -> {
+            BootstrapErrorScreen(current.failure, onRetry = viewModel::start, modifier = modifier)
+            importCoordinator?.let { RefusedImportDialog(it) }
+        }
         is BootstrapUiState.Ready -> CompositionLocalProvider(LocalAppEnvironment provides current.environment) {
-            MainScaffold(current.environment, modifier = modifier, tabRouter = tabRouter)
+            MainScaffold(
+                current.environment,
+                modifier = modifier,
+                tabRouter = tabRouter,
+                importCoordinator = importCoordinator
+            )
         }
     }
 }

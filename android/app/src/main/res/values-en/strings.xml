@@ -312,4 +312,8 @@
     <string name="transfer_export_writing">Creating the file…</string>
     <string name="transfer_section_footer">A .medicabinet file holds the whole cabinet. Use it as a backup or to move to another phone, iPhone or Android.</string>
     <string name="transfer_section_title">Backup and transfer</string>
+    <string name="transfer_error_close">Close</string>
+    <string name="transfer_error_title">Couldn\'t import</string>
+    <string name="transfer_import_pendingBanner">A cabinet file is waiting. Finish or cancel the current entry.</string>
+    <string name="transfer_import_unavailable">Cannot import: the cabinet storage is unavailable.</string>
 </resources>

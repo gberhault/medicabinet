@@ -1,5 +1,6 @@
 package com.medicabinet.app.features
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.EventBusy
@@ -67,6 +68,9 @@ import com.medicabinet.app.features.settings.ExpirySettingsSection
 import com.medicabinet.app.features.settings.PackageAppInfo
 import com.medicabinet.app.features.settings.SettingsScreen
 import com.medicabinet.app.features.settings.locations.LocationsRoute
+import com.medicabinet.app.features.transfer.ImportCoordinator
+import com.medicabinet.app.features.transfer.LocalImportCoordinator
+import com.medicabinet.app.features.transfer.PendingImportBanner
 import com.medicabinet.app.features.transfer.TransferSettings
 import com.medicabinet.app.reminders.ReminderModel
 import com.medicabinet.app.reminders.ReminderServices
@@ -107,7 +111,8 @@ fun MainScaffold(
     appInfo: AppInfo = PackageAppInfo(LocalContext.current),
     scanServices: ScanServices = ScanServices.live(LocalContext.current, environment.reference),
     reminderServices: ReminderServices = LocalContext.current.reminderServices(),
-    tabRouter: TabRouter = remember { TabRouter() }
+    tabRouter: TabRouter = remember { TabRouter() },
+    importCoordinator: ImportCoordinator? = null
 ) {
     val aboutViewModel = remember(appInfo, environment.reference) { AboutViewModel(appInfo, environment.reference) }
     val navController = rememberNavController()
@@ -141,7 +146,10 @@ fun MainScaffold(
             tabRouter.consume(tab)
         }
     }
-    CompositionLocalProvider(LocalUndoController provides undoController) {
+    CompositionLocalProvider(
+        LocalUndoController provides undoController,
+        LocalImportCoordinator provides importCoordinator
+    ) {
         MainContent(
             navController,
             aboutViewModel,
@@ -187,14 +195,10 @@ private fun MainContent(
             }
         }
     ) { padding ->
-        MainNavHost(
-            navController,
-            aboutViewModel,
-            environment,
-            scanServices,
-            models,
-            Modifier.padding(padding)
-        )
+        Column(Modifier.padding(padding)) {
+            LocalImportCoordinator.current?.let { PendingImportBanner(it) }
+            MainNavHost(navController, aboutViewModel, environment, scanServices, models, Modifier.weight(1f))
+        }
     }
 }
 

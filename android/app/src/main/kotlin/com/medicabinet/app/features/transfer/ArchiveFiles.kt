@@ -6,11 +6,13 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.core.content.FileProvider
+import com.medicabinet.app.app.readAtMost
 import com.medicabinet.core.archive.ArchiveFormat
+import com.medicabinet.core.archive.ArchiveLimits
 import java.io.File
 import java.io.IOException
 
-/** The file side of export (and import): behind an interface so the view models are tested without a device. */
+/** The file side of export: behind an interface so the view models are tested without a device. */
 interface ArchiveDocuments {
     /** Writes [bytes] to a document the user created with the system picker, replacing anything in it. */
     fun writeDocument(uri: Uri, bytes: ByteArray)
@@ -33,8 +35,18 @@ interface ArchiveDocuments {
 class ArchiveFiles(
     private val context: Context,
     private val exportDirectory: File,
+    private val limits: ArchiveLimits = ArchiveLimits.DEFAULT,
     private val authority: String = authorityOf(context)
 ) : ArchiveDocuments {
+    /**
+     * Reads an opened or picked file, at most `maxFileBytes + 1` bytes: a larger file is refused by the decoder
+     * (`tooLarge`) without ever being loaded whole (§1.5).
+     */
+    fun read(uri: Uri): ByteArray {
+        val input = context.contentResolver.openInputStream(uri) ?: throw IOException("no input stream")
+        return input.use { it.readAtMost(limits.maxFileBytes + 1) }
+    }
+
     override fun writeDocument(uri: Uri, bytes: ByteArray) {
         // "wt": truncate, so a shorter archive written over an older file leaves nothing of it behind.
         val output = context.contentResolver.openOutputStream(uri, "wt") ?: throw IOException("no output stream")

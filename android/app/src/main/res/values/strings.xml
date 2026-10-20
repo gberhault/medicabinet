@@ -312,4 +312,8 @@
     <string name="transfer_export_writing">Création du fichier…</string>
     <string name="transfer_section_footer">Un fichier .medicabinet contient toute l\'armoire. Il sert de sauvegarde ou à passer sur un autre téléphone, iPhone ou Android.</string>
     <string name="transfer_section_title">Sauvegarde et transfert</string>
+    <string name="transfer_error_close">Fermer</string>
+    <string name="transfer_error_title">Import impossible</string>
+    <string name="transfer_import_pendingBanner">Un fichier d\'armoire attend. Terminez ou annulez la saisie en cours.</string>
+    <string name="transfer_import_unavailable">Import impossible : le stockage de l\'armoire n\'est pas disponible.</string>
 </resources>
