@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -68,6 +69,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.medicabinet.app.R
+import com.medicabinet.app.features.scan.camera.AnalysisSettings
 import java.io.Closeable
 import kotlinx.coroutines.launch
 
@@ -254,7 +256,12 @@ private fun ScannerContent(
 
 @Composable
 private fun Viewfinder(modifier: Modifier) {
-    Box(modifier.size(260.dp).border(3.dp, Color.White.copy(alpha = 0.8f), RoundedCornerShape(24.dp)))
+    // The decoded square (centre 70 % of the short side) is what this frame shows.
+    Box(
+        modifier.fillMaxWidth(
+            AnalysisSettings.CROP_FRACTION
+        ).aspectRatio(1f).border(3.dp, Color.White.copy(alpha = 0.8f), RoundedCornerShape(24.dp))
+    )
 }
 
 @Composable

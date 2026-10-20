@@ -45,7 +45,7 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
   `uses-feature required=false`; `PrivacyTest` = exactly CAMERA; architecture rule confining
   `androidx.camera`/`zxingcpp` to `features/scan/camera/` + fixture. *Tests:* PrivacyTest,
   architecture fixture, fake scanner flow.
-- [ ] **T6 — Capture real payload shapes** `[shared]` [#13] (open point 1; §12)
+- [ ] **T6 — Capture real payload shapes** *(1 of 10–20 so far: Android/zxing-cpp gives `]d2 01 17 10(5)`, no leading FNC1 — added to the fixture; iOS and boxes with a serial still to do)* `[shared]` [#13] (open point 1; §12)
   **Needs the user:** run the debug capture on 10–20 boxes on an iPhone and an Android phone
   (`ANDROID_SERIAL` = the device the user names). Add one anonymised case per new shape to
   `gs1-datamatrix.json` (both suites must pass). If a scanner drops GS separators, stop and

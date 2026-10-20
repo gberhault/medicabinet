@@ -1073,6 +1073,22 @@
         "lot": "Z9",
         "serial": "Q7"
       }
+    },
+    {
+      "name": "real box seen by zxing-cpp on an Android phone: ]d2, GTIN, expiry, lot, no serial (lot anonymised)",
+      "payload": "]d201034009359558381728063010L0000",
+      "shape": "]d2 01 17 10(5)",
+      "expect": {
+        "gtin": "03400935955838",
+        "symbology": "dataMatrix",
+        "expiry": {
+          "year": 2028,
+          "month": 6,
+          "day": 30
+        },
+        "lot": "L0000",
+        "serial": null
+      }
     }
   ]
 }

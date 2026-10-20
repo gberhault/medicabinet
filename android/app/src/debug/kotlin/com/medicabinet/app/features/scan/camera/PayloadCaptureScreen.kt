@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,7 +48,8 @@ internal fun DebugSettingsRow(onOpen: () -> Unit) {
 }
 
 internal fun NavGraphBuilder.debugRoutes() {
-    composable(DEBUG_ROUTE) { PayloadCaptureScreen(CameraXScanner(SystemClock)) }
+    // remember: a new scanner per recomposition would close the one the camera is bound to.
+    composable(DEBUG_ROUTE) { PayloadCaptureScreen(remember { CameraXScanner(SystemClock) }) }
 }
 
 /** Newest first, consecutive duplicates collapsed, at most [limit] entries. */
@@ -69,6 +71,7 @@ internal fun PayloadCaptureScreen(scanner: CodeScanner, modifier: Modifier = Mod
     val request = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it }
     val shapes = remember { mutableStateListOf<String>() }
     var failed by remember { mutableStateOf(false) }
+    val diagnostics by scanner.diagnostics.collectAsState()
     LaunchedEffect(scanner, granted) {
         if (!granted) return@LaunchedEffect
         scanner.snapshots.collect { snapshot ->
@@ -88,7 +91,13 @@ internal fun PayloadCaptureScreen(scanner: CodeScanner, modifier: Modifier = Mod
         } else {
             scanner.Preview(Modifier.fillMaxWidth().height(260.dp), onFailure = { failed = true })
             if (failed) Text("Camera failed to start", modifier = Modifier.padding(16.dp))
+            Text(diagnostics.describe(), modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
         }
         LazyColumn { items(shapes) { Text(it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) } }
     }
 }
+
+/** One line for the debug screen: frame size, decoded crop, average decode time, frames that held a code. */
+internal fun ScanDiagnostics.describe(): String =
+    "frame ${frameWidth}x$frameHeight, crop $cropSide px, ${"%.0f".format(averageDecodeMillis)} ms/frame, " +
+        "$frames frames, $framesWithCodes with a code"

@@ -1,8 +1,14 @@
 package com.medicabinet.app.features.scan.camera
 
+import android.graphics.Rect
+import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
@@ -20,6 +26,8 @@ import java.util.concurrent.Executors
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import zxingcpp.BarcodeReader
 
 /**
@@ -46,6 +54,21 @@ class CameraXScanner(private val clock: Clock) :
 
     override val snapshots: Flow<VisibleCodes> get() = frames
 
+    private val decodeTimes = RollingAverage()
+    private val mutableDiagnostics = MutableStateFlow(ScanDiagnostics())
+    override val diagnostics: StateFlow<ScanDiagnostics> get() = mutableDiagnostics
+
+    /** Same 16:9 size for the preview and the analysis, so what the user sees is what is decoded. */
+    private val resolution = ResolutionSelector.Builder()
+        .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
+        .setResolutionStrategy(
+            ResolutionStrategy(
+                Size(AnalysisSettings.LONG_SIDE, AnalysisSettings.SHORT_SIDE),
+                ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER
+            )
+        )
+        .build()
+
     @Composable
     override fun Preview(modifier: Modifier, onFailure: (CodeScannerError) -> Unit, onStarted: () -> Unit) {
         val context = LocalContext.current
@@ -64,8 +87,12 @@ class CameraXScanner(private val clock: Clock) :
             providerFuture.addListener({
                 try {
                     val provider = providerFuture.get()
-                    val preview = Preview.Builder().build().also { it.surfaceProvider = previewView.surfaceProvider }
+                    val preview = Preview.Builder().setResolutionSelector(resolution).build().also {
+                        it.surfaceProvider =
+                            previewView.surfaceProvider
+                    }
                     val analysis = ImageAnalysis.Builder()
+                        .setResolutionSelector(resolution)
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
                         .also { it.setAnalyzer(analysisExecutor, ::analyze) }
@@ -83,14 +110,31 @@ class CameraXScanner(private val clock: Clock) :
         AndroidView(factory = { previewView }, modifier = modifier)
     }
 
-    private fun analyze(image: androidx.camera.core.ImageProxy) {
+    private fun analyze(image: ImageProxy) {
         image.use {
+            val crop = centeredCrop(it.width, it.height)
+            it.setCropRect(Rect(crop.left, crop.top, crop.right, crop.bottom))
+            val started = System.nanoTime()
             val payloads = reader.read(it).mapNotNull { result ->
                 ScanPayload.of(result.symbologyIdentifier, result.bytes, result.text)
             }
+            decodeTimes.add((System.nanoTime() - started) / NANOS_PER_MILLI)
+            val previous = mutableDiagnostics.value
+            mutableDiagnostics.value = ScanDiagnostics(
+                frameWidth = it.width,
+                frameHeight = it.height,
+                cropSide = crop.width,
+                frames = previous.frames + 1,
+                averageDecodeMillis = decodeTimes.average,
+                framesWithCodes = previous.framesWithCodes + if (payloads.isEmpty()) 0 else 1
+            )
             if (payloads.isNotEmpty()) frames.tryEmit(VisibleCodes(payloads, clock.now()))
         }
     }
 
     override fun close() = analysisExecutor.shutdown()
+
+    private companion object {
+        const val NANOS_PER_MILLI = 1_000_000.0
+    }
 }

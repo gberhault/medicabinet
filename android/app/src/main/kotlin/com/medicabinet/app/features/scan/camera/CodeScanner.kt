@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /** The codes in view at one instant, as the scanner reported them. */
 data class VisibleCodes(val payloads: List<String>, val instant: Instant)
@@ -20,6 +22,9 @@ enum class CodeScannerError {
 interface CodeScanner {
     /** One snapshot per analysed frame that shows at least one code (hot flow; slow collectors skip frames). */
     val snapshots: Flow<VisibleCodes>
+
+    /** How the analysis is doing (frame size, decode time): shown by the debug capture screen only. */
+    val diagnostics: StateFlow<ScanDiagnostics> get() = MutableStateFlow(ScanDiagnostics())
 
     /**
      * The live camera view. The camera runs only while this is in the composition and the lifecycle is at least
