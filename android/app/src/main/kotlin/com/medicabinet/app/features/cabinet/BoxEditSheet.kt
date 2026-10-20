@@ -7,13 +7,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -37,7 +34,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.medicabinet.app.R
-import com.medicabinet.app.features.CategoryLabels
+import com.medicabinet.app.features.common.CategoryField
 import com.medicabinet.app.features.scan.ExpiryChoice
 import com.medicabinet.app.features.scan.ExpiryEditor
 import com.medicabinet.core.Box as CabinetBox
@@ -47,7 +44,6 @@ import com.medicabinet.core.cabinet.BoxEdit
 import com.medicabinet.core.cabinet.BoxEditError
 import com.medicabinet.core.cabinet.BoxEditException
 import com.medicabinet.core.cabinet.CategoryChange
-import com.medicabinet.core.reference.Taxonomy
 import kotlinx.coroutines.launch
 
 /** What is wrong with the form (the name), or `null` when the name can be saved. */
@@ -92,7 +88,14 @@ fun BoxEditSheet(model: BoxDetailViewModel, state: BoxDetailState.Loaded, onDism
             NameField(edit.name, problem) { edit = edit.copy(name = it) }
             ExpiryEditor(expiry, onChange = { expiry = it })
             LocationField(state.locations, edit.locationId) { edit = edit.copy(locationId = it) }
-            CategoryField(box, edit, { edit = it }, model)
+            val (category, manual) = edit.category(box)
+            CategoryField(
+                category = category,
+                manual = manual,
+                onChoose = { edit = edit.chooseCategory(it) },
+                onAutomatic = { edit = edit.resetCategory(model.automaticCategory()) },
+                tagPrefix = "box.edit.category"
+            )
             if (saveFailed) ErrorLine(stringResource(R.string.box_error), "box.edit.error")
             Row(
                 Modifier.fillMaxWidth().padding(bottom = 16.dp),
@@ -162,62 +165,6 @@ private fun LocationField(locations: List<Location>, selected: java.util.UUID, o
                 )
             }
         }
-    }
-}
-
-/**
- * Category picker (B4): the taxonomy's user-selectable categories, a "Set by you" marker once chosen, and **Automatic
- * category** to give the box back to the classifier. Categories tidy the cabinet; they never advise a treatment.
- */
-@Composable
-private fun CategoryField(box: CabinetBox, edit: BoxEdit, onChange: (BoxEdit) -> Unit, model: BoxDetailViewModel) {
-    val (category, manual) = edit.category(box)
-    var open by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            stringResource(R.string.box_category),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(stringResource(CategoryLabels.resource(category)), Modifier.testTag("box.edit.category"))
-        if (manual) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Icon(Icons.Outlined.Person, contentDescription = null, modifier = Modifier.size(16.dp))
-                Text(stringResource(R.string.box_category_manual), style = MaterialTheme.typography.bodySmall)
-            }
-        }
-        Box {
-            OutlinedButton(
-                onClick = { open = true },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("box.edit.category.choose")
-            ) { Text(stringResource(R.string.box_category_choose)) }
-            DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-                Taxonomy.userSelectable.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(stringResource(CategoryLabels.resource(option))) },
-                        trailingIcon = {
-                            if (option == category) Icon(Icons.Outlined.Check, contentDescription = null)
-                        },
-                        onClick = {
-                            onChange(edit.chooseCategory(option))
-                            open = false
-                        },
-                        modifier = Modifier.heightIn(min = 48.dp).testTag("box.edit.category.${option.rawValue}")
-                    )
-                }
-            }
-        }
-        OutlinedButton(
-            onClick = { scope.launch { onChange(edit.resetCategory(model.automaticCategory())) } },
-            enabled = manual,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("box.edit.category.automatic")
-        ) { Text(stringResource(R.string.box_category_automatic)) }
-        Text(
-            stringResource(R.string.box_category_note),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
 
