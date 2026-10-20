@@ -2,19 +2,16 @@ package com.medicabinet.core.expiry
 
 import com.medicabinet.core.Box
 import com.medicabinet.core.ExpiryStatus
-import java.text.Normalizer
+import com.medicabinet.core.cabinet.TextNormalizer
 import java.util.Locale
 
 /**
- * Name order shared with the iOS app: the platform collators (ICU vs `java.text.Collator`) disagree on
- * edge cases, which would break the shared fixture, so names are compared on a folded form — lower
- * case, accents removed — code point by code point. "Éfferalgan" sorts next to "efferalgan".
+ * The order of names in the Expiring view: the same folding and code point comparison as the Cabinet list and the
+ * search ([TextNormalizer]), so a name sorts identically everywhere and on both platforms. "Éfferalgan" sorts next to
+ * "efferalgan".
  */
 object NameOrder {
-    private val COMBINING_MARKS = Regex("\\p{Mn}")
-
-    fun folded(name: String): String =
-        Normalizer.normalize(name, Normalizer.Form.NFD).replace(COMBINING_MARKS, "").lowercase(Locale.ROOT)
+    fun folded(name: String): String = TextNormalizer.normalize(name)
 
     /** `true` when [lhs] sorts before [rhs]: folded name first, then the lower-case id. */
     fun precedes(lhs: Box, rhs: Box): Boolean = comparator.compare(SortKey(lhs), SortKey(rhs)) < 0
@@ -24,19 +21,9 @@ object NameOrder {
         val id = box.id.toString().lowercase(Locale.ROOT)
     }
 
-    /** Compares by code point, not UTF-16 unit, like the Swift scalar comparison. */
-    private fun compareCodePoints(lhs: String, rhs: String): Int {
-        val left = lhs.codePoints().toArray()
-        val right = rhs.codePoints().toArray()
-        for (index in 0 until minOf(left.size, right.size)) {
-            if (left[index] != right[index]) return left[index].compareTo(right[index])
-        }
-        return left.size.compareTo(right.size)
-    }
-
     internal val comparator: Comparator<SortKey> = Comparator { lhs, rhs ->
-        val byName = compareCodePoints(lhs.name, rhs.name)
-        if (byName != 0) byName else compareCodePoints(lhs.id, rhs.id)
+        val byName = TextNormalizer.compare(lhs.name, rhs.name)
+        if (byName != 0) byName else TextNormalizer.compare(lhs.id, rhs.id)
     }
 }
 

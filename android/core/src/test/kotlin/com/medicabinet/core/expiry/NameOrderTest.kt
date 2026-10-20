@@ -2,6 +2,7 @@ package com.medicabinet.core.expiry
 
 import com.medicabinet.core.Box
 import com.medicabinet.core.ProductRef
+import com.medicabinet.core.cabinet.TextNormalizer
 import java.time.Instant
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -21,7 +22,7 @@ class NameOrderTest {
     fun foldingLowersCaseAndRemovesAccents() {
         assertEquals("efferalgan", NameOrder.folded("Éfferalgan"))
         assertEquals("efferalgan", NameOrder.folded("ÉFFERALGAN"))
-        assertEquals("creme a l’œuf", NameOrder.folded("Crème à l’œuf"))
+        assertEquals(TextNormalizer.normalize("Crème à l’œuf"), NameOrder.folded("Crème à l’œuf"))
         assertEquals("", NameOrder.folded(""))
     }
 

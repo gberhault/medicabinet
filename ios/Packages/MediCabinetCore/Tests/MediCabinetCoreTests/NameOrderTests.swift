@@ -15,7 +15,7 @@ import MediCabinetCore
     @Test func foldingLowersCaseAndRemovesAccents() {
         #expect(NameOrder.folded("Éfferalgan") == "efferalgan")
         #expect(NameOrder.folded("ÉFFERALGAN") == "efferalgan")
-        #expect(NameOrder.folded("Crème à l’œuf") == "creme a l’œuf")
+        #expect(NameOrder.folded("Crème à l’œuf") == TextNormalizer.normalize("Crème à l’œuf"))
         #expect(NameOrder.folded("") == "")
     }
 

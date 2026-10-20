@@ -1,15 +1,11 @@
 import Foundation
 
-/// Name order shared with the Android app: the platform collators (ICU vs `java.text.Collator`)
-/// disagree on edge cases, which would break the shared fixture, so names are compared on a folded
-/// form — lower case, accents removed — scalar by scalar. "Éfferalgan" sorts next to "efferalgan".
+/// The order of names in the Expiring view: the same folding and scalar comparison as the Cabinet list and the
+/// search (`TextNormalizer`), so a name sorts identically everywhere and on both platforms. "Éfferalgan" sorts next
+/// to "efferalgan".
 public enum NameOrder {
     public static func folded(_ name: String) -> String {
-        let withoutMarks = name.decomposedStringWithCanonicalMapping.unicodeScalars
-            .filter { $0.properties.generalCategory != .nonspacingMark }
-        var scalars = String.UnicodeScalarView()
-        scalars.append(contentsOf: withoutMarks)
-        return String(scalars).lowercased()
+        TextNormalizer.normalize(name)
     }
 
     /// `true` when `lhs` sorts before `rhs`: folded name first, then the lower-case id.
@@ -22,16 +18,14 @@ public enum NameOrder {
         let id: String
 
         init(_ box: Box) {
-            name = NameOrder.folded(box.product.name)
+            name = folded(box.product.name)
             id = box.id.uuidString.lowercased()
         }
     }
 
     static func precedes(_ lhs: SortKey, _ rhs: SortKey) -> Bool {
-        if lhs.name != rhs.name {
-            return lhs.name.unicodeScalars.lexicographicallyPrecedes(rhs.name.unicodeScalars) { $0.value < $1.value }
-        }
-        return lhs.id.unicodeScalars.lexicographicallyPrecedes(rhs.id.unicodeScalars) { $0.value < $1.value }
+        let byName = TextNormalizer.compare(lhs.name, rhs.name)
+        return byName != 0 ? byName < 0 : TextNormalizer.compare(lhs.id, rhs.id) < 0
     }
 }
 
