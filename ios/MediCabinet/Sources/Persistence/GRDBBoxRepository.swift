@@ -33,6 +33,17 @@ struct GRDBBoxRepository: BoxRepository {
         }
     }
 
+    func latestBoxPerGTIN() async throws -> [Box] {
+        try await database.writer.read { db in
+            try BoxRecord.fetchAll(db, sql: """
+                SELECT * FROM (
+                    SELECT *, ROW_NUMBER() OVER (PARTITION BY gtin ORDER BY createdAt DESC, id DESC) AS newestFirst
+                    FROM box WHERE deletedAt IS NULL AND gtin IS NOT NULL
+                ) WHERE newestFirst = 1 ORDER BY createdAt DESC, id DESC
+                """).map { try $0.model() }
+        }
+    }
+
     func observeCabinet() -> AsyncThrowingStream<[Box], any Error> {
         let observation = ValueObservation.tracking { db in
             try BoxRecord.filter(Column("removedAt") == nil && Column("deletedAt") == nil)

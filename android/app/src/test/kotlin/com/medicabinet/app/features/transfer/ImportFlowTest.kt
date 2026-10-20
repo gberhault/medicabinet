@@ -51,6 +51,7 @@ class ImportFlowTest {
         AppEnvironment(
             store,
             store,
+            store.named,
             kit.clock,
             InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING)),
             transfer = kit.transfer
@@ -73,8 +74,8 @@ class ImportFlowTest {
         coordinator.receive(Uri.parse("content://downloads/1"))
         waitFor("import.file")
         compose.onNodeWithText("In the file").assertIsDisplayed()
-        compose.onNodeWithText("By MediCabinet 0.3.0 (iOS)").assertIsDisplayed()
-        compose.onNodeWithText("File format: version 1").assertIsDisplayed()
+        compose.onNodeWithText("By MediCabinet 0.7.0 (iOS)").assertIsDisplayed()
+        compose.onNodeWithText("File format: version 2").assertIsDisplayed()
         compose.onNodeWithText("On this phone").performScrollTo().assertIsDisplayed()
         compose.onNodeWithTag("import.replaceStatement").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText(
@@ -131,7 +132,7 @@ class ImportFlowTest {
 
     @Test
     fun aFileFromANewerAppAsksToUpdateMediCabinet() {
-        val newer = String(golden).replaceFirst("\"formatVersion\": 1", "\"formatVersion\": 2").toByteArray()
+        val newer = String(golden).replaceFirst("\"formatVersion\": 2", "\"formatVersion\": 3").toByteArray()
         val model = ImportViewModel(kit.transfer, ImportRequest.File(Incoming.Ready(newer)), {}, Dispatchers.Unconfined)
         compose.setContent { MediCabinetTheme { ImportScreen(model, onClose = {}) } }
         compose.onNodeWithText("Couldn't import").assertIsDisplayed()

@@ -17,7 +17,7 @@ class InMemoryRepositoryContractTest {
             runBlocking {
                 check.run { clock ->
                     val store = InMemoryCabinetStore(clock)
-                    store to store
+                    RepositoryContract.Stores(store, store, store.named)
                 }
             }
         }

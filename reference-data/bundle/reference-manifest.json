@@ -1,5 +1,5 @@
 {
-  "contentSha256": "d3d074c9f0372d97d3a3aa17011fc797d4796d30c42cefafe0e4cc47bcbe2eb0",
+  "contentSha256": "099bd84e24f7698be5981b4202a315fb787e4957dbe58b5d799360fd06c1928d",
   "counts": {
     "byCategory": {
       "allergy": 175,
@@ -18,9 +18,9 @@
     "presentations": 20896,
     "withdrawn": 0
   },
-  "dataDate": "2026-10-18",
+  "dataDate": "2026-10-19",
   "formatVersion": 1,
-  "referenceSchemaVersion": 1,
+  "referenceSchemaVersion": 2,
   "rulesVersion": 1,
   "sources": {
     "CIS_CIP_bdpm.txt": {

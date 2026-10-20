@@ -22,6 +22,20 @@ public struct ShortNameCase: Decodable, Sendable, CustomStringConvertible {
     public var description: String { name }
 }
 
+/// One case of `fixtures/leaflet-links.json`: the reference product (`nil` = unknown code) and the address, or `nil`.
+public struct LeafletLinkCase: Decodable, Sendable, CustomStringConvertible {
+    public struct Product: Decodable, Sendable {
+        public let cis: String?
+        public let isWithdrawn: Bool
+    }
+
+    public let name: String
+    public let product: Product?
+    public let expect: String?
+
+    public var description: String { name }
+}
+
 /// One case of `fixtures/category-order.json`.
 public struct CategoryOrderCase: Decodable, Sendable, CustomStringConvertible {
     public let name: String
@@ -181,6 +195,15 @@ extension SharedFixtures {
         return (list.formatVersion, list.cases)
     }
 
+    public static func leafletLinks() throws -> (formatVersion: Int, cases: [LeafletLinkCase]) {
+        let list = try JSONDecoder().decode(CabinetCaseList<LeafletLinkCase>.self, from: data("leaflet-links.json"))
+        return (list.formatVersion, list.cases)
+    }
+
+    public static func leafletLinkCases() -> [LeafletLinkCase] {
+        (try? leafletLinks().cases) ?? []
+    }
+
     public static func categoryOrder() throws -> (formatVersion: Int, cases: [CategoryOrderCase]) {
         let list = try JSONDecoder().decode(CabinetCaseList<CategoryOrderCase>.self, from: data("category-order.json"))
         return (list.formatVersion, list.cases)
@@ -214,5 +237,91 @@ extension SharedFixtures {
 
     public static func scanRemovalCases() -> [ScanRemovalCase] {
         (try? scanRemoval().cases) ?? []
+    }
+}
+
+/// One case of `fixtures/product-memory.json`: `MemoryPolicy.decide` for a box save.
+public struct MemoryCase: Decodable, Sendable, CustomStringConvertible {
+    public struct FixtureBox: Decodable, Sendable {
+        public let gtin: String?
+        public let name: String
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
+    public struct Event: Decodable, Sendable {
+        /// `added` | `changed` | `sessionCorrected`
+        public let kind: String
+        public let before: FixtureBox?
+        public let after: FixtureBox
+    }
+
+    public struct Current: Decodable, Sendable {
+        public let name: String
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
+    public struct Expect: Decodable, Sendable {
+        /// `none` | `remember`
+        public let action: String
+        public let name: String?
+        public let category: String?
+        public let categoryOverridden: Bool?
+    }
+
+    public let name: String
+    public let event: Event
+    public let codeKnown: Bool?
+    public let current: Current?
+    public let expect: Expect
+
+    public var description: String { name }
+}
+
+extension SharedFixtures {
+    public static func productMemory() throws -> (formatVersion: Int, cases: [MemoryCase]) {
+        let list = try JSONDecoder().decode(CabinetCaseList<MemoryCase>.self, from: data("product-memory.json"))
+        return (list.formatVersion, list.cases)
+    }
+
+    public static func productMemoryCases() -> [MemoryCase] {
+        (try? productMemory().cases) ?? []
+    }
+}
+
+/// One case of `fixtures/named-product-backfill.json`: `NamedProductBackfill.products`.
+public struct BackfillCase: Decodable, Sendable, CustomStringConvertible {
+    public struct FixtureBox: Decodable, Sendable {
+        public let gtin: String?
+        public let name: String
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
+    public struct Product: Decodable, Sendable {
+        public let gtin: String
+        public let name: String
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
+    public let name: String
+    /// The GTINs the reference names.
+    public let known: [String]
+    public let latest: [FixtureBox]
+    public let expect: [Product]
+
+    public var description: String { name }
+}
+
+extension SharedFixtures {
+    public static func namedProductBackfill() throws -> (formatVersion: Int, cases: [BackfillCase]) {
+        let list = try JSONDecoder().decode(CabinetCaseList<BackfillCase>.self, from: data("named-product-backfill.json"))
+        return (list.formatVersion, list.cases)
+    }
+
+    public static func namedProductBackfillCases() -> [BackfillCase] {
+        (try? namedProductBackfill().cases) ?? []
     }
 }

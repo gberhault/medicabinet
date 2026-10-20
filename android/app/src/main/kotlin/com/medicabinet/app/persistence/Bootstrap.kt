@@ -76,6 +76,7 @@ class Bootstrap(
         return AppEnvironment(
             locations,
             SqlBoxRepository(cabinet, clock, io),
+            SqlNamedProductRepository(cabinet, clock, io),
             clock,
             reference,
             expiryPreferences = expiryPreferences,

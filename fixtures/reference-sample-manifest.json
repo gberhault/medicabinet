@@ -1,5 +1,5 @@
 {
-  "contentSha256": "22c936c65f5cab5fc9ba53ef828f507e79ad3914d6e824caa15011d835c62d0c",
+  "contentSha256": "d30082e524d94bd592641be7fd3d6c28e727a95a8559bde3af8e1325df2fcea7",
   "counts": {
     "byCategory": {
       "allergy": 0,
@@ -20,7 +20,7 @@
   },
   "dataDate": "2026-11-18",
   "formatVersion": 1,
-  "referenceSchemaVersion": 1,
+  "referenceSchemaVersion": 2,
   "rulesVersion": 1,
   "sources": {
     "CIS_CIP_bdpm.txt": {

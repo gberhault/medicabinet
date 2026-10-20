@@ -3,6 +3,7 @@ package com.medicabinet.core.archive
 import com.medicabinet.core.Box
 import com.medicabinet.core.FixedClock
 import com.medicabinet.core.Location
+import com.medicabinet.core.NamedProduct
 import com.medicabinet.core.ProductRef
 import com.medicabinet.core.testing.ArchiveFixtureFiles
 import com.medicabinet.core.testing.InMemoryArchiveBackupStore
@@ -22,8 +23,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 
 class CabinetTransferTest {
-    private val app = ArchiveApp("MediCabinet", "ios", "0.3.0", "3")
-    private val exportedAt = ArchiveDates.instant(1_792_397_730_123L)
+    private val app = ArchiveApp("MediCabinet", "ios", "0.7.0", "10")
+    private val exportedAt = ArchiveDates.instant(1_792_570_530_123L)
 
     private class Setup(
         val store: InMemoryArchiveStore,
@@ -96,7 +97,7 @@ class CabinetTransferTest {
         assertEquals(context.goldenCabinet.summary, preview.file)
         assertEquals(1, preview.current.inCabinet)
         assertTrue(preview.willBackUp)
-        assertEquals(1, preview.archive.sourceFormatVersion)
+        assertEquals(2, preview.archive.sourceFormatVersion)
     }
 
     @Test
@@ -264,7 +265,19 @@ class CabinetTransferTest {
     @Test
     fun theSnapshotSummaryCountsEveryKindOfBox() {
         val cabinet = ArchiveDecoder.decode(ArchiveFixtureFiles.goldenArchive()).cabinet
-        assertEquals(CabinetSummary(3, 9, 2, 1, 2), cabinet.summary)
+        assertEquals(CabinetSummary(3, 10, 2, 1, 2, 2), cabinet.summary)
         assertTrue(cabinet.needsBackup)
+    }
+
+    @Test
+    fun aNamedProductIsSomethingToLose() = runBlocking {
+        val home = ArchivedLocation(Location(name = "Home", isDefault = true, createdAt = exportedAt))
+        val product = NamedProduct(gtin = "03401234567890", name = "Crème", createdAt = exportedAt)
+        assertTrue(CabinetSummary(1, 0, 0, 0, 0, namedProducts = 1).needsBackup)
+        for (deletedAt in listOf(null, exportedAt)) {
+            val contents = CabinetContents(listOf(home), emptyList(), listOf(ArchivedNamedProduct(product, deletedAt)))
+            assertTrue(contents.needsBackup)
+            assertTrue(setup(contents).transfer.preview(ArchiveFixtureFiles.goldenArchive()).willBackUp)
+        }
     }
 }

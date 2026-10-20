@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "description": "GTIN -> CIP13 conversion (CIP13.from: both cores) and product lookup (both apps, against fixtures/reference-sample.sqlite). expect.cip13 is the 13-digit CIP13 of a GTIN-14 03400... with a valid GS1 check digit, else null (and then no query is made). expect.product is the sample database row (name, category) or null for an unknown product. Withdrawn products are still found. The sample database is built by scripts/tests/write-reference-sample.py.",
+  "description": "GTIN -> CIP13 conversion (CIP13.from: both cores) and product lookup (both apps, against fixtures/reference-sample.sqlite). expect.cip13 is the 13-digit CIP13 of a GTIN-14 03400... with a valid GS1 check digit, else null (and then no query is made). expect.product is the sample database row (name, category, cis, isWithdrawn) or null for an unknown product. Withdrawn products are still found, with isWithdrawn true. The sample database is built by scripts/tests/write-reference-sample.py.",
   "cases": [
     {
       "name": "DataMatrix GTIN of an active CIP13",
@@ -9,7 +9,9 @@
         "cip13": "3400900000013",
         "product": {
           "name": "TESTAMOL 500 mg, comprimé pelliculé",
-          "category": "pain-fever"
+          "category": "pain-fever",
+          "cis": "60000001",
+          "isWithdrawn": false
         }
       }
     },
@@ -20,7 +22,9 @@
         "cip13": "3400900000136",
         "product": {
           "name": "TESTAMOL 1000 mg, comprimé effervescent",
-          "category": "pain-fever"
+          "category": "pain-fever",
+          "cis": "60000012",
+          "isWithdrawn": false
         }
       }
     },
@@ -31,7 +35,9 @@
         "cip13": "3400900000051",
         "product": {
           "name": "ŒDÈME TEST, crème",
-          "category": "skin-wound"
+          "category": "skin-wound",
+          "cis": "60000005",
+          "isWithdrawn": false
         }
       }
     },
@@ -42,7 +48,9 @@
         "cip13": "3400900000105",
         "product": {
           "name": "TESTRETIRE 100 mg, comprimé",
-          "category": "pain-fever"
+          "category": "pain-fever",
+          "cis": "60000010",
+          "isWithdrawn": true
         }
       }
     },
@@ -53,7 +61,9 @@
         "cip13": "3400900000082",
         "product": {
           "name": "TESTINCONNU, comprimé",
-          "category": "uncategorized"
+          "category": "uncategorized",
+          "cis": "60000008",
+          "isWithdrawn": false
         }
       }
     },

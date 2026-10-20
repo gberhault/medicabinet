@@ -308,7 +308,7 @@ class BuildTests(TempDirCase):
         self.assertEqual(version, build.REFERENCE_SCHEMA_VERSION)
         self.assertEqual(meta, {"dataDate": "2026-10-18", "rulesVersion": "1"})
         self.assertEqual(len(rows), 13)
-        self.assertEqual(rows[sample.cip13(1)], build.Row("TESTAMOL 500 mg, comprimé", "pain-fever"))
+        self.assertEqual(rows[sample.cip13(1)], build.Row("TESTAMOL 500 mg, comprimé", "pain-fever", None, "60000001"))
         self.assertEqual(rows[sample.cip13(5)].name, "ŒDÈME TEST, crème")
         self.assertEqual(report.skipped, [sample.cip13(sample.ORPHAN_SERIAL)])
         self.assertEqual(len(report.added), 13)
@@ -328,7 +328,7 @@ class BuildTests(TempDirCase):
         connection = build.connect_read_only(out / build.DATABASE_NAME)
         self.addCleanup(connection.close)
         columns = [r[1] for r in connection.execute("PRAGMA table_info(presentation)")]
-        self.assertEqual(columns, ["cip13", "name", "category", "withdrawnSince"])
+        self.assertEqual(columns, ["cip13", "name", "category", "withdrawnSince", "cis"])
         self.assertEqual(connection.execute("PRAGMA integrity_check").fetchone()[0], "ok")
         plan = " ".join(str(r) for r in connection.execute("EXPLAIN QUERY PLAN SELECT name FROM presentation WHERE cip13 = ?", ("3400900000013",)))
         self.assertIn("PRIMARY KEY", plan)
@@ -338,17 +338,31 @@ class BuildTests(TempDirCase):
         _, out = self.build()
         connection = sqlite3.connect(out / build.DATABASE_NAME)
         self.addCleanup(connection.close)
-        for cip13, name, withdrawn in (("340090000001", "x", None), ("3401900000013", "x", None), ("3400900000013", "", None),
-                                       ("3400900000099", "x", "18/10/2026")):
-            with self.subTest(cip13=cip13, name=name, withdrawn=withdrawn), self.assertRaises(sqlite3.IntegrityError):
-                connection.execute("INSERT INTO presentation VALUES (?, ?, 'other', ?)", (cip13, name, withdrawn))
+        for cip13, name, withdrawn, cis in (
+                ("340090000001", "x", None, "60000001"), ("3401900000013", "x", None, "60000001"),
+                ("3400900000013", "", None, "60000001"), ("3400900009991", "x", "18/10/2026", "60000001"),
+                # Regression #56: a CIS is exactly 8 ASCII digits, and only a withdrawn row may lack one.
+                ("3400900009991", "x", None, "6000000"), ("3400900009991", "x", None, "600000011"),
+                ("3400900009991", "x", None, "6000000a"), ("3400900009991", "x", None, "٦٠٢٣٤١٠٠"),
+                ("3400900009991", "x", None, " 6000001"), ("3400900009991", "x", None, None)):
+            with self.subTest(cip13=cip13, name=name, withdrawn=withdrawn, cis=cis), self.assertRaises(sqlite3.IntegrityError):
+                connection.execute("INSERT INTO presentation VALUES (?, ?, 'other', ?, ?)", (cip13, name, withdrawn, cis))
+
+    def test_a_withdrawn_row_may_lack_a_cis_and_a_current_row_may_not(self):
+        _, out = self.build()
+        connection = sqlite3.connect(out / build.DATABASE_NAME)
+        self.addCleanup(connection.close)
+        connection.execute("INSERT INTO presentation VALUES ('3400900009991', 'x', 'other', '2026-10-18', NULL)")
+        connection.execute("INSERT INTO presentation VALUES ('3400900009992', 'x', 'other', NULL, '06000001')")
+        with self.assertRaises(sqlite3.IntegrityError):
+            connection.execute("INSERT INTO presentation VALUES ('3400900009993', 'x', 'other', NULL, NULL)")
 
     def test_manifest_content(self):
         report, out = self.build()
         manifest = json.loads((out / build.MANIFEST_NAME).read_text(encoding="utf-8"))
         meta, version, rows = build.read_database(out / build.DATABASE_NAME)
         self.assertEqual(manifest["formatVersion"], 1)
-        self.assertEqual(manifest["referenceSchemaVersion"], 1)
+        self.assertEqual(manifest["referenceSchemaVersion"], 2)
         self.assertEqual(manifest["dataDate"], "2026-10-18")
         self.assertEqual(manifest["rulesVersion"], 1)
         self.assertEqual(sorted(manifest["sources"]), sorted(build.BDPM_FILES))
@@ -370,7 +384,7 @@ class BuildTests(TempDirCase):
         self.assertEqual(rows[sample.cip13(1)].name, "TESTAMOL 500 mg, comprimé pelliculé")
         self.assertEqual(rows[sample.cip13(2)].category, "pain-fever")  # lost its decongestant
         # withdrawn products are kept with their last name and category, dated by the first build that lacked them
-        self.assertEqual(rows[sample.cip13(10)], build.Row("TESTRETIRE 100 mg, comprimé", "pain-fever", "2026-11-18"))
+        self.assertEqual(rows[sample.cip13(10)], build.Row("TESTRETIRE 100 mg, comprimé", "pain-fever", "2026-11-18", "60000010"))
         self.assertIsNone(rows[sample.cip13(14)].withdrawn_since)
         self.assertEqual(report.counts, {"presentations": 14, "withdrawn": 1})
 
@@ -446,10 +460,39 @@ class BuildTests(TempDirCase):
     def test_a_previous_database_of_another_schema_version_fails(self):
         _, first = self.build(1, out="first")
         connection = sqlite3.connect(first / build.DATABASE_NAME)
-        connection.execute("PRAGMA user_version = 2")
+        connection.execute("PRAGMA user_version = 3")
         connection.close()
-        with self.assertRaisesRegex(build.BuildError, "schema version 2"):
+        with self.assertRaisesRegex(build.BuildError, "schema version 3"):
             self.build(2, out="second", previous=first / build.DATABASE_NAME, data_date="2026-11-18")
+
+    def test_a_version_1_previous_database_is_read_and_its_withdrawn_rows_have_no_cis(self):
+        # #56: the committed bundle was built at version 1, before the CIS was kept.
+        v1 = self.tmp / "v1.sqlite"
+        connection = sqlite3.connect(v1)
+        connection.executescript("""
+            CREATE TABLE meta (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL) WITHOUT ROWID;
+            CREATE TABLE presentation (cip13 TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, category TEXT NOT NULL,
+                                       withdrawnSince TEXT) WITHOUT ROWID;
+            PRAGMA user_version = 1;
+            INSERT INTO meta VALUES ('dataDate', '2026-10-18'), ('rulesVersion', '1');
+        """)
+        _, first = self.build(1, out="first")
+        for cip13, row in build.read_database(first / build.DATABASE_NAME)[2].items():
+            connection.execute("INSERT INTO presentation VALUES (?, ?, ?, NULL)", (cip13, row.name, row.category))
+        connection.commit()
+        connection.close()
+        report, second = self.build(2, out="second", previous=v1, data_date="2026-11-18")
+        rows = self.rows(second)
+        self.assertEqual(report.withdrawn, [sample.cip13(10)])
+        self.assertIsNone(rows[sample.cip13(10)].cis)  # carried over from a database that had none
+        self.assertEqual(rows[sample.cip13(10)].withdrawn_since, "2026-11-18")
+        self.assertEqual(rows[sample.cip13(1)].cis, "60000001")  # a current row takes the snapshot's CIS
+
+    def test_the_cis_is_part_of_the_content_checksum(self):
+        meta, version, rows = build.read_database(self.build()[1] / build.DATABASE_NAME)
+        before = build.content_sha256(meta, version, rows)
+        rows[sample.cip13(1)].cis = "69999998"
+        self.assertNotEqual(before, build.content_sha256(meta, version, rows))
 
     def test_a_missing_previous_database_means_a_first_build(self):
         self.build(1, out="out", previous=self.tmp / "does-not-exist.sqlite")
@@ -612,9 +655,9 @@ class VerifyTests(TempDirCase):
     def test_a_wrong_schema_version_fails(self):
         bundle = self.make_bundle()
         connection = sqlite3.connect(bundle / build.DATABASE_NAME)
-        connection.execute("PRAGMA user_version = 2")
+        connection.execute("PRAGMA user_version = 3")
         connection.close()
-        self.assertTrue(any("user_version is 2" in p for p in self.problems_of(bundle)))
+        self.assertTrue(any("user_version is 3" in p for p in self.problems_of(bundle)))
 
     def test_a_manifest_that_disagrees_fails(self):
         bundle = self.make_bundle()
@@ -721,7 +764,8 @@ class CommittedDataTests(TempDirCase):
                 cip13 = reference_cip13(case["gtin"])
                 self.assertEqual(case["expect"]["cip13"], cip13)
                 row = rows.get(cip13) if cip13 else None
-                expected = {"name": row.name, "category": row.category} if row else None
+                expected = ({"name": row.name, "category": row.category, "cis": row.cis,
+                             "isWithdrawn": row.withdrawn_since is not None} if row else None)
                 self.assertEqual(case["expect"]["product"], expected)
 
     def test_the_golden_list_covers_every_category_the_build_assigns(self):

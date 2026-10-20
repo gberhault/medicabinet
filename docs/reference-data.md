@@ -100,7 +100,7 @@ Findings that the build script must handle:
 
 | File | What it is |
 |------|------------|
-| `reference.sqlite` | Reference schema v1 (`PRAGMA user_version = 1`), read-only in the apps, about 1.7 MB for 20 896 presentations. Journal mode `DELETE`, no write-ahead file |
+| `reference.sqlite` | Reference schema v2 (`PRAGMA user_version = 2`), read-only in the apps, about 1.9 MB for 20 896 presentations. Journal mode `DELETE`, no write-ahead file |
 | `reference-manifest.json` | Data date, SHA-256 of each BDPM source file, counts (also by category), rules version and `contentSha256` |
 
 ```sql
@@ -109,16 +109,24 @@ CREATE TABLE presentation (
   cip13          TEXT PRIMARY KEY NOT NULL,   -- 13 digits, 3400…, one row per box type
   name           TEXT NOT NULL,               -- BDPM denomination, trimmed, otherwise unaltered (≤ 255)
   category       TEXT NOT NULL,               -- a category id, or uncategorized
-  withdrawnSince TEXT                         -- data date of the first build that no longer had it; NULL = in the latest snapshot
+  withdrawnSince TEXT,                        -- data date of the first build that no longer had it; NULL = in the latest snapshot
+  cis            TEXT                         -- BDPM identifier of the medicine, 8 digits; NULL only for a withdrawn row (see below)
 ) WITHOUT ROWID;
 ```
+
+- **`cis`** (schema v2, #56) is what the apps need to link a box to the medicine's official BDPM page,
+  `https://base-donnees-publique.medicaments.gouv.fr/medicament/<CIS>/extrait` (the page carries the official
+  leaflet; there is no stable address for the leaflet tab alone). The schema requires 8 ASCII digits, and allows
+  `NULL` only on a withdrawn row: a row carried over from a version-1 database had no CIS to carry. A withdrawn
+  presentation gets no link anyway. The CIS adds about 0.19 MB. The first version-2 build was a schema change only
+  (no product added, withdrawn, renamed or recategorized against the 2026-10-18 data).
 
 - **Cumulative.** Each build merges the new snapshot into the previous database. A CIP13 missing from the new
   snapshot is kept with its last name and category and dated withdrawn; one that returns is reinstated. Old boxes
   therefore stay identifiable after BDPM drops them (it forgets products two years after they leave the market).
 - **`contentSha256`** is the hash of the rows, not of the file (SQLite writes its library version into the file
   header, so the same rows can differ byte for byte). It hashes `user_version`, every meta row sorted by key, then
-  every presentation sorted by CIP13, as tab-separated text. The build, the gate (`verify`) and the Android installer
+  every presentation sorted by CIP13 (CIP13, name, category, withdrawn date, CIS), as tab-separated text. The build, the gate (`verify`) and the Android installer
   all compute it; the Kotlin and Python results are checked against each other on the real bundled data.
 - Apps and categories: `uncategorized` is the build's "no rule matched". `first-aid` is never assigned by the build
   (BDPM holds no dressings or devices): the user picks it.
@@ -131,6 +139,11 @@ python3 -I scripts/build-reference-db.py download /tmp/bdpm-2026-11          # f
 python3 -I scripts/build-reference-db.py build --bdpm /tmp/bdpm-2026-11 --data-date 2026-11-18
 python3 -I scripts/build-reference-db.py verify --apps ios,android
 ```
+
+The build reads the previous bundle at reference schema version 1 or 2. **Check the leaflet link by hand** before
+committing: open `https://base-donnees-publique.medicaments.gouv.fr/medicament/<CIS>/extrait` for two CIS of the new
+bundle (for example `sqlite3 reference-data/bundle/reference.sqlite "select cis, name from presentation limit 2"`) and
+check that the page of that medicine opens. If BDPM changed its addresses, change `LeafletLink` and its fixture.
 
 `build` reads the committed bundle as the previous database, and writes nothing unless everything passed. It fails on
 a missing or undecodable file, a wrong column count, a CIP13 that is not `3400` + 9 digits with a valid GS1 check

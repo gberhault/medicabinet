@@ -7,6 +7,7 @@ final class AboutUITests: XCTestCase {
         let app = UITestApp.launch()
         XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap()
+        app.scroll(to: app.buttons["settings.about"])
         app.buttons["settings.about"].tap()
 
         let version = app.staticTexts["about.version"]
@@ -23,6 +24,7 @@ final class AboutUITests: XCTestCase {
         let app = UITestApp.launch()
         XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap()
+        app.scroll(to: app.buttons["settings.about"])
         app.buttons["settings.about"].tap()
 
         // The bundled database is opened for About (nothing opens it at launch): its date replaces the loading line.

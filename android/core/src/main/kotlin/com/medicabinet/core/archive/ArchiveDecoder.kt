@@ -16,7 +16,7 @@ object ArchiveDecoder {
      * One reader per `formatVersion`, index 0 being version 1. A reader is never edited once shipped (F9);
      * a new version appends its reader, and migrates what it reads into the current model there.
      */
-    internal val readers: List<ArchiveVersionReader> = listOf(ArchiveV1Reader)
+    internal val readers: List<ArchiveVersionReader> = listOf(ArchiveV1Reader, ArchiveV2Reader)
 
     fun decode(bytes: ByteArray, limits: ArchiveLimits = ArchiveLimits.DEFAULT): Archive {
         if (bytes.size > limits.maxFileBytes) throw ArchiveException(ArchiveErrorKind.TOO_LARGE)
@@ -27,7 +27,12 @@ object ArchiveDecoder {
         val archive = Archive(
             exportedAt = body.exportedAt,
             app = body.app,
-            cabinet = CabinetContents(body.locations, body.boxes),
+            cabinet = CabinetContents(
+                locations = body.locations,
+                boxes = body.boxes,
+                namedProducts = body.namedProducts,
+                namedProductsNeedFill = body.namedProductsNeedFill
+            ),
             sourceFormatVersion = version
         )
         ArchiveValidator.validate(archive, limits)

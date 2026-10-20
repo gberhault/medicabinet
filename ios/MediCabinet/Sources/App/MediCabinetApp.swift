@@ -71,6 +71,18 @@ enum AppLaunch {
         }
     }
 
+    /// Fills the named products from the existing boxes, in the background and off the cold-start path: nothing waits
+    /// for it, and a run that cannot finish (reference unavailable, a failure) is retried at the next launch.
+    @discardableResult
+    static func startBackfill(_ environment: AppEnvironment) -> Task<Void, Never> {
+        let runner = environment.namedBackfill
+        return Task.detached(priority: .utility) {
+            if case .interrupted(let kind) = await runner.run() {
+                Log.persistence.error("The named products fill was interrupted: \(kind)")
+            }
+        }
+    }
+
     @Sendable static func bootstrapRun() async -> BootstrapState {
         do {
             let directory: URL
@@ -91,7 +103,10 @@ enum AppLaunch {
             if case .ready(let environment) = state {
                 let process = ProcessInfo.processInfo
                 await UITestSeed.apply(
-                    UITestSeed.items(from: process.environment, arguments: process.arguments), to: environment)
+                    UITestSeed.items(from: process.environment, arguments: process.arguments),
+                    namedProducts: UITestSeed.namedProducts(from: process.environment, arguments: process.arguments),
+                    to: environment)
+                startBackfill(environment)
             }
             return state
         } catch {

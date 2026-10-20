@@ -5,6 +5,13 @@ import MediCabinetCoreTestSupport
 import Testing
 @testable import MediCabinet
 
+/// The contract reads the backfill marker through the real named-product repository.
+extension GRDBCabinetArchiveStore: ArchiveStoreUnderContract {
+    public func backfillPending() async throws -> Bool {
+        try await GRDBNamedProductRepository(database: database, clock: FixedClock(Date())).backfillPending()
+    }
+}
+
 @Suite struct GRDBCabinetArchiveStoreTests {
     /// The shared store contract (`fixtures/archive-store-contract.json`) on a real database file.
     @Test(arguments: ArchiveStoreContract.checks)
@@ -82,6 +89,91 @@ import Testing
         let live = try await GRDBLocationRepository(database: database, clock: clock).all()
         #expect(active.count == archive.cabinet.summary.inCabinet)
         #expect(live.count == archive.cabinet.summary.locations)
+    }
+
+    // MARK: Named products
+
+    /// The golden file carries a live and a forgotten product with one GTIN, and a live one with a user category: all of
+    /// them reach the table, and the repositories see only the live ones.
+    @Test func namedProductsOfTheGoldenFileLandInTheTableAndTheRepositoryShowsTheLiveOnes() async throws {
+        let golden = try SharedFixtures.goldenArchive()
+        let archive = try ArchiveDecoder.decode(golden)
+        let (database, directory) = try AppDatabase.temporary()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try await GRDBCabinetArchiveStore(database: database).replace(with: archive.cabinet) { _ in }
+
+        let rows = try await database.writer.read { db in try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM namedProduct") }
+        #expect(rows == 3)
+        let repository = GRDBNamedProductRepository(database: database, clock: FixedClock(archive.exportedAt))
+        let shown = try await repository.namedProduct(gtin: "03400936404571")
+        #expect(shown?.name == "Produit 2")
+        let chosen = try await repository.namedProduct(gtin: "03401234567890")
+        #expect(chosen?.category.rawValue == "skin-wound")
+        #expect(chosen?.categoryOverridden == true)
+        #expect(try await repository.backfillPending() == false)
+    }
+
+    /// A version 1 file has no named products: the import leaves the table empty and the fill pending, and the
+    /// snapshot still reports no fill (the marker is the store's, not the cabinet's).
+    @Test func aVersionOneImportSetsTheMarkerAndClearsTheTable() async throws {
+        let old = try ArchiveDecoder.decode(try SharedFixtures.goldenArchive(version: 1))
+        let current = try ArchiveDecoder.decode(try SharedFixtures.goldenArchive())
+        #expect(old.cabinet.namedProductsNeedFill)
+        let (database, directory) = try AppDatabase.temporary()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = GRDBCabinetArchiveStore(database: database)
+        try await store.replace(with: current.cabinet) { _ in }
+        #expect(try await store.backfillPending() == false)
+
+        try await store.replace(with: old.cabinet) { _ in }
+
+        let snapshot = try await store.snapshot()
+        #expect(snapshot.namedProducts.isEmpty)
+        #expect(snapshot.namedProductsNeedFill == false)
+        #expect(try await store.backfillPending())
+    }
+
+    /// The same GTIN live twice is refused before anything is touched, as the repositories name it (`duplicate`), with the
+    /// table and the marker untouched.
+    @Test func twoLiveProductsWithOneGTINAreARepositoryErrorAndChangeNothing() async throws {
+        let archive = try ArchiveDecoder.decode(try SharedFixtures.goldenArchive())
+        let (database, directory) = try AppDatabase.temporary()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = GRDBCabinetArchiveStore(database: database)
+        try await store.replace(with: archive.cabinet) { _ in }
+        let before = try await store.snapshot()
+        var twins = archive.cabinet
+        twins.namedProductsNeedFill = true
+        twins.namedProducts = (1...2).map { number in
+            ArchivedNamedProduct(product: NamedProduct(gtin: "03401234567890", name: "Twin \(number)", createdAt: archive.exportedAt))
+        }
+        do {
+            try await store.replace(with: twins) { _ in }
+            Issue.record("the replace should have failed")
+        } catch {
+            #expect(String(reflecting: error) == String(reflecting: RepositoryError.duplicate))
+        }
+        #expect(try await store.snapshot() == before)
+        #expect(try await store.backfillPending() == false)
+    }
+
+    /// A row the table itself refuses (the CHECK on the name length is the backstop of the file validator) fails the
+    /// transaction and rolls the whole replace back, the marker included.
+    @Test func aNamedProductInsertFailingMidwayRollsTheWholeReplaceBack() async throws {
+        let archive = try ArchiveDecoder.decode(try SharedFixtures.goldenArchive())
+        let (database, directory) = try AppDatabase.temporary()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = GRDBCabinetArchiveStore(database: database)
+        try await store.replace(with: archive.cabinet) { _ in }
+        let before = try await store.snapshot()
+        var tooLong = archive.cabinet
+        tooLong.namedProductsNeedFill = true
+        tooLong.namedProducts[0].product.name = String(repeating: "n", count: 201)
+
+        await #expect(throws: (any Error).self) { try await store.replace(with: tooLong) { _ in } }
+
+        #expect(try await store.snapshot() == before)
+        #expect(try await store.backfillPending() == false)
     }
 
     // MARK: Rollback (I6)

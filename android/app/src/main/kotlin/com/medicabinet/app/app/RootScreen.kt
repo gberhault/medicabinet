@@ -28,7 +28,9 @@ fun RootScreen(
     modifier: Modifier = Modifier,
     tabRouter: TabRouter = remember { TabRouter() },
     /** Archives opened with the app; `null` in tests that do not open any. */
-    importCoordinator: ImportCoordinator? = null
+    importCoordinator: ImportCoordinator? = null,
+    /** Runs after an import or a restore replaced the cabinet: starts the named-products fill on the new boxes. */
+    afterCabinetReplaced: (AppEnvironment) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
     when (val current = state) {
@@ -49,7 +51,8 @@ fun RootScreen(
                 current.environment,
                 modifier = modifier,
                 tabRouter = tabRouter,
-                importCoordinator = importCoordinator
+                importCoordinator = importCoordinator,
+                afterCabinetReplaced = { afterCabinetReplaced(current.environment) }
             )
         }
     }

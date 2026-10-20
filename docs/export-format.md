@@ -12,9 +12,14 @@ The rules are written once as shared fixtures under `fixtures/` and implemented 
 | | |
 |--|--|
 | Extension / MIME / iOS UTType | `.medicabinet` · `application/vnd.medicabinet+json` · `com.medicabinet.archive` |
-| Current `formatVersion` | **1** |
-| Golden file (kept forever) | [`fixtures/archive/v1/golden.medicabinet`](../fixtures/archive/v1/golden.medicabinet) |
+| Current `formatVersion` | **2** (the apps write version 2 and read versions 1 and 2) |
+| Golden files (kept forever) | [`fixtures/archive/v1/golden.medicabinet`](../fixtures/archive/v1/golden.medicabinet), [`fixtures/archive/v2/golden.medicabinet`](../fixtures/archive/v2/golden.medicabinet) |
 | Decode cases (both platforms run them) | [`fixtures/archive-cases.json`](../fixtures/archive-cases.json) |
+
+| `formatVersion` | Added | Written by |
+|-----------------|-------|------------|
+| 1 | locations and boxes | the first versions with export (iOS and Android) |
+| 2 | `namedProducts` ([the products you named](named-products.md)) | every app version from the named-products release on |
 
 ## Format version 1
 
@@ -62,7 +67,7 @@ Lengths are counted in Unicode code points (like SQLite's `length()`), not graph
 Values derived from other fields (the expiry sort key) are not stored; app preferences, backups, logs and
 reference data are not part of the file.
 
-### Canonical form
+### Canonical form (every version)
 
 The writer always produces the same bytes for the same cabinet, on both platforms: keys in the order above,
 every non-empty object and array over several lines with a two-space indent, `": "` after keys, LF line
@@ -70,6 +75,58 @@ endings, `[]` for an empty array and a final newline; locations ordered by `sort
 `createdAt` then id (ids upper-case); strings escape only `"`, `\`, `\b \f \n \r \t` and the other control
 characters below U+0020 (as `\u00xx`), everything else is raw UTF-8. Both suites check that encoding the
 golden file's content gives the golden file back, byte for byte.
+
+## Format version 2
+
+Version 2 is version 1 plus one root member, `namedProducts`, after `boxes`. Every rule of version 1 above applies
+unchanged (the header, the date form, `locations`, `boxes`, the canonical form, the limits); only the differences are
+listed here.
+
+```json
+{
+  "archive": "medicabinet",
+  "formatVersion": 2,
+  "exportedAt": "2026-10-21T08:15:30.123Z",
+  "app": { "name": "MediCabinet", "platform": "ios", "version": "0.7.0", "build": "10" },
+  "locations": [ … ],
+  "boxes": [ … ],
+  "namedProducts": [
+    { "id": "C0000003-0000-4000-8000-000000000003", "gtin": "03401234567890", "name": "Crème solaire SPF 50",
+      "category": "skin-wound", "categoryOverridden": true,
+      "createdAt": "2026-10-02T10:00:13.000Z", "updatedAt": "2026-10-08T19:30:00.500Z", "deletedAt": null }
+  ]
+}
+```
+
+A **named product** is the name (and category) the household gave to a code the bundled medicines database does not
+name. Every key is required (`null` explicit for `deletedAt`), and unknown or repeated keys are refused, as in
+version 1. `namedProducts` is required: a version 2 header over a version 1 body is refused (`invalidStructure` at
+`namedProducts`), and a version 1 file may not carry it (it is an unknown key there).
+
+| Field | Rule |
+|-------|------|
+| `namedProducts` | 0–20 000 entries, forgotten ones included (the same limit family as `boxes`); more is `tooManyItems` at `namedProducts` |
+| `id` | UUID, 8-4-4-4-12 hexadecimal digits in either case; unique among named products (a named product may share an id with a box or a location). Compared ignoring case |
+| `gtin` | exactly 14 ASCII digits (never `null`, unlike `box.gtin`; the check digit is not verified) |
+| `name` | 1–200 code points |
+| `category` | 1–100 code points; free text like `box.category`, an id this app version does not know is kept as written |
+| `categoryOverridden` | boolean: the category was chosen by the user (else it is `uncategorized` and the flag is `false`) |
+| `createdAt`, `updatedAt` | the v1 date form |
+| `deletedAt` | `null` for a live product, else the date the household **forgot** it. A forgotten product keeps its row (a tombstone, so a later sync can tell "forgotten" from "never existed") and stops naming its code; the boxes it named are untouched |
+| (`gtin`) | at most one **live** (`deletedAt` null) product per gtin, like the database's partial unique index. A live and a forgotten one, or several forgotten ones, may share a gtin |
+
+Canonical order: `namedProducts` after `boxes`, ordered by `createdAt` then id (ids upper-case); keys in the order of the
+example (`id`, `gtin`, `name`, `category`, `categoryOverridden`, `createdAt`, `updatedAt`, `deletedAt`); `[]` when empty.
+The decoder accepts any order. The encoder writes version 2 only.
+
+**Importing version 1.** A version 1 file stays importable by every later app version. It has no named products, so
+after the import the app fills them from the imported boxes, exactly as after an upgrade
+([`named-products.md`](named-products.md), *After the upgrade*): the store records a *pending* marker with the replaced
+cabinet, and the background fill runs once. Importing a version 2 file replaces the named products with the file's and
+clears that marker (the file is authoritative, even when its list is empty). Automatic backups are archives, so they
+carry the named products.
+
+**An app that reads only version 1** refuses a version 2 file as `newerVersion`.
 
 ## Reading an untrusted file
 
@@ -81,13 +138,14 @@ platforms).
 | Limit (named defaults) | Value |
 |------------------------|-------|
 | File size | 32 MiB |
-| Boxes / locations | 20 000 / 200 |
+| Boxes / locations / named products | 20 000 / 200 / 20 000 |
 | A decoded string | 4 096 bytes |
 
 Order of the checks: size, valid UTF-8 (a leading BOM is skipped), the first two keys, the version, the rest of
 the file in order (the first fault wins), then the rules between rows (unique ids, default location, boxes in
-known locations, unique serials). The decoder never builds a tree: a value the format does not expect is
-refused as soon as its key is seen, so deeply nested input is never read.
+known locations, unique serials, then for version 2 unique named-product ids and one live named product per GTIN).
+The decoder never builds a tree: a value the format does not expect is refused as soon as its key is seen, so deeply
+nested input is never read.
 
 ### Error kinds
 
@@ -102,8 +160,9 @@ path made of keys and indexes only (`boxes[12].expiry`), never a value, so it ca
 | `unsupportedVersion` / `newerVersion` | `formatVersion` below 1 / above what this app reads (update the app) |
 | `invalidStructure` | a missing, unknown or repeated key, or a value of the wrong JSON type |
 | `invalidValue` | a value that cannot be read or is out of range (UUID, date, expiry, lengths, reason, …) |
-| `tooManyItems` | more locations or boxes than the limit |
+| `tooManyItems` | more locations, boxes or named products than the limit |
 | `duplicateId`, `unknownLocation`, `defaultLocation`, `duplicateSerial` | the rules between rows above |
+| `duplicateNamedProduct` | version 2: two live named products with the same `gtin` (path `namedProducts[i].gtin`, `i` the second one) |
 
 ## Adding a version
 

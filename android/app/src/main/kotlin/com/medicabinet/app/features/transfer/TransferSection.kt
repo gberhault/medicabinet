@@ -86,7 +86,10 @@ fun BackupsRoute(environment: AppEnvironment, onRestore: (ArchiveBackupEntry) ->
 @Composable
 fun ImportRoute(environment: AppEnvironment, request: () -> ImportRequest, onClose: () -> Unit) {
     val transfer = environment.transfer ?: return
-    val model = viewModel { ImportViewModel(transfer, request(), environment::cabinetReplaced, Dispatchers.IO) }
+    val afterReplace = LocalAfterCabinetReplaced.current
+    val model = viewModel {
+        ImportViewModel(transfer, request(), environment::cabinetReplaced, Dispatchers.IO, afterReplace)
+    }
     HoldsUnsavedInput(true)
     ImportScreen(model, onClose)
 }

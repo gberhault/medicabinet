@@ -57,4 +57,30 @@ import Testing
         let items = UITestSeed.items(from: [UITestSeed.environmentKey: json], arguments: [AppLaunch.temporaryStorageArgument])
         await UITestSeed.apply(items, to: kit.environment)
     }
+
+    // MARK: Named products
+
+    private let namedJSON = """
+    [{"gtin":"03401900000003","name":"Arnica","category":"skin-wound"},{"gtin":"03401900000010","name":"Zinc"}]
+    """
+
+    @Test func namedProductsAreReadOnlyWithTemporaryStorage() {
+        let environment = [UITestSeed.namedProductsKey: namedJSON]
+        #expect(UITestSeed.namedProducts(from: environment, arguments: []).isEmpty)
+        #expect(UITestSeed.namedProducts(from: environment, arguments: [AppLaunch.temporaryStorageArgument]).count == 2)
+        let malformed = [UITestSeed.namedProductsKey: "no"]
+        #expect(UITestSeed.namedProducts(from: malformed, arguments: [AppLaunch.temporaryStorageArgument]).isEmpty)
+    }
+
+    @Test func seededNamedProductsKeepAChosenCategoryAndEndTheFill() async throws {
+        let kit = try await CabinetTestKit()
+        let named = UITestSeed.namedProducts(
+            from: [UITestSeed.namedProductsKey: namedJSON], arguments: [AppLaunch.temporaryStorageArgument])
+        await UITestSeed.apply([], namedProducts: named, to: kit.environment)
+        let arnica = try #require(try await kit.named.namedProduct(gtin: "03401900000003"))
+        #expect(arnica.name == "Arnica" && arnica.category.rawValue == "skin-wound" && arnica.categoryOverridden)
+        let zinc = try #require(try await kit.named.namedProduct(gtin: "03401900000010"))
+        #expect(zinc.category == .uncategorized && !zinc.categoryOverridden)
+        #expect(try await kit.named.backfillPending() == false, "the seeded cabinet is the fixture: nothing is filled behind it")
+    }
 }

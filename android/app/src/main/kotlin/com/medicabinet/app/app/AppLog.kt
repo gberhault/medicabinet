@@ -31,6 +31,25 @@ object AppLog {
         Log.e(TAG, "cabinet $what failed: ${error::class.java.simpleName}")
     }
 
+    /** Remembering the name of a saved box failed. The box is saved; only the exception class is logged. */
+    fun memoryFailed(error: Throwable) {
+        Log.e(TAG, "named product remember failed: ${error::class.java.simpleName}")
+    }
+
+    /**
+     * The one-time fill of the named products stopped before writing. [what] is a fixed word (`reference-unavailable`,
+     * `lookup-failed`, `error`); the exception class when there is one. Never a code or a name.
+     */
+    fun backfillStopped(what: String, error: Throwable? = null) {
+        val cause = error?.let { ", ${it::class.java.simpleName}" }.orEmpty()
+        Log.e(TAG, "named product fill stopped: $what$cause")
+    }
+
+    /** A change to the products the household named failed; [what] is a fixed word such as `rename`, never a name. */
+    fun namedProductsFailed(what: String, error: Throwable) {
+        Log.e(TAG, "named products $what failed: ${error::class.java.simpleName}")
+    }
+
     /** A step of the monthly digest failed; [what] is a fixed word such as `read` or `notify`. */
     fun reminderFailed(what: String, error: Throwable) {
         Log.e(TAG, "reminder $what failed: ${error::class.java.simpleName}")

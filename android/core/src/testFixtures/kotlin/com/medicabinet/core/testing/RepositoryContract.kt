@@ -6,6 +6,7 @@ import com.medicabinet.core.CategoryID
 import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.Location
 import com.medicabinet.core.LocationRepository
+import com.medicabinet.core.NamedProductRepository
 import com.medicabinet.core.ProductRef
 import com.medicabinet.core.RemovalReason
 import com.medicabinet.core.RepositoryError
@@ -17,12 +18,21 @@ import java.util.UUID
 class ContractFailure(message: String, cause: Throwable? = null) : AssertionError(message, cause)
 
 /**
- * Behaviour every [LocationRepository] + [BoxRepository] implementation must satisfy — the Kotlin twin of
- * the Swift `RepositoryContract`; the check names are tied together by `fixtures/repository-contract.json`.
+ * Behaviour every [LocationRepository] + [BoxRepository] + [NamedProductRepository] implementation must satisfy —
+ * the Kotlin twin of the Swift `RepositoryContract`; the check names are tied together by
+ * `fixtures/repository-contract.json`.
  * Instants used are whole seconds so stores with millisecond precision round-trip them exactly.
  */
 object RepositoryContract {
-    class Fixture(val clock: MutableClock, val locations: LocationRepository, val boxes: BoxRepository) {
+    /** The three repositories of one store (one cabinet database, or one in-memory store). */
+    class Stores(val locations: LocationRepository, val boxes: BoxRepository, val named: NamedProductRepository)
+
+    class Fixture(
+        val clock: MutableClock,
+        val locations: LocationRepository,
+        val boxes: BoxRepository,
+        val named: NamedProductRepository
+    ) {
         fun location(name: String = "Bathroom", isDefault: Boolean = false, sortOrder: Int = 0) =
             Location(name = name, isDefault = isDefault, sortOrder = sortOrder, createdAt = clock.now())
 
@@ -45,10 +55,10 @@ object RepositoryContract {
     }
 
     class Check(val name: String, private val body: suspend (Fixture) -> Unit) {
-        suspend fun run(make: suspend (MutableClock) -> Pair<LocationRepository, BoxRepository>) {
+        suspend fun run(make: suspend (MutableClock) -> Stores) {
             val clock = MutableClock(EPOCH)
-            val (locations, boxes) = make(clock)
-            body(Fixture(clock, locations, boxes))
+            val stores = make(clock)
+            body(Fixture(clock, stores.locations, stores.boxes, stores.named))
         }
 
         override fun toString(): String = name
@@ -59,7 +69,8 @@ object RepositoryContract {
     private const val SERIAL_LENGTH = 12
 
     val checks: List<Check>
-        get() = locationChecks + boxChecks + deletionChecks + cabinetChecks + locationManagementChecks
+        get() = locationChecks + boxChecks + deletionChecks + cabinetChecks + locationManagementChecks +
+            namedProductChecks + latestBoxChecks
 
     internal fun require(condition: Boolean, message: String) {
         if (!condition) throw ContractFailure(message)

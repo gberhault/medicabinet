@@ -23,6 +23,15 @@ data class ShortNameCase(val name: String, val input: String, val expect: String
     override fun toString(): String = name
 }
 
+/** One case of `fixtures/leaflet-links.json`: the reference product (`null` = unknown) and the address or `null`. */
+@Serializable
+data class LeafletLinkCase(val name: String, val product: Product? = null, val expect: String? = null) {
+    @Serializable
+    data class Product(val cis: String? = null, val isWithdrawn: Boolean)
+
+    override fun toString(): String = name
+}
+
 /** One case of `fixtures/category-order.json`. */
 @Serializable
 data class CategoryOrderCase(val name: String, val labels: Map<String, String>, val expect: List<String>) {
@@ -134,6 +143,9 @@ fun SharedFixtures.textNormalization(): CabinetCaseList<TextNormalizationCase> =
 fun SharedFixtures.shortNames(): CabinetCaseList<ShortNameCase> =
     cabinetFixtureJson.decodeFromString(text("short-names.json"))
 
+fun SharedFixtures.leafletLinks(): CabinetCaseList<LeafletLinkCase> =
+    cabinetFixtureJson.decodeFromString(text("leaflet-links.json"))
+
 fun SharedFixtures.categoryOrder(): CabinetCaseList<CategoryOrderCase> =
     cabinetFixtureJson.decodeFromString(text("category-order.json"))
 
@@ -147,3 +159,65 @@ fun SharedFixtures.scanRemoval(): CabinetCaseList<ScanRemovalCase> =
     cabinetFixtureJson.decodeFromString(text("scan-removal.json"))
 
 fun SharedFixtures.schemaV3(): SchemaSnapshot = cabinetFixtureJson.decodeFromString(text("schema-v3.json"))
+
+fun SharedFixtures.schemaV4(): SchemaSnapshot = cabinetFixtureJson.decodeFromString(text("schema-v4.json"))
+
+/** A box as the memory and backfill fixtures state it: only what the rules read. */
+@Serializable
+data class FixtureNamedBox(
+    val gtin: String? = null,
+    val name: String,
+    val category: String,
+    val categoryOverridden: Boolean
+)
+
+/** One case of `fixtures/product-memory.json`. */
+@Serializable
+data class ProductMemoryCase(
+    val name: String,
+    val event: Event,
+    /** `true` = the reference names the code, `false` = it does not, `null` = cannot tell. */
+    val codeKnown: Boolean? = null,
+    val current: Current? = null,
+    val expect: Expect
+) {
+    @Serializable
+    data class Event(
+        /** `added` | `changed` | `sessionCorrected` */
+        val kind: String,
+        val before: FixtureNamedBox? = null,
+        val after: FixtureNamedBox
+    )
+
+    @Serializable
+    data class Current(val name: String, val category: String, val categoryOverridden: Boolean)
+
+    @Serializable
+    data class Expect(
+        /** `none` | `remember` */
+        val action: String,
+        val name: String? = null,
+        val category: String? = null,
+        val categoryOverridden: Boolean? = null
+    )
+
+    override fun toString(): String = name
+}
+
+/** One case of `fixtures/named-product-backfill.json`. */
+@Serializable
+data class NamedProductBackfillCase(
+    val name: String,
+    /** The codes the reference names. */
+    val known: List<String>,
+    val latest: List<FixtureNamedBox>,
+    val expect: List<FixtureNamedBox>
+) {
+    override fun toString(): String = name
+}
+
+fun SharedFixtures.productMemory(): CabinetCaseList<ProductMemoryCase> =
+    cabinetFixtureJson.decodeFromString(text("product-memory.json"))
+
+fun SharedFixtures.namedProductBackfill(): CabinetCaseList<NamedProductBackfillCase> =
+    cabinetFixtureJson.decodeFromString(text("named-product-backfill.json"))

@@ -86,6 +86,6 @@ class SchemaV3Test {
         assertEquals("Cabinet", SqlProbe.string(after, "SELECT name FROM location"))
         assertEquals(0L, SqlProbe.long(after, "SELECT COUNT(*) FROM location WHERE deletedAt IS NOT NULL"))
         assertEquals("X", SqlProbe.string(after, "SELECT id FROM box"))
-        assertEquals(3L, SqlProbe.long(after, "PRAGMA user_version"))
+        assertEquals(Migrations.all.size.toLong(), SqlProbe.long(after, "PRAGMA user_version"))
     }
 }

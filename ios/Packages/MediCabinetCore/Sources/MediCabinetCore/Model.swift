@@ -118,3 +118,56 @@ public struct Box: Identifiable, Hashable, Sendable {
 
     public var isInCabinet: Bool { removal == nil }
 }
+
+/// What the household taught the app about one code (GTIN) that the bundled reference database does not name:
+/// the name and category it gave. At most one live named product per GTIN.
+public struct NamedProduct: Identifiable, Hashable, Sendable {
+    public let id: UUID
+    /// 14 digits.
+    public let gtin: String
+    public var name: String
+    public var category: CategoryID
+    /// The category was chosen by the user (else it is `uncategorized` and the flag is off).
+    public var categoryOverridden: Bool
+    public let createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        id: UUID = UUID(), gtin: String, name: String, category: CategoryID = .uncategorized,
+        categoryOverridden: Bool = false, createdAt: Date, updatedAt: Date? = nil
+    ) {
+        self.id = id
+        self.gtin = gtin
+        self.name = name
+        self.category = category
+        self.categoryOverridden = categoryOverridden
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt ?? createdAt
+    }
+}
+
+/// One row of the Settings list: a named product and how many of its boxes are in the cabinet.
+public struct NamedProductSummary: Hashable, Sendable, Identifiable {
+    public let product: NamedProduct
+    public let boxesInCabinet: Int
+
+    public var id: NamedProduct.ID { product.id }
+
+    public init(product: NamedProduct, boxesInCabinet: Int) {
+        self.product = product
+        self.boxesInCabinet = boxesInCabinet
+    }
+}
+
+public enum NamedProductOrder {
+    /// By name compared as normalized text, then by GTIN: the order of the Settings list on both platforms.
+    public static func sorted(_ summaries: [NamedProductSummary]) -> [NamedProductSummary] {
+        summaries.map { (TextNormalizer.normalize($0.product.name), $0) }
+            .sorted { lhs, rhs in
+                let byName = TextNormalizer.compare(lhs.0, rhs.0)
+                if byName != 0 { return byName < 0 }
+                return TextNormalizer.compare(lhs.1.product.gtin, rhs.1.product.gtin) < 0
+            }
+            .map(\.1)
+    }
+}

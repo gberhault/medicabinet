@@ -20,10 +20,12 @@ internal object ArchiveValidator {
         val cabinet = archive.cabinet
         requireWithin(cabinet.locations.size, limits.maxLocations, "locations")
         requireWithin(cabinet.boxes.size, limits.maxBoxes, "boxes")
+        requireWithin(cabinet.namedProducts.size, limits.maxNamedProducts, "namedProducts")
         requireValid(isRepresentable(archive.exportedAt), FieldPath("exportedAt"))
         validateApp(archive.app)
         cabinet.locations.forEachIndexed { index, location -> validateLocation(location, "locations[$index]") }
         cabinet.boxes.forEachIndexed { index, archived -> validateBox(archived, "boxes[$index]") }
+        cabinet.namedProducts.forEachIndexed { index, named -> validateNamedProduct(named, "namedProducts[$index]") }
         ArchiveReferences.validate(cabinet)
     }
 
@@ -52,6 +54,16 @@ internal object ArchiveValidator {
         requireValid(isRepresentable(box.removal?.date), FieldPath("$prefix.removal", "at"))
         requireValid(isRepresentable(box.createdAt), FieldPath(prefix, "createdAt"))
         requireValid(isRepresentable(box.updatedAt), FieldPath(prefix, "updatedAt"))
+        requireValid(isRepresentable(archived.deletedAt), FieldPath(prefix, "deletedAt"))
+    }
+
+    private fun validateNamedProduct(archived: ArchivedNamedProduct, prefix: String) {
+        val product = archived.product
+        requireValid(isGtin(product.gtin), FieldPath(prefix, "gtin"))
+        requireValid(isLength(product.name, productNameLength), FieldPath(prefix, "name"))
+        requireValid(isLength(product.category.rawValue, categoryLength), FieldPath(prefix, "category"))
+        requireValid(isRepresentable(product.createdAt), FieldPath(prefix, "createdAt"))
+        requireValid(isRepresentable(product.updatedAt), FieldPath(prefix, "updatedAt"))
         requireValid(isRepresentable(archived.deletedAt), FieldPath(prefix, "deletedAt"))
     }
 

@@ -24,9 +24,23 @@ import MediCabinetCoreTestSupport
         return ArchivedBox(box: box)
     }
 
-    private func archive(locations: [Location]? = nil, boxes: [ArchivedBox] = []) -> Archive {
+    private func named(
+        _ number: Int = 1, gtin: String = "03401234567890", forgotten: Bool = false, id: UUID? = nil
+    ) -> ArchivedNamedProduct {
+        let product = NamedProduct(
+            id: id ?? UUID(uuidString: SyntheticArchive.uuid("C", number)) ?? UUID(), gtin: gtin, name: "Named \(number)",
+            category: CategoryID(rawValue: "skin-wound"), categoryOverridden: true,
+            createdAt: stamp.addingTimeInterval(Double(number))
+        )
+        return ArchivedNamedProduct(product: product, deletedAt: forgotten ? stamp : nil)
+    }
+
+    private func archive(
+        locations: [Location]? = nil, boxes: [ArchivedBox] = [], namedProducts: [ArchivedNamedProduct] = []
+    ) -> Archive {
         let archived = (locations ?? [location()]).map { ArchivedLocation(location: $0) }
-        return Archive(exportedAt: stamp, app: app, cabinet: CabinetContents(locations: archived, boxes: boxes))
+        let cabinet = CabinetContents(locations: archived, boxes: boxes, namedProducts: namedProducts)
+        return Archive(exportedAt: stamp, app: app, cabinet: cabinet)
     }
 
     private func encoding(_ archive: Archive, limits: ArchiveLimits = .default) throws -> [UInt8] {
@@ -41,8 +55,22 @@ import MediCabinetCoreTestSupport
         #expect(decoded == original)
     }
 
-    @Test func tooManyLocationsOrBoxesAreRefusedAtTheLimit() {
+    @Test func namedProductsSurviveEncodingForgottenOnesIncluded() throws {
+        let products = [named(1), named(2, gtin: "03401234567891", forgotten: true), named(3, forgotten: true)]
+        let original = archive(boxes: [box(1)], namedProducts: products)
+        let decoded = try ArchiveDecoder.decode(try encoding(original))
+        #expect(decoded == original)
+        #expect(decoded.cabinet.summary.namedProducts == 1)
+        #expect(decoded.cabinet.namedProductsNeedFill == false)
+    }
+
+    @Test func tooManyLocationsOrBoxesAreRefusedAtTheLimit() throws {
         var limits = ArchiveLimits()
+        limits.maxNamedProducts = 1
+        #expect(throws: ArchiveError(.tooManyItems, path: "namedProducts")) {
+            try encoding(archive(namedProducts: [named(1), named(2, gtin: "03401234567891")]), limits: limits)
+        }
+        _ = try encoding(archive(namedProducts: [named(1)]), limits: limits)
         limits.maxBoxes = 1
         #expect(throws: ArchiveError(.tooManyItems, path: "boxes")) { try encoding(archive(boxes: [box(1), box(2)]), limits: limits) }
         limits.maxLocations = 1
@@ -97,12 +125,27 @@ import MediCabinetCoreTestSupport
             $0.cabinet.boxes[0].box = $0.cabinet.boxes[0].box.with(createdAt: Date(timeIntervalSince1970: 1e18))
         },
         Breakage("boxes[0].updatedAt") { $0.cabinet.boxes[0].box.updatedAt = Date(timeIntervalSince1970: 1e18) },
-        Breakage("boxes[0].deletedAt") { $0.cabinet.boxes[0].deletedAt = Date(timeIntervalSince1970: 1e18) }
+        Breakage("boxes[0].deletedAt") { $0.cabinet.boxes[0].deletedAt = Date(timeIntervalSince1970: 1e18) },
+        Breakage("namedProducts[0].gtin") { $0.cabinet.namedProducts[0].product = $0.cabinet.namedProducts[0].product.with(gtin: "123") },
+        Breakage("namedProducts[0].gtin") {
+            $0.cabinet.namedProducts[0].product = $0.cabinet.namedProducts[0].product.with(gtin: "0340123456789A")
+        },
+        Breakage("namedProducts[0].name") { $0.cabinet.namedProducts[0].product.name = "" },
+        Breakage("namedProducts[0].name") { $0.cabinet.namedProducts[0].product.name = String(repeating: "n", count: 201) },
+        Breakage("namedProducts[0].category") { $0.cabinet.namedProducts[0].product.category = CategoryID(rawValue: "") },
+        Breakage("namedProducts[0].category") {
+            $0.cabinet.namedProducts[0].product.category = CategoryID(rawValue: String(repeating: "c", count: 101))
+        },
+        Breakage("namedProducts[0].createdAt") {
+            $0.cabinet.namedProducts[0].product = $0.cabinet.namedProducts[0].product.with(createdAt: Date(timeIntervalSince1970: 1e18))
+        },
+        Breakage("namedProducts[0].updatedAt") { $0.cabinet.namedProducts[0].product.updatedAt = Date(timeIntervalSince1970: 1e18) },
+        Breakage("namedProducts[0].deletedAt") { $0.cabinet.namedProducts[0].deletedAt = Date(timeIntervalSince1970: 1e18) }
     ]
 
     @Test(arguments: ArchiveCodecTests.breakages)
     func aFieldTheDecoderWouldRefuseIsRefusedAtEncodingToo(_ breakage: Breakage) {
-        var broken = archive(boxes: [box(1)])
+        var broken = archive(boxes: [box(1)], namedProducts: [named(1)])
         breakage.edit(&broken)
         #expect(throws: ArchiveError(.invalidValue, path: breakage.path)) { try encoding(broken) }
     }
@@ -125,6 +168,19 @@ import MediCabinetCoreTestSupport
         #expect(throws: ArchiveError(.duplicateSerial, path: "boxes[1].serial")) {
             try encoding(archive(locations: [location(), other], boxes: [box(1) { $0.serial = "S" }, box(2) { $0.serial = "S" }]))
         }
+    }
+
+    @Test func namedProductChecksAreEnforcedAtEncodingToo() throws {
+        #expect(throws: ArchiveError(.duplicateId, path: "namedProducts[1].id")) {
+            try encoding(archive(namedProducts: [named(1), named(2, gtin: "03401234567891", id: named(1).product.id)]))
+        }
+        #expect(throws: ArchiveError(.duplicateNamedProduct, path: "namedProducts[1].gtin")) {
+            try encoding(archive(namedProducts: [named(1), named(2)]))
+        }
+        // A forgotten product and a live one (or several forgotten ones) may share a GTIN, in any order.
+        _ = try encoding(archive(namedProducts: [named(1, forgotten: true), named(2), named(3, forgotten: true)]))
+        // A named product may share its id with a box (ids are unique per kind of row).
+        _ = try encoding(archive(boxes: [box(1)], namedProducts: [named(1, id: box(1).box.id)]))
     }
 
     // MARK: Deleted locations
@@ -173,6 +229,26 @@ import MediCabinetCoreTestSupport
         #expect(try encoding(archive) == golden)
     }
 
+    @Test func theEncoderOrdersNamedProductsByCreationThenIdWhateverTheInputOrder() throws {
+        let golden = try SharedFixtures.goldenArchive()
+        var archive = try ArchiveDecoder.decode(golden)
+        #expect(archive.cabinet.namedProducts.count == 3)
+        archive.cabinet.namedProducts.reverse()
+        #expect(try encoding(archive) == golden)
+        // The same instant breaks the tie by id, upper case.
+        let first = named(2, gtin: "03401234567891", id: UUID(uuidString: "C000000B-0000-4000-8000-000000000002"))
+        let second = named(1, id: UUID(uuidString: "C000000A-0000-4000-8000-000000000001"))
+        let sameInstant = [first, second].map { archived in
+            var copy = archived
+            copy.product = archived.product.with(createdAt: stamp)
+            return copy
+        }
+        let decoded = try ArchiveDecoder.decode(try encoding(self.archive(namedProducts: sameInstant)))
+        #expect(decoded.cabinet.namedProducts.map(\.product.id.uuidString) == [
+            "C000000A-0000-4000-8000-000000000001", "C000000B-0000-4000-8000-000000000002"
+        ])
+    }
+
     // MARK: Round trip over random cabinets
 
     @Test(arguments: Array(1...40))
@@ -184,6 +260,7 @@ import MediCabinetCoreTestSupport
         #expect(decoded.app == original.app)
         #expect(Set(decoded.cabinet.locations) == Set(original.cabinet.locations))
         #expect(Set(decoded.cabinet.boxes) == Set(original.cabinet.boxes))
+        #expect(Set(decoded.cabinet.namedProducts) == Set(original.cabinet.namedProducts))
         // Idempotence: writing what was read gives the same bytes.
         #expect(try encoding(decoded) == (try encoding(original)))
     }

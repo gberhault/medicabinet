@@ -14,6 +14,7 @@ struct CabinetTestKit {
     let clock: MutableClock
     let locations: GRDBLocationRepository
     let boxes: GRDBBoxRepository
+    let named: GRDBNamedProductRepository
     let environment: AppEnvironment
     let home: Location
 
@@ -22,9 +23,10 @@ struct CabinetTestKit {
         clock = MutableClock(Self.start)
         locations = GRDBLocationRepository(database: database, clock: clock)
         boxes = GRDBBoxRepository(database: database, clock: clock)
+        named = GRDBNamedProductRepository(database: database, clock: clock)
         home = try await locations.ensureDefault(named: "Home")
         environment = AppEnvironment(
-            locations: locations, boxes: boxes, clock: clock, reference: reference, timeZone: { .gmt })
+            locations: locations, boxes: boxes, named: named, clock: clock, reference: reference, timeZone: { .gmt })
     }
 
     /// An expiry `days` from the clock's today (day precision).

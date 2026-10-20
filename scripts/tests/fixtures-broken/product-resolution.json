@@ -1,13 +1,14 @@
 {
-  "formatVersion": 1,
-  "description": "ProductResolver.resolve(reference, previousBox). reference: the reference-data product (name, optional category) or null; previousBox: the most recent non-deleted box with the same GTIN, or null. expect.name null = unknown product (the app asks for a name). The name is the reference name, else the previous box's. The category is the previous box's when the user set it (categoryOverridden), else the reference category, else uncategorized.",
+  "formatVersion": 2,
+  "description": "DELIBERATELY WRONG copy used by test-shared-fixtures-break.sh. ProductResolver.resolve(reference, named, previousBox). reference: the reference-data product (name, optional category) or null; named: the named product of the code (name, category, categoryOverridden) or null; previousBox: the most recent non-deleted box with the same GTIN or null. expect.name null = unknown product (the app asks for a name). For a code the reference knows: the name is the reference name; the category is the previous box's when the user set it (categoryOverridden), else the reference category, else uncategorized; named is ignored. For a code the reference does not know: the name is the named product's (null when there is none) and the category is the named product's when categoryOverridden, else uncategorized; the previous box is ignored (#57).",
   "cases": [
     {
-      "name": "nothing known (broken)",
+      "name": "nothing known",
       "reference": null,
+      "named": null,
       "previousBox": null,
       "expect": {
-        "name": "WRONG",
+        "name": null,
         "category": "uncategorized",
         "categoryOverridden": false
       }
@@ -18,9 +19,10 @@
         "name": "DOLIPRANE 1000 mg",
         "category": null
       },
+      "named": null,
       "previousBox": null,
       "expect": {
-        "name": "DOLIPRANE 1000 mg",
+        "name": "WRONG",
         "category": "uncategorized",
         "categoryOverridden": false
       }
@@ -31,6 +33,7 @@
         "name": "DOLIPRANE 1000 mg",
         "category": "pain-fever"
       },
+      "named": null,
       "previousBox": null,
       "expect": {
         "name": "DOLIPRANE 1000 mg",
@@ -39,29 +42,31 @@
       }
     },
     {
-      "name": "previous box only, category set by the user",
+      "name": "a previous box no longer names a code the reference does not know (#57)",
       "reference": null,
+      "named": null,
       "previousBox": {
-        "name": "Doliprane",
+        "name": "Test name",
         "category": "cold-ent",
         "categoryOverridden": true
       },
       "expect": {
-        "name": "Doliprane",
-        "category": "cold-ent",
-        "categoryOverridden": true
+        "name": null,
+        "category": "uncategorized",
+        "categoryOverridden": false
       }
     },
     {
-      "name": "previous box only, category not set by the user",
+      "name": "a previous box with an automatic category is ignored too",
       "reference": null,
+      "named": null,
       "previousBox": {
         "name": "Doliprane",
         "category": "pain-fever",
         "categoryOverridden": false
       },
       "expect": {
-        "name": "Doliprane",
+        "name": null,
         "category": "uncategorized",
         "categoryOverridden": false
       }
@@ -72,6 +77,7 @@
         "name": "DOLIPRANE 1000 mg",
         "category": null
       },
+      "named": null,
       "previousBox": {
         "name": "Doliprane",
         "category": "uncategorized",
@@ -89,6 +95,7 @@
         "name": "DOLIPRANE 1000 mg",
         "category": "pain-fever"
       },
+      "named": null,
       "previousBox": {
         "name": "Doliprane",
         "category": "skin-wound",
@@ -106,6 +113,7 @@
         "name": "DOLIPRANE 1000 mg",
         "category": "pain-fever"
       },
+      "named": null,
       "previousBox": {
         "name": "Doliprane",
         "category": "digestion",
@@ -118,13 +126,14 @@
       }
     },
     {
-      "name": "user category kept even when the product is unknown to the reference",
+      "name": "named product only, category set by the user",
       "reference": null,
-      "previousBox": {
+      "named": {
         "name": "Thermomètre",
         "category": "other",
         "categoryOverridden": true
       },
+      "previousBox": null,
       "expect": {
         "name": "Thermomètre",
         "category": "other",
@@ -132,16 +141,91 @@
       }
     },
     {
-      "name": "a previous box still named but uncategorized by the user",
+      "name": "named product only, category not set by the user",
       "reference": null,
-      "previousBox": {
+      "named": {
+        "name": "Crème solaire",
+        "category": "digestion",
+        "categoryOverridden": false
+      },
+      "previousBox": null,
+      "expect": {
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "named product with a user category that is uncategorized",
+      "reference": null,
+      "named": {
         "name": "Pansements",
         "category": "uncategorized",
         "categoryOverridden": true
       },
+      "previousBox": null,
       "expect": {
         "name": "Pansements",
         "category": "uncategorized",
+        "categoryOverridden": true
+      }
+    },
+    {
+      "name": "named product wins over a previous box of an unknown code",
+      "reference": null,
+      "named": {
+        "name": "Crème solaire",
+        "category": "skin-wound",
+        "categoryOverridden": true
+      },
+      "previousBox": {
+        "name": "Test name",
+        "category": "other",
+        "categoryOverridden": true
+      },
+      "expect": {
+        "name": "Crème solaire",
+        "category": "skin-wound",
+        "categoryOverridden": true
+      }
+    },
+    {
+      "name": "reference name wins over a named product",
+      "reference": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": "pain-fever"
+      },
+      "named": {
+        "name": "Mon Doliprane",
+        "category": "other",
+        "categoryOverridden": true
+      },
+      "previousBox": null,
+      "expect": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": "pain-fever",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "a named product is ignored for a known code, the previous box category still applies",
+      "reference": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": "pain-fever"
+      },
+      "named": {
+        "name": "Mon Doliprane",
+        "category": "other",
+        "categoryOverridden": true
+      },
+      "previousBox": {
+        "name": "Doliprane",
+        "category": "skin-wound",
+        "categoryOverridden": true
+      },
+      "expect": {
+        "name": "DOLIPRANE 1000 mg",
+        "category": "skin-wound",
         "categoryOverridden": true
       }
     }

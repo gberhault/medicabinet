@@ -63,8 +63,11 @@ public struct CabinetTransfer: Sendable {
     /// `ArchiveError` for a file that must be refused; nothing is written.
     public func preview(_ bytes: [UInt8]) async throws -> ImportPreview {
         let archive = try ArchiveDecoder.decode(bytes, limits: limits)
-        let current = try await store.snapshot().summary
-        return ImportPreview(archive: archive, file: archive.cabinet.summary, current: current, willBackUp: current.needsBackup)
+        let snapshot = try await store.snapshot()
+        // The snapshot, not its summary: a forgotten named product is not counted there but is still worth a backup.
+        return ImportPreview(
+            archive: archive, file: archive.cabinet.summary, current: snapshot.summary, willBackUp: snapshot.needsBackup
+        )
     }
 
     /// Replaces the cabinet with the previewed archive in one transaction, after backing up the cabinet as it is

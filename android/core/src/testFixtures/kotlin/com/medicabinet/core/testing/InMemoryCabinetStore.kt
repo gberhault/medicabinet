@@ -2,15 +2,20 @@ package com.medicabinet.core.testing
 
 import com.medicabinet.core.Box
 import com.medicabinet.core.BoxRepository
+import com.medicabinet.core.CategoryID
 import com.medicabinet.core.Clock
 import com.medicabinet.core.Location
 import com.medicabinet.core.LocationRepository
+import com.medicabinet.core.NamedProduct
+import com.medicabinet.core.NamedProductRepository
+import com.medicabinet.core.NamedProductSummary
 import com.medicabinet.core.RemovalReason
 import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
 import com.medicabinet.core.cabinet.LocationName
 import com.medicabinet.core.cabinet.LocationNameError
 import com.medicabinet.core.cabinet.LocationNameException
+import com.medicabinet.core.named.NamedProductOrdering
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
@@ -20,7 +25,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-/** In-memory fake implementing both ports; also documents the expected behaviour. */
+/**
+ * In-memory fake implementing the location and box ports, and the named-product port through [named] (its `rename`
+ * would clash with [LocationRepository.rename] in one class); also documents the expected behaviour.
+ */
 @Suppress("TooManyFunctions") // one function per port operation, location and box ports together
 class InMemoryCabinetStore(private val clock: Clock) :
     LocationRepository,
@@ -30,6 +38,11 @@ class InMemoryCabinetStore(private val clock: Clock) :
     private val deletedLocations = mutableSetOf<UUID>()
     private val boxes = mutableMapOf<UUID, Box>()
     private val deleted = mutableSetOf<UUID>()
+    private val namedProducts = mutableMapOf<UUID, NamedProduct>()
+    private val forgotten = mutableSetOf<UUID>()
+
+    /** The schema v4 marker: pending until `completeBackfill`. */
+    private var backfillIsPending = true
 
     /** Bumped after every write; the observation flows re-read the store when it changes. */
     private val version = MutableStateFlow(0L)
@@ -135,6 +148,14 @@ class InMemoryCabinetStore(private val clock: Clock) :
         live().filter { it.product.gtin == gtin }.maxWithOrNull(compareBy({ it.createdAt }, { it.id.toString() }))
     }
 
+    override suspend fun latestBoxPerGTIN(): List<Box> = mutex.withLock {
+        live().filter { it.product.gtin != null }
+            .groupBy { it.product.gtin }
+            .values
+            .map { group -> group.maxWith(compareBy({ it.createdAt }, { it.id.toString() })) }
+            .sortedWith(compareByDescending<Box> { it.createdAt }.thenByDescending { it.id.toString() })
+    }
+
     override suspend fun cabinetBoxes(gtin: String): List<Box> = mutex.withLock {
         live().filter { it.isInCabinet && it.product.gtin == gtin }
             .sortedWith(compareBy({ it.createdAt }, { it.id.toString() }))
@@ -185,6 +206,92 @@ class InMemoryCabinetStore(private val clock: Clock) :
 
     override fun observeCabinet(): Flow<List<Box>> = version.map { mutex.withLock { currentActiveBoxes() } }
 
+    // NamedProductRepository
+
+    /** The named products of this store, sharing its boxes: every change is announced to the observers of both. */
+    val named: NamedProductRepository = NamedProducts()
+
+    @Suppress("TooManyFunctions") // one function per port operation
+    private inner class NamedProducts : NamedProductRepository {
+        override suspend fun namedProduct(gtin: String): NamedProduct? = mutex.withLock { liveNamed(gtin) }
+
+        override suspend fun remember(gtin: String, name: String, category: CategoryID, categoryOverridden: Boolean) =
+            mutex.withLock {
+                val stored = liveNamed(gtin)
+                if (stored == null) {
+                    val now = clock.now()
+                    val created = NamedProduct(
+                        gtin = gtin,
+                        name = name,
+                        category = category,
+                        categoryOverridden = categoryOverridden,
+                        createdAt = now
+                    )
+                    namedProducts[created.id] = created
+                    changed()
+                } else if (!stored.holds(name, category, categoryOverridden)) {
+                    namedProducts[stored.id] = stored.copy(
+                        name = name,
+                        category = category,
+                        categoryOverridden = categoryOverridden,
+                        updatedAt = clock.now()
+                    )
+                    changed()
+                }
+            }
+
+        override fun observeSummaries(): Flow<List<NamedProductSummary>> =
+            version.map { mutex.withLock { summaries() } }
+
+        override suspend fun rename(id: UUID, name: String) = mutex.withLock {
+            val stored = liveNamedOrThrow(id)
+            val now = clock.now()
+            namedProducts[id] = stored.copy(name = name, updatedAt = now)
+            for (box in live().filter { it.product.gtin == stored.gtin }) {
+                boxes[box.id] = box.copy(product = box.product.copy(name = name), updatedAt = now)
+            }
+            changed()
+        }
+
+        override suspend fun setCategory(id: UUID, category: CategoryID, overridden: Boolean) = mutex.withLock {
+            val stored = liveNamedOrThrow(id)
+            val now = clock.now()
+            namedProducts[id] = stored.copy(category = category, categoryOverridden = overridden, updatedAt = now)
+            for (box in live().filter { it.product.gtin == stored.gtin }) {
+                boxes[box.id] = box.copy(category = category, categoryOverridden = overridden, updatedAt = now)
+            }
+            changed()
+        }
+
+        override suspend fun forget(id: UUID) = mutex.withLock {
+            val stored = liveNamedOrThrow(id)
+            namedProducts[id] = stored.copy(updatedAt = clock.now())
+            forgotten += id
+            changed()
+        }
+
+        override suspend fun undoForget(id: UUID) = mutex.withLock {
+            val stored = namedProducts[id]?.takeIf { id in forgotten }
+                ?: throw RepositoryException(RepositoryError.NOT_FOUND)
+            if (liveNamed(stored.gtin) != null) throw RepositoryException(RepositoryError.DUPLICATE)
+            namedProducts[id] = stored.copy(updatedAt = clock.now())
+            forgotten -= id
+            changed()
+        }
+
+        override suspend fun backfillPending(): Boolean = mutex.withLock { backfillIsPending }
+
+        override suspend fun completeBackfill(products: List<NamedProduct>) = mutex.withLock {
+            for (product in products) {
+                if (liveNamed(product.gtin) == null && !namedProducts.containsKey(product.id)) {
+                    namedProducts[product.id] = product
+                }
+            }
+            backfillIsPending = false
+            changed()
+        }
+    }
+
     // Private
 
     private fun changed() = version.update { it + 1 }
@@ -194,6 +301,19 @@ class InMemoryCabinetStore(private val clock: Clock) :
     /** Ordered by `sortOrder`, then name. */
     private fun liveLocations(): List<Location> =
         locations.values.filter { it.id !in deletedLocations }.sortedWith(compareBy({ it.sortOrder }, { it.name }))
+
+    private fun liveNamed(gtin: String): NamedProduct? =
+        namedProducts.values.firstOrNull { it.gtin == gtin && it.id !in forgotten }
+
+    private fun liveNamedOrThrow(id: UUID): NamedProduct =
+        namedProducts[id]?.takeIf { id !in forgotten } ?: throw RepositoryException(RepositoryError.NOT_FOUND)
+
+    private fun summaries(): List<NamedProductSummary> {
+        val inCabinet = currentActiveBoxes().groupingBy { it.product.gtin }.eachCount()
+        return namedProducts.values.filter { it.id !in forgotten }
+            .sortedWith(NamedProductOrdering.BY_NAME)
+            .map { NamedProductSummary(it, inCabinet[it.gtin] ?: 0) }
+    }
 
     private fun live(): List<Box> = boxes.values.filter { it.id !in deleted }
 
@@ -223,3 +343,6 @@ class InMemoryCabinetStore(private val clock: Clock) :
             live().any { it.id != box.id && it.product.gtin == gtin && it.serial == serial }
     }
 }
+
+private fun NamedProduct.holds(name: String, category: CategoryID, categoryOverridden: Boolean): Boolean =
+    this.name == name && this.category == category && this.categoryOverridden == categoryOverridden

@@ -1,0 +1,139 @@
+{
+  "formatVersion": 1,
+  "description": "DELIBERATELY WRONG copy used by test-shared-fixtures-break.sh. LeafletLink.address(product): the public BDPM page of a medicine, https://base-donnees-publique.medicaments.gouv.fr/medicament/<CIS>/extrait, or null (no link). product is null when the reference does not know the code, else {cis, isWithdrawn}. A link needs a product that is not withdrawn and a CIS of exactly 8 ASCII digits (code units 0x30-0x39: Arabic-Indic and full-width digits are refused). Checked on 2026-10-20: the page of CIS 60234100 (DOLIPRANE 1000 mg, comprimé) opens there; the leaflet is a tab of that page, with no address of its own.",
+  "cases": [
+    {
+      "name": "an active medicine",
+      "product": {
+        "cis": "60234100",
+        "isWithdrawn": false
+      },
+      "expect": "https://base-donnees-publique.medicaments.gouv.fr/medicament/60234100/extraitX"
+    },
+    {
+      "name": "a CIS with a leading zero keeps it",
+      "product": {
+        "cis": "06000001",
+        "isWithdrawn": false
+      },
+      "expect": "https://base-donnees-publique.medicaments.gouv.fr/medicament/06000001/extrait"
+    },
+    {
+      "name": "the product is unknown",
+      "product": null,
+      "expect": null
+    },
+    {
+      "name": "the reference holds no CIS",
+      "product": {
+        "cis": null,
+        "isWithdrawn": false
+      },
+      "expect": null
+    },
+    {
+      "name": "a withdrawn presentation has no page",
+      "product": {
+        "cis": "60234100",
+        "isWithdrawn": true
+      },
+      "expect": null
+    },
+    {
+      "name": "a withdrawn presentation without a CIS",
+      "product": {
+        "cis": null,
+        "isWithdrawn": true
+      },
+      "expect": null
+    },
+    {
+      "name": "seven digits is not a CIS",
+      "product": {
+        "cis": "6023410",
+        "isWithdrawn": false
+      },
+      "expect": null
+    },
+    {
+      "name": "nine digits is not a CIS",
+      "product": {
+        "cis": "602341000",
+        "isWithdrawn": false
+      },
+      "expect": null
+    },
+    {
+      "name": "a letter is not a digit",
+      "product": {
+        "cis": "6023410a",
+        "isWithdrawn": false
+      },
+      "expect": null
+    },
+    {
+      "name": "a space inside is refused",
+      "product": {
+        "cis": "6023 100",
+        "isWithdrawn": false
+      },
+      "expect": null
+    },
+    {
+      "name": "a leading space is refused",
+      "product": {
+        "cis": " 6023410",
+        "isWithdrawn": false
+      },
+      "expect": null
+    },
+    {
+      "name": "a trailing space is refused",
+      "product": {
+        "cis": "6023410 ",
+        "isWithdrawn": false
+      },
+      "expect": null
+    },
+    {
+      "name": "an empty CIS is refused",
+      "product": {
+        "cis": "",
+        "isWithdrawn": false
+      },
+      "expect": null
+    },
+    {
+      "name": "Arabic-Indic digits are not ASCII digits",
+      "product": {
+        "cis": "٦٠٢٣٤١٠٠",
+        "isWithdrawn": false
+      },
+      "expect": null
+    },
+    {
+      "name": "full-width digits are not ASCII digits",
+      "product": {
+        "cis": "６０２３４１００",
+        "isWithdrawn": false
+      },
+      "expect": null
+    },
+    {
+      "name": "a slash cannot add a path segment",
+      "product": {
+        "cis": "6023/100",
+        "isWithdrawn": false
+      },
+      "expect": null
+    },
+    {
+      "name": "a query string is refused",
+      "product": {
+        "cis": "60234?x=1",
+        "isWithdrawn": false
+      },
+      "expect": null
+    }
+  ]
+}

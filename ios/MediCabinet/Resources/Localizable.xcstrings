@@ -545,6 +545,70 @@
         }
       }
     },
+    "box.leaflet.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens in the browser"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre dans le navigateur"
+          }
+        }
+      }
+    },
+    "box.leaflet.note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page of the French public medicines database, opened in the browser."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page de la base de données publique des médicaments, ouverte dans le navigateur."
+          }
+        }
+      }
+    },
+    "box.leaflet.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Official page and leaflet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fiche officielle et notice"
+          }
+        }
+      }
+    },
+    "box.leaflet.openFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The page could not be opened."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La page n'a pas pu être ouverte."
+          }
+        }
+      }
+    },
     "box.location": {
       "localizations": {
         "en": {
@@ -2361,6 +2425,294 @@
         }
       }
     },
+    "namedProducts.edit.note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The name and category apply to every box of this product, including used-up and thrown-away ones."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le nom et la catégorie s'appliquent à toutes les boîtes de ce produit, y compris celles utilisées ou jetées."
+          }
+        }
+      }
+    },
+    "namedProducts.edit.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit product"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier le produit"
+          }
+        }
+      }
+    },
+    "namedProducts.empty.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When you scan a product the medicines database does not know, the name you give it appears here."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quand vous scannez un produit que la base des médicaments ne connaît pas, le nom que vous lui donnez apparaît ici."
+          }
+        }
+      }
+    },
+    "namedProducts.empty.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No named product"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun produit nommé"
+          }
+        }
+      }
+    },
+    "namedProducts.error.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The named products could not be read."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les produits nommés n'ont pas pu être lus."
+          }
+        }
+      }
+    },
+    "namedProducts.error.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "List unavailable"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liste indisponible"
+          }
+        }
+      }
+    },
+    "namedProducts.forget": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forget"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oublier"
+          }
+        }
+      }
+    },
+    "namedProducts.forget.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The next scan of this code will ask you for a name."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le prochain scan de ce code vous demandera un nom."
+          }
+        }
+      }
+    },
+    "namedProducts.forget.messageInCabinet": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld box is still in the cabinet and keeps its name. The next scan of this code will ask you for a name."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boxes are still in the cabinet and keep their name. The next scan of this code will ask you for a name."
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîte est encore dans l'armoire et garde son nom. Le prochain scan de ce code vous demandera un nom."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîtes sont encore dans l'armoire et gardent leur nom. Le prochain scan de ce code vous demandera un nom."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "namedProducts.forget.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forget “%1$@”?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oublier « %1$@ » ?"
+          }
+        }
+      }
+    },
+    "namedProducts.forgotten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” forgotten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "« %1$@ » oublié"
+          }
+        }
+      }
+    },
+    "namedProducts.inCabinet": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld box in the cabinet"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boxes in the cabinet"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîte dans l'armoire"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîtes dans l'armoire"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "namedProducts.notInCabinet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not in the cabinet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas dans l'armoire"
+          }
+        }
+      }
+    },
+    "namedProducts.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Products you named"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Produits nommés par vous"
+          }
+        }
+      }
+    },
+    "namedProducts.undoFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot restore: this code has been named again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de rétablir : ce code a été nommé à nouveau."
+          }
+        }
+      }
+    },
     "placeholder.scan.message": {
       "localizations": {
         "en": {
@@ -4089,6 +4441,22 @@
         }
       }
     },
+    "settings.namedProducts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Products you named"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Produits nommés par vous"
+          }
+        }
+      }
+    },
     "settings.title": {
       "localizations": {
         "en": {
@@ -5125,6 +5493,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Format du fichier : version %1$lld"
+          }
+        }
+      }
+    },
+    "transfer.import.preview.namedProducts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Products you named: %1$lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Produits nommés par vous : %1$lld"
           }
         }
       }

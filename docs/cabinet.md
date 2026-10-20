@@ -55,6 +55,14 @@ described in [`bulk-scan.md`](bulk-scan.md#remove-mode-taking-boxes-out-by-scann
   classifier never moves it again. **Automatic category** gives it back to the classifier (the reference category of its
   code, else *Uncategorized*). Categories are for tidying the cabinet, not for choosing a treatment.
 - **Opened** is a switch that saves at once.
+- **Official page and leaflet** (#56) opens the medicine's public page in the French medicines database
+  (`base-donnees-publique.medicaments.gouv.fr/medicament/<CIS>/extrait`, which carries the official patient leaflet)
+  in the phone's browser. It shows only for a box whose code the bundled database knows and whose presentation is not
+  withdrawn, below the box's information, once the code has been looked up (nothing above it moves). A box with no code,
+  a parapharmacy or supplement code, or an unavailable database gets no link. The address is built from the CIS kept in
+  the reference database (see `reference-data.md`) by the shared `LeafletLink` rule (`fixtures/leaflet-links.json`);
+  it is never stored on the box or exported. The app shows no text from the leaflet and gives no medical advice. If the
+  browser cannot be opened, a message says so.
 - **Take out of the cabinet**: *Used up* or *Thrown away* (a stock movement with today's date) or *Added by mistake*
   (deletes the box without counting it). None asks for confirmation; each shows a message with **Undo** that puts the
   box back exactly as it was (same location, expiry, opened flag). If another box took the same serial in the

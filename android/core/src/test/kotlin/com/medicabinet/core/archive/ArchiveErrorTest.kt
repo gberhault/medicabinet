@@ -8,7 +8,8 @@ class ArchiveErrorTest {
     fun kindsUseThePlatformNeutralNames() {
         val expected = listOf(
             "tooLarge", "notJSON", "notArchive", "unsupportedVersion", "newerVersion", "invalidStructure",
-            "invalidValue", "tooManyItems", "duplicateId", "unknownLocation", "defaultLocation", "duplicateSerial"
+            "invalidValue", "tooManyItems", "duplicateId", "unknownLocation", "defaultLocation", "duplicateSerial",
+            "duplicateNamedProduct"
         )
         assertEquals(expected, ArchiveErrorKind.entries.map { it.rawValue })
     }

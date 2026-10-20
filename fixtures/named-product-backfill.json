@@ -1,0 +1,160 @@
+{
+  "formatVersion": 1,
+  "description": "NamedProductBackfill.products(latest, isKnown): the named products created once after the upgrade to schema v4, from the newest non-deleted box of every GTIN (latest: one box per GTIN, as BoxRepository.latestBoxPerGTIN returns them; the repository contract covers which box that is). known: the GTINs the reference names (isKnown). A box without a GTIN, or with a known GTIN, gives nothing. The name is the box's; the category and its flag are the box's when its flag is on, else uncategorized with the flag off. The result is ordered by GTIN.",
+  "cases": [
+    {
+      "name": "an unknown code gives a named product",
+      "known": [],
+      "latest": [
+        {
+          "gtin": "03401900000003",
+          "name": "Arnica",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      ],
+      "expect": [
+        {
+          "gtin": "03401900000003",
+          "name": "Arnica",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      ]
+    },
+    {
+      "name": "a known code is skipped",
+      "known": [
+        "03401900000003"
+      ],
+      "latest": [
+        {
+          "gtin": "03401900000003",
+          "name": "Arnica",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      ],
+      "expect": []
+    },
+    {
+      "name": "a box without a code is skipped",
+      "known": [],
+      "latest": [
+        {
+          "gtin": null,
+          "name": "Thermomètre",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      ],
+      "expect": []
+    },
+    {
+      "name": "a category set by the user is kept with its flag",
+      "known": [],
+      "latest": [
+        {
+          "gtin": "03401900000003",
+          "name": "Arnica",
+          "category": "skin-wound",
+          "categoryOverridden": true
+        }
+      ],
+      "expect": [
+        {
+          "gtin": "03401900000003",
+          "name": "Arnica",
+          "category": "skin-wound",
+          "categoryOverridden": true
+        }
+      ]
+    },
+    {
+      "name": "an automatic category is dropped",
+      "known": [],
+      "latest": [
+        {
+          "gtin": "03401900000003",
+          "name": "Arnica",
+          "category": "skin-wound",
+          "categoryOverridden": false
+        }
+      ],
+      "expect": [
+        {
+          "gtin": "03401900000003",
+          "name": "Arnica",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      ]
+    },
+    {
+      "name": "a user category that is uncategorized keeps its flag",
+      "known": [],
+      "latest": [
+        {
+          "gtin": "03401900000003",
+          "name": "Arnica",
+          "category": "uncategorized",
+          "categoryOverridden": true
+        }
+      ],
+      "expect": [
+        {
+          "gtin": "03401900000003",
+          "name": "Arnica",
+          "category": "uncategorized",
+          "categoryOverridden": true
+        }
+      ]
+    },
+    {
+      "name": "several codes are ordered by GTIN, known ones skipped",
+      "known": [
+        "03401900000010"
+      ],
+      "latest": [
+        {
+          "gtin": "03401900000027",
+          "name": "C",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        {
+          "gtin": "03401900000003",
+          "name": "A",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        {
+          "gtin": "03401900000010",
+          "name": "B",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      ],
+      "expect": [
+        {
+          "gtin": "03401900000003",
+          "name": "A",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        {
+          "gtin": "03401900000027",
+          "name": "C",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      ]
+    },
+    {
+      "name": "nothing to fill",
+      "known": [],
+      "latest": [],
+      "expect": []
+    }
+  ]
+}

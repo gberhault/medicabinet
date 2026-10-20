@@ -31,6 +31,24 @@
     },
     {
       "name": "replacing with an empty cabinet empties the store"
+    },
+    {
+      "name": "snapshot includes named products, forgotten ones too"
+    },
+    {
+      "name": "replace swaps the named products"
+    },
+    {
+      "name": "a version 1 replace marks the named products to fill"
+    },
+    {
+      "name": "a version 2 replace clears the fill mark"
+    },
+    {
+      "name": "a throwing hook leaves the named products and the fill mark unchanged"
+    },
+    {
+      "name": "two live named products with one gtin are rejected and change nothing"
     }
   ]
 }

@@ -13,7 +13,10 @@ import Testing
     private func editor(
         _ kit: CabinetTestKit, box: Box, lookup: any ProductLookup = StubLookup()
     ) async throws -> BoxEditViewModel {
-        BoxEditViewModel(box: box, locations: try await kit.locations.all(), boxes: kit.boxes, lookup: lookup)
+        BoxEditViewModel(
+            box: box, locations: try await kit.locations.all(), boxes: kit.boxes, lookup: lookup,
+            memory: ProductMemory(named: kit.named, lookup: lookup)
+        )
     }
 
     // MARK: Starting point

@@ -1,0 +1,344 @@
+{
+  "formatVersion": 1,
+  "description": "Tables, columns, foreign keys and created indexes that database schema v4 (v1 + v2 + v3 + the v4 migration) must have on every platform. Compared against PRAGMA table_info / foreign_key_list / index_list / index_info of a freshly migrated database. CHECK constraints are not introspectable; each platform tests them by behaviour. schema-v1.json, schema-v2.json and schema-v3.json stay and are compared with a database migrated to that version only.",
+  "tables": {
+    "box": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "TEXT",
+          "notNull": true,
+          "default": null,
+          "primaryKey": true
+        },
+        {
+          "name": "gtin",
+          "type": "TEXT",
+          "notNull": false,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "productName",
+          "type": "TEXT",
+          "notNull": true,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "category",
+          "type": "TEXT",
+          "notNull": true,
+          "default": "'uncategorized'",
+          "primaryKey": false
+        },
+        {
+          "name": "categoryOverridden",
+          "type": "INTEGER",
+          "notNull": true,
+          "default": "0",
+          "primaryKey": false
+        },
+        {
+          "name": "locationId",
+          "type": "TEXT",
+          "notNull": true,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "expiryYear",
+          "type": "INTEGER",
+          "notNull": false,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "expiryMonth",
+          "type": "INTEGER",
+          "notNull": false,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "expiryDay",
+          "type": "INTEGER",
+          "notNull": false,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "expirySortKey",
+          "type": "TEXT",
+          "notNull": false,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "lot",
+          "type": "TEXT",
+          "notNull": false,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "serial",
+          "type": "TEXT",
+          "notNull": false,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "isOpened",
+          "type": "INTEGER",
+          "notNull": true,
+          "default": "0",
+          "primaryKey": false
+        },
+        {
+          "name": "removalReason",
+          "type": "TEXT",
+          "notNull": false,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "removedAt",
+          "type": "DATETIME",
+          "notNull": false,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "createdAt",
+          "type": "DATETIME",
+          "notNull": true,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "updatedAt",
+          "type": "DATETIME",
+          "notNull": true,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "deletedAt",
+          "type": "DATETIME",
+          "notNull": false,
+          "default": null,
+          "primaryKey": false
+        }
+      ],
+      "foreignKeys": [
+        {
+          "from": "locationId",
+          "table": "location",
+          "to": "id",
+          "onDelete": "RESTRICT"
+        }
+      ]
+    },
+    "location": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "TEXT",
+          "notNull": true,
+          "default": null,
+          "primaryKey": true
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "notNull": true,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "isDefault",
+          "type": "INTEGER",
+          "notNull": true,
+          "default": "0",
+          "primaryKey": false
+        },
+        {
+          "name": "sortOrder",
+          "type": "INTEGER",
+          "notNull": true,
+          "default": "0",
+          "primaryKey": false
+        },
+        {
+          "name": "createdAt",
+          "type": "DATETIME",
+          "notNull": true,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "updatedAt",
+          "type": "DATETIME",
+          "notNull": true,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "deletedAt",
+          "type": "DATETIME",
+          "notNull": false,
+          "default": null,
+          "primaryKey": false
+        }
+      ],
+      "foreignKeys": []
+    },
+    "cabinetMeta": {
+      "columns": [
+        {
+          "name": "key",
+          "type": "TEXT",
+          "notNull": true,
+          "default": null,
+          "primaryKey": true
+        },
+        {
+          "name": "value",
+          "type": "TEXT",
+          "notNull": true,
+          "default": null,
+          "primaryKey": false
+        }
+      ],
+      "foreignKeys": []
+    },
+    "namedProduct": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "TEXT",
+          "notNull": true,
+          "default": null,
+          "primaryKey": true
+        },
+        {
+          "name": "gtin",
+          "type": "TEXT",
+          "notNull": true,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "notNull": true,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "category",
+          "type": "TEXT",
+          "notNull": true,
+          "default": "'uncategorized'",
+          "primaryKey": false
+        },
+        {
+          "name": "categoryOverridden",
+          "type": "INTEGER",
+          "notNull": true,
+          "default": "0",
+          "primaryKey": false
+        },
+        {
+          "name": "createdAt",
+          "type": "DATETIME",
+          "notNull": true,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "updatedAt",
+          "type": "DATETIME",
+          "notNull": true,
+          "default": null,
+          "primaryKey": false
+        },
+        {
+          "name": "deletedAt",
+          "type": "DATETIME",
+          "notNull": false,
+          "default": null,
+          "primaryKey": false
+        }
+      ],
+      "foreignKeys": []
+    }
+  },
+  "indexes": [
+    {
+      "name": "box_active",
+      "table": "box",
+      "columns": [
+        "removedAt"
+      ],
+      "unique": false,
+      "where": null
+    },
+    {
+      "name": "box_expiry",
+      "table": "box",
+      "columns": [
+        "expirySortKey"
+      ],
+      "unique": false,
+      "where": null
+    },
+    {
+      "name": "box_gtin",
+      "table": "box",
+      "columns": [
+        "gtin"
+      ],
+      "unique": false,
+      "where": null
+    },
+    {
+      "name": "box_location",
+      "table": "box",
+      "columns": [
+        "locationId"
+      ],
+      "unique": false,
+      "where": null
+    },
+    {
+      "name": "box_serial",
+      "table": "box",
+      "columns": [
+        "gtin",
+        "serial"
+      ],
+      "unique": true,
+      "where": "serial IS NOT NULL AND deletedAt IS NULL"
+    },
+    {
+      "name": "location_single_default",
+      "table": "location",
+      "columns": [
+        "isDefault"
+      ],
+      "unique": true,
+      "where": "isDefault = 1"
+    },
+    {
+      "name": "namedProduct_gtin",
+      "table": "namedProduct",
+      "columns": [
+        "gtin"
+      ],
+      "unique": true,
+      "where": "deletedAt IS NULL"
+    }
+  ]
+}

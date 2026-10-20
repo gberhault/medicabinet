@@ -39,6 +39,8 @@ public struct ReferenceLookupCase: Decodable, Sendable, CustomStringConvertible 
     public struct Product: Decodable, Sendable, Equatable {
         public let name: String
         public let category: String
+        public let cis: String
+        public let isWithdrawn: Bool
     }
 
     public struct Expect: Decodable, Sendable {
@@ -188,6 +190,12 @@ public struct ProductResolutionCase: Decodable, Sendable, CustomStringConvertibl
         public let categoryOverridden: Bool
     }
 
+    public struct Named: Decodable, Sendable {
+        public let name: String
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
     public struct Expect: Decodable, Sendable {
         public let name: String?
         public let category: String
@@ -196,6 +204,7 @@ public struct ProductResolutionCase: Decodable, Sendable, CustomStringConvertibl
 
     public let name: String
     public let reference: Reference?
+    public let named: Named?
     public let previousBox: Previous?
     public let expect: Expect
 

@@ -42,12 +42,18 @@ struct TransferTestKit {
     }
 
     var environment: AppEnvironment {
+        environment(reference: InMemoryReferenceData(status: .unavailable(.missing)))
+    }
+
+    /// The same cabinet with another reference database (an available, empty one makes every code unknown).
+    func environment(reference: any ReferenceDataSource) -> AppEnvironment {
         AppEnvironment(
-            locations: locations, boxes: boxes, clock: clock,
-            reference: InMemoryReferenceData(status: .unavailable(.missing)), timeZone: { .gmt }, transfer: transfer,
-            revision: revision
+            locations: locations, boxes: boxes, named: named, clock: clock, reference: reference, timeZone: { .gmt },
+            transfer: transfer, revision: revision
         )
     }
+
+    var named: GRDBNamedProductRepository { GRDBNamedProductRepository(database: database, clock: clock) }
 
     @discardableResult
     func addBox(_ name: String, expiry: ExpiryDate? = nil) async throws -> Box {

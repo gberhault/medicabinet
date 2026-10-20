@@ -8,6 +8,9 @@ enum ArchiveValidator {
         let cabinet = archive.cabinet
         guard cabinet.locations.count <= limits.maxLocations else { throw ArchiveError(.tooManyItems, path: "locations") }
         guard cabinet.boxes.count <= limits.maxBoxes else { throw ArchiveError(.tooManyItems, path: "boxes") }
+        guard cabinet.namedProducts.count <= limits.maxNamedProducts else {
+            throw ArchiveError(.tooManyItems, path: "namedProducts")
+        }
         try require(isRepresentable(archive.exportedAt), FieldPath("exportedAt"))
         try validateApp(archive.app)
         for (index, location) in cabinet.locations.enumerated() {
@@ -15,6 +18,9 @@ enum ArchiveValidator {
         }
         for (index, archived) in cabinet.boxes.enumerated() {
             try validateBox(archived, prefix: "boxes[\(index)]")
+        }
+        for (index, archived) in cabinet.namedProducts.enumerated() {
+            try validateNamedProduct(archived, prefix: "namedProducts[\(index)]")
         }
         try validateReferences(cabinet)
     }
@@ -50,6 +56,16 @@ enum ArchiveValidator {
         try require(isRepresentable(archived.deletedAt), FieldPath(prefix, "deletedAt"))
     }
 
+    private static func validateNamedProduct(_ archived: ArchivedNamedProduct, prefix: String) throws(ArchiveError) {
+        let product = archived.product
+        try require(isGTIN(product.gtin), FieldPath(prefix, "gtin"))
+        try require(isLength(product.name, 1...200), FieldPath(prefix, "name"))
+        try require(isLength(product.category.rawValue, 1...100), FieldPath(prefix, "category"))
+        try require(isRepresentable(product.createdAt), FieldPath(prefix, "createdAt"))
+        try require(isRepresentable(product.updatedAt), FieldPath(prefix, "updatedAt"))
+        try require(isRepresentable(archived.deletedAt), FieldPath(prefix, "deletedAt"))
+    }
+
     private static func require(_ condition: Bool, _ field: FieldPath) throws(ArchiveError) {
         guard condition else { throw ArchiveError(.invalidValue, path: field.text) }
     }
@@ -82,6 +98,19 @@ enum ArchiveValidator {
             throw ArchiveError(.unknownLocation, path: "boxes[\(index)].locationId")
         }
         try requireUniqueSerials(cabinet.boxes)
+        try requireUnique(cabinet.namedProducts.map(\.product.id), in: "namedProducts")
+        try requireOneLiveProductPerGTIN(cabinet.namedProducts)
+    }
+
+    /// Among named products that are not forgotten, a GTIN appears once, like the database's partial unique index. A
+    /// forgotten product and a live one (or several forgotten ones) may share it.
+    private static func requireOneLiveProductPerGTIN(_ products: [ArchivedNamedProduct]) throws(ArchiveError) {
+        var seen = Set<String>()
+        for (index, archived) in products.enumerated() where archived.deletedAt == nil {
+            if !seen.insert(archived.product.gtin).inserted {
+                throw ArchiveError(.duplicateNamedProduct, path: "namedProducts[\(index)].gtin")
+            }
+        }
     }
 
     /// A box sits in a location of the file; one still in the cabinet sits in a location that is not deleted (the app

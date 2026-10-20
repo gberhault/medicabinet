@@ -13,6 +13,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.medicabinet.app.app.AppTab
 import com.medicabinet.app.app.TabRouter
 import com.medicabinet.app.features.cabinet.CabinetTestKit
@@ -153,7 +154,8 @@ class MainScaffoldTest {
     fun settingsOfferTheMonthlyReminderSwitchOffByDefault() {
         show()
         compose.onNodeWithText("Settings").performClick()
-        compose.onNodeWithTag("settings.reminder.switch").assertIsDisplayed().assertIsOff()
+        // The Products you named row pushed the reminder below the fold of the small test screen: Settings scrolls.
+        compose.onNodeWithTag("settings.reminder.switch").performScrollTo().assertIsDisplayed().assertIsOff()
     }
 
     @Test

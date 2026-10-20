@@ -52,7 +52,7 @@ private fun ComposeContentTestRule.assertShown(text: String, substring: Boolean 
 
 private fun environment(status: ReferenceStatus): AppEnvironment {
     val store = InMemoryCabinetStore(SystemClock)
-    return AppEnvironment(store, store, SystemClock, InMemoryReferenceData(status = status))
+    return AppEnvironment(store, store, store.named, SystemClock, InMemoryReferenceData(status = status))
 }
 
 /** Counts how often the reference data is asked for its status. */
@@ -176,7 +176,7 @@ class ReferenceAboutScreenTest {
     fun launchNeverTouchesTheReferenceDataAndAboutIsWhatOpensIt() {
         val reference = CountingReferenceData(InMemoryReferenceData(status = ReferenceStatus.Available(dataDate)))
         val store = InMemoryCabinetStore(SystemClock)
-        val environment = AppEnvironment(store, store, SystemClock, reference)
+        val environment = AppEnvironment(store, store, store.named, SystemClock, reference)
         compose.setContent {
             MediCabinetTheme { MainScaffold(environment, appInfo = info, scanServices = testScanServices()) }
         }

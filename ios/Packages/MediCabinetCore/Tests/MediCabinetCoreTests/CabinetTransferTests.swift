@@ -4,8 +4,8 @@ import Testing
 import MediCabinetCoreTestSupport
 
 @Suite struct CabinetTransferTests {
-    private let app = ArchiveApp(name: "MediCabinet", platform: "ios", version: "0.3.0", build: "3")
-    private let exportedAt = ArchiveDates.date(milliseconds: 1_792_397_730_123)
+    private let app = ArchiveApp(name: "MediCabinet", platform: "ios", version: "0.7.0", build: "10")
+    private let exportedAt = ArchiveDates.date(milliseconds: 1_792_570_530_123)
 
     private struct Setup {
         let store: InMemoryArchiveStore
@@ -68,7 +68,7 @@ import MediCabinetCoreTestSupport
         #expect(preview.file == context.goldenCabinet.summary)
         #expect(preview.current.inCabinet == 1)
         #expect(preview.willBackUp)
-        #expect(preview.archive.sourceFormatVersion == 1)
+        #expect(preview.archive.sourceFormatVersion == 2)
     }
 
     @Test func aPhoneWithNothingToLoseNeedsNoBackup() async throws {
@@ -203,13 +203,27 @@ import MediCabinetCoreTestSupport
         #expect(CabinetSummary(locations: 1, inCabinet: 0, removed: 0, deleted: 1, unknownExpiry: 0).needsBackup)
     }
 
+    @Test func aNamedProductIsSomethingToLose() async throws {
+        let home = ArchivedLocation(location: Location(name: "Home", isDefault: true, createdAt: exportedAt))
+        let product = NamedProduct(gtin: "03401234567890", name: "Crème", createdAt: exportedAt)
+        #expect(CabinetSummary(locations: 1, inCabinet: 0, removed: 0, deleted: 0, unknownExpiry: 0, namedProducts: 1).needsBackup)
+        for deletedAt in [nil, exportedAt] {
+            let archived = ArchivedNamedProduct(product: product, deletedAt: deletedAt)
+            let contents = CabinetContents(locations: [home], boxes: [], namedProducts: [archived])
+            #expect(contents.needsBackup)
+            let preview = try await setup(initial: contents).transfer.preview(try SharedFixtures.goldenArchive())
+            #expect(preview.willBackUp)
+        }
+    }
+
     @Test func theSnapshotSummaryCountsEveryKindOfBox() throws {
         let context = try setup()
         let summary = context.goldenCabinet.summary
         #expect(summary.locations == 3)
         #expect(summary.removed == 2)
         #expect(summary.deleted == 1)
-        #expect(summary.inCabinet == 9)
+        #expect(summary.inCabinet == 10)
+        #expect(summary.namedProducts == 2)
         #expect(summary.unknownExpiry == 2)
         #expect(context.goldenCabinet.needsBackup)
     }

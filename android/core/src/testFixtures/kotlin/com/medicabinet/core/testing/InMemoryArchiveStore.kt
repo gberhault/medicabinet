@@ -15,23 +15,38 @@ import java.time.Instant
  * In-memory fake of [CabinetArchiveStore]; also documents the expected behaviour (the contract in
  * [ArchiveStoreContract] runs against it and against every real store).
  */
-class InMemoryArchiveStore(initial: CabinetContents = CabinetContents(emptyList(), emptyList())) : CabinetArchiveStore {
-    private var cabinet = initial
+class InMemoryArchiveStore(initial: CabinetContents = CabinetContents(emptyList(), emptyList())) :
+    ArchiveStoreUnderContract {
+    private var cabinet = initial.copy(namedProductsNeedFill = false)
 
+    /** The named-product backfill marker (`cabinetMeta` in the database): set by a replace that needs the fill. */
+    private var fillIsPending = initial.namedProductsNeedFill
+
+    /** Always `namedProductsNeedFill == false`: the marker is state of the store, not part of the cabinet. */
     override suspend fun snapshot(): CabinetContents = cabinet
+
+    override suspend fun backfillPending(): Boolean = fillIsPending
 
     override suspend fun replace(snapshot: CabinetContents, beforeReplacing: (CabinetContents) -> Unit) {
         beforeReplacing(cabinet)
         requireHoldable(snapshot)
-        cabinet = snapshot
+        cabinet = snapshot.copy(namedProductsNeedFill = false)
+        fillIsPending = snapshot.namedProductsNeedFill
     }
 
-    /** The constraints a database enforces: unique ids, one default location, boxes in known locations. */
+    /**
+     * The constraints a database enforces: unique ids, one default location, boxes in known locations, one live
+     * named product per GTIN.
+     */
     private fun requireHoldable(snapshot: CabinetContents) {
         val known = snapshot.locations.map { it.location.id }.toSet()
         val boxIds = snapshot.boxes.map { it.box.id }.toSet()
+        val productIds = snapshot.namedProducts.map { it.product.id }.toSet()
+        val liveGtins = snapshot.namedProducts.filter { it.deletedAt == null }.map { it.product.gtin }
         val problem = when {
             known.size != snapshot.locations.size || boxIds.size != snapshot.boxes.size -> RepositoryError.DUPLICATE
+            productIds.size != snapshot.namedProducts.size || liveGtins.toSet().size != liveGtins.size ->
+                RepositoryError.DUPLICATE
             snapshot.locations.count { it.location.isDefault } > 1 -> RepositoryError.DUPLICATE_DEFAULT
             snapshot.boxes.any { it.box.locationId !in known } -> RepositoryError.UNKNOWN_LOCATION
             else -> null

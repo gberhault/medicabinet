@@ -161,7 +161,7 @@ class ReferenceInstallerTest {
     fun anAssetOfAnotherSchemaVersionIsRefusedAsUnsupported() {
         val file = folder.newFile("v2.sqlite").also { it.writeBytes(sample) }
         SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use {
-            it.execSQL("PRAGMA user_version = 2")
+            it.execSQL("PRAGMA user_version = 3")
         }
         val assets = FakeReferenceAssets(manifestWith("b".repeat(HASH_LENGTH)), file.readBytes())
         assertEquals(ReferenceUnavailableReason.UNSUPPORTED_SCHEMA, failureOf(assets))

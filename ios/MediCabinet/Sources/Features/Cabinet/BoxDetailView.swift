@@ -6,6 +6,7 @@ import SwiftUI
 struct BoxDetailView: View {
     @State private var model: BoxDetailViewModel
     @State private var editor: BoxEditViewModel?
+    @Environment(\.openURL) private var openURL
     /// Asks the Cabinet stack to drop this screen (the box left the cabinet).
     let onGone: () -> Void
 
@@ -81,9 +82,33 @@ struct BoxDetailView: View {
                 Text("box.category.note")
             }
 
+            leafletSection
             takeOutSection
         }
         .accessibilityIdentifier("box.detail")
+    }
+
+    /// The official BDPM page of the medicine (it carries the leaflet), in the system browser. Shown only once the
+    /// code has been looked up and the database knows it, below the information so nothing above it moves.
+    @ViewBuilder private var leafletSection: some View {
+        if let url = model.leaflet {
+            Section {
+                Button {
+                    openURL(url) { accepted in
+                        if !accepted { Task { @MainActor in model.openLeafletFailed() } }
+                    }
+                } label: {
+                    Label("box.leaflet.open", systemImage: "arrow.up.right.square")
+                }
+                .frame(minHeight: 44)
+                .accessibilityAddTraits(.isLink)
+                .accessibilityRemoveTraits(.isButton)
+                .accessibilityHint(Text("box.leaflet.hint"))
+                .accessibilityIdentifier("box.leaflet")
+            } footer: {
+                Text("box.leaflet.note")
+            }
+        }
     }
 
     private var takeOutSection: some View {

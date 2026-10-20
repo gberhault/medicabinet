@@ -69,6 +69,8 @@ class SqlReferenceDataTest {
             val expected = case.expect.product
             assertEquals(expected?.name, product?.name, case.name)
             assertEquals(expected?.category, product?.category?.rawValue, case.name)
+            assertEquals(expected?.cis, product?.cis, case.name)
+            assertEquals(expected?.isWithdrawn, product?.isWithdrawn, case.name)
         }
     }
 
@@ -122,9 +124,9 @@ class SqlReferenceDataTest {
 
     @Test
     fun anotherSchemaVersionIsUnsupported() {
-        val file = folder.newFile("v2.sqlite").also { it.writeBytes(sample) }
+        val file = folder.newFile("v3.sqlite").also { it.writeBytes(sample) }
         SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use {
-            it.execSQL("PRAGMA user_version = 2")
+            it.execSQL("PRAGMA user_version = 3")
         }
         val assets = FakeReferenceAssets(sampleManifest, file.readBytes())
         unavailable(source(assets), ReferenceUnavailableReason.UNSUPPORTED_SCHEMA)
@@ -194,6 +196,8 @@ class SqlReferenceDataTest {
         val product = assertNotNull(source.product("03400935955838"))
         assertTrue(product.name.startsWith("DOLIPRANE 1000 mg"), product.name)
         assertEquals(CategoryID.PAIN_FEVER, product.category)
+        assertEquals("60234100", product.cis) // #56: the BDPM page of this medicine is built from it
+        assertFalse(product.isWithdrawn)
         assertIs<ReferenceStatus.Available>(source.status())
     }
 

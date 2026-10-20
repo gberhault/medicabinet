@@ -9,6 +9,8 @@ extension RepositoryContract {
 
         func record(_ value: Value) { latest = value }
 
+        var value: Value? { latest }
+
         func wait(_ what: String, until condition: @Sendable (Value) -> Bool) async throws {
             let start = ContinuousClock.now
             while true {
@@ -32,7 +34,7 @@ extension RepositoryContract {
         throw ContractFailure(description: "expected \(expected) but nothing was thrown")
     }
 
-    private static func observe<Value: Sendable>(
+    static func observe<Value: Sendable>(
         _ stream: AsyncThrowingStream<Value, any Error>
     ) -> (Observed<Value>, Task<Void, Never>) {
         let seen = Observed<Value>()

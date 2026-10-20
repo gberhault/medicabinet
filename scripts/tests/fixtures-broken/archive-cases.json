@@ -20,14 +20,16 @@
           "inCabinet": 10,
           "removed": 2,
           "deleted": 1,
-          "unknownExpiry": 2
+          "unknownExpiry": 2,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
     },
     {
       "name": "a newer version",
-      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-19T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.3.0\",\"build\":\"3\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03400936404564\",\"productName\":\"Produit 1\",\"category\":\"uncategorized\",\"categoryOverridden\":false,\"locationId\":\"10000001-0000-4000-8000-000000000001\",\"expiry\":{\"year\":2027,\"month\":3,\"day\":15},\"lot\":null,\"serial\":null,\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":3,\"exportedAt\":\"2026-10-19T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.3.0\",\"build\":\"3\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03400936404564\",\"productName\":\"Produit 1\",\"category\":\"uncategorized\",\"categoryOverridden\":false,\"locationId\":\"10000001-0000-4000-8000-000000000001\",\"expiry\":{\"year\":2027,\"month\":3,\"day\":15},\"lot\":null,\"serial\":null,\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
       "expect": {
         "error": {
           "kind": "notJSON",

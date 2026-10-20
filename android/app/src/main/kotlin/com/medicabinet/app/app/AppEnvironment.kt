@@ -5,10 +5,12 @@ import com.medicabinet.core.Clock
 import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.ExpiryStatus
 import com.medicabinet.core.LocationRepository
+import com.medicabinet.core.NamedProductRepository
 import com.medicabinet.core.archive.CabinetTransfer
 import com.medicabinet.core.expiry.CalendarDay
 import com.medicabinet.core.expiry.ExpiryRule
 import com.medicabinet.core.expiry.ExpiryWindow
+import com.medicabinet.core.named.ProductMemory
 import com.medicabinet.core.reference.ReferenceDataSource
 import java.time.ZoneId
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +25,9 @@ import kotlinx.coroutines.flow.update
  * [zone] turns the [clock]'s instant into "today" (the device time zone); [todaySource] says when "today" changes.
  * [expiryPreferences] holds the "expiring soon" window and the reminder choices.
  *
+ * [named] holds the names the household gave to codes the reference does not know; [productMemory] resolves a scan
+ * against the reference, then [named], and remembers a saved box (it needs [reference] to tell the two apart).
+ *
  * [transfer] exports, imports and restores the whole cabinet (`null` only in tests that do not use it). [revision]
  * changes each time the whole cabinet was replaced (an import or a restore): screens that keep cabinet data of their
  * own, like the scan session, start again from the new cabinet (design §1.6).
@@ -30,12 +35,14 @@ import kotlinx.coroutines.flow.update
 class AppEnvironment(
     val locations: LocationRepository,
     val boxes: BoxRepository,
+    val named: NamedProductRepository,
     val clock: Clock,
     val reference: ReferenceDataSource,
     val zone: ZoneId = ZoneId.systemDefault(),
     val expiryPreferences: ExpiryPreferences = InMemoryExpiryPreferences(),
     val todaySource: TodaySource = DayTicker(clock, zone),
-    val transfer: CabinetTransfer? = null
+    val transfer: CabinetTransfer? = null,
+    val productMemory: ProductMemory = ProductMemory(named, reference)
 ) {
     private val revisionCounter = MutableStateFlow(0L)
 

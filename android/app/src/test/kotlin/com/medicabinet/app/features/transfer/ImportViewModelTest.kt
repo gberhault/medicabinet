@@ -2,8 +2,10 @@ package com.medicabinet.app.features.transfer
 
 import com.medicabinet.core.archive.ArchiveDecoder
 import com.medicabinet.core.archive.BackupReason
+import com.medicabinet.core.archive.CabinetArchiveStore
 import com.medicabinet.core.archive.CabinetContents
 import com.medicabinet.core.archive.CabinetSummary
+import com.medicabinet.core.archive.CabinetTransfer
 import com.medicabinet.core.testing.ArchiveFixtureFiles
 import com.medicabinet.core.testing.InMemoryArchiveStore
 import java.io.IOException
@@ -38,7 +40,7 @@ class ImportViewModelTest {
     @After
     fun resetMain() = Dispatchers.resetMain()
 
-    private fun model(request: ImportRequest, transfer: com.medicabinet.core.archive.CabinetTransfer = kit.transfer) =
+    private fun model(request: ImportRequest, transfer: CabinetTransfer = kit.transfer) =
         ImportViewModel(transfer, request, { replaced++ }, dispatcher)
 
     private fun file(bytes: ByteArray) = model(ImportRequest.File(Incoming.Ready(bytes)))
@@ -54,7 +56,7 @@ class ImportViewModelTest {
         assertEquals(ArchiveDecoder.decode(golden).cabinet.summary, preview.file)
         assertEquals(CabinetSummary(2, 3, 0, 0, 0), preview.current)
         assertTrue(preview.willBackUp)
-        assertEquals(1, preview.archive.sourceFormatVersion)
+        assertEquals(2, preview.archive.sourceFormatVersion)
         assertEquals(before, snapshot())
         assertEquals(0, replaced)
     }
@@ -115,7 +117,7 @@ class ImportViewModelTest {
 
     @Test
     fun aFailedReplaceSaysSo() {
-        val broken = object : com.medicabinet.core.archive.CabinetArchiveStore by InMemoryArchiveStore(
+        val broken = object : CabinetArchiveStore by InMemoryArchiveStore(
             TransferTestKit.sampleCabinet()
         ) {
             override suspend fun replace(snapshot: CabinetContents, beforeReplacing: (CabinetContents) -> Unit) =
@@ -143,7 +145,7 @@ class ImportViewModelTest {
 
     @Test
     fun refusedFilesShowTheirKindAndCannotBeRetried() {
-        val newer = String(golden).replaceFirst("\"formatVersion\": 1", "\"formatVersion\": 2").toByteArray()
+        val newer = String(golden).replaceFirst("\"formatVersion\": 2", "\"formatVersion\": 3").toByteArray()
         val damaged = String(golden).replaceFirst("\"month\": 4", "\"month\": 13").toByteArray()
         val cases = mapOf(
             "hello".toByteArray() to ImportFailure.NOT_ARCHIVE,
@@ -159,6 +161,79 @@ class ImportViewModelTest {
             assertEquals(ImportState.Failed(failure), model.state.value)
         }
         assertEquals(TransferTestKit.sampleCabinet(), snapshot())
+    }
+
+    // The named-products fill (a version 1 file brought none and left it pending) follows every replace, and only that.
+
+    private fun modelWithFill(
+        request: ImportRequest,
+        order: MutableList<String>,
+        transfer: CabinetTransfer = kit.transfer
+    ) = ImportViewModel(transfer, request, { order += "replaced" }, dispatcher) { order += "fill" }
+
+    @Test
+    fun theFillStartsOnceTheCabinetWasReplacedAndNotBefore() {
+        val order = mutableListOf<String>()
+        val model = modelWithFill(ImportRequest.File(Incoming.Ready(golden)), order)
+        model.replace()
+        assertEquals(emptyList(), order, "nothing runs while the confirmation waits")
+        model.confirm()
+        assertIs<ImportState.Done>(model.state.value)
+        assertEquals(listOf("replaced", "fill"), order)
+    }
+
+    @Test
+    fun aRestoreStartsTheFillToo() {
+        val imported = file(golden)
+        imported.replace()
+        imported.confirm()
+        val backup = assertNotNull(assertIs<ImportState.Done>(imported.state.value).result.backup)
+        val order = mutableListOf<String>()
+
+        val restore = modelWithFill(ImportRequest.Backup(backup.id, backup.takenAt), order)
+        restore.replace()
+        restore.confirm()
+
+        assertEquals(listOf("replaced", "fill"), order)
+    }
+
+    @Test
+    fun noFillStartsWhenTheBackupOrTheReplaceFails() {
+        val order = mutableListOf<String>()
+        kit.backups.setFailingWrites(true)
+        val backupFails = modelWithFill(ImportRequest.File(Incoming.Ready(golden)), order)
+        backupFails.replace()
+        backupFails.confirm()
+        assertEquals(ImportState.Failed(ImportFailure.BACKUP_FAILED), backupFails.state.value)
+
+        val broken = object : CabinetArchiveStore by InMemoryArchiveStore(TransferTestKit.sampleCabinet()) {
+            override suspend fun replace(snapshot: CabinetContents, beforeReplacing: (CabinetContents) -> Unit) =
+                throw IOException("disk full")
+        }
+        val replaceFails = modelWithFill(ImportRequest.File(Incoming.Ready(golden)), order, kit.transferOn(broken))
+        replaceFails.replace()
+        replaceFails.confirm()
+        assertEquals(ImportState.Failed(ImportFailure.REPLACE_FAILED), replaceFails.state.value)
+
+        assertEquals(emptyList(), order)
+        kit.backups.setFailingWrites(false)
+        backupFails.retry()
+        assertEquals(listOf("replaced", "fill"), order, "the retry that succeeds starts it once")
+    }
+
+    @Test
+    fun aVersionOneFileLeavesTheFillPendingAndAVersionTwoFileDoesNot() = runBlocking {
+        val version1 = file(ArchiveFixtureFiles.goldenArchive(1))
+        assertTrue(version1.preview().preview.archive.cabinet.namedProductsNeedFill)
+        version1.replace()
+        version1.confirm()
+        assertTrue(kit.store.backfillPending())
+
+        val version2 = file(golden)
+        assertFalse(version2.preview().preview.archive.cabinet.namedProductsNeedFill)
+        version2.replace()
+        version2.confirm()
+        assertFalse(kit.store.backfillPending())
     }
 
     @Test

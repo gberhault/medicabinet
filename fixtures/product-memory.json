@@ -1,0 +1,518 @@
+{
+  "formatVersion": 1,
+  "description": "MemoryPolicy.decide(event, codeKnown, current): whether a box save remembers its name and category as the named product of its code. event.kind: added (before is null), changed (box edit) or sessionCorrected (correction in the scan session list); after is the saved box (gtin, name, category, categoryOverridden). codeKnown: true = the reference names the code, false = it does not, null = the reference is unavailable or the lookup failed (cannot tell). current: the live named product of the code or null. expect.action none = nothing is written; remember = create or update the live named product with these values. A GTIN-less box and a known or undecidable code never remember. A change that touches neither the name nor the category (nor its flag) never remembers, so it cannot bring a forgotten product back.",
+  "cases": [
+    {
+      "name": "added: an unknown code with nothing remembered is remembered",
+      "event": {
+        "kind": "added",
+        "before": null,
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": null,
+      "expect": {
+        "action": "remember",
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "added: the box's user category is remembered with its flag",
+      "event": {
+        "kind": "added",
+        "before": null,
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "skin-wound",
+          "categoryOverridden": true
+        }
+      },
+      "codeKnown": false,
+      "current": null,
+      "expect": {
+        "action": "remember",
+        "name": "Crème solaire",
+        "category": "skin-wound",
+        "categoryOverridden": true
+      }
+    },
+    {
+      "name": "added: nothing is written when the remembered values are equal",
+      "event": {
+        "kind": "added",
+        "before": null,
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": {
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "action": "none"
+      }
+    },
+    {
+      "name": "added: a different remembered name is updated",
+      "event": {
+        "kind": "added",
+        "before": null,
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire SPF50",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": {
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "action": "remember",
+        "name": "Crème solaire SPF50",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "added: a different remembered category is updated",
+      "event": {
+        "kind": "added",
+        "before": null,
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "skin-wound",
+          "categoryOverridden": true
+        }
+      },
+      "codeKnown": false,
+      "current": {
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "action": "remember",
+        "name": "Crème solaire",
+        "category": "skin-wound",
+        "categoryOverridden": true
+      }
+    },
+    {
+      "name": "added: a different flag alone is updated",
+      "event": {
+        "kind": "added",
+        "before": null,
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": true
+        }
+      },
+      "codeKnown": false,
+      "current": {
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "action": "remember",
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": true
+      }
+    },
+    {
+      "name": "added: a known code remembers nothing",
+      "event": {
+        "kind": "added",
+        "before": null,
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": true,
+      "current": null,
+      "expect": {
+        "action": "none"
+      }
+    },
+    {
+      "name": "added: nothing is remembered while the reference is unavailable",
+      "event": {
+        "kind": "added",
+        "before": null,
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": null,
+      "current": null,
+      "expect": {
+        "action": "none"
+      }
+    },
+    {
+      "name": "added: a box without a code remembers nothing",
+      "event": {
+        "kind": "added",
+        "before": null,
+        "after": {
+          "gtin": null,
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": null,
+      "expect": {
+        "action": "none"
+      }
+    },
+    {
+      "name": "changed: a new name is remembered",
+      "event": {
+        "kind": "changed",
+        "before": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire SPF50",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": {
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "action": "remember",
+        "name": "Crème solaire SPF50",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "changed: a chosen category is remembered",
+      "event": {
+        "kind": "changed",
+        "before": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "skin-wound",
+          "categoryOverridden": true
+        }
+      },
+      "codeKnown": false,
+      "current": {
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "action": "remember",
+        "name": "Crème solaire",
+        "category": "skin-wound",
+        "categoryOverridden": true
+      }
+    },
+    {
+      "name": "changed: Automatic category is remembered as uncategorized with the flag off",
+      "event": {
+        "kind": "changed",
+        "before": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "skin-wound",
+          "categoryOverridden": true
+        },
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": {
+        "name": "Crème solaire",
+        "category": "skin-wound",
+        "categoryOverridden": true
+      },
+      "expect": {
+        "action": "remember",
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "changed: an expiry or location change alone never brings a forgotten product back",
+      "event": {
+        "kind": "changed",
+        "before": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": null,
+      "expect": {
+        "action": "none"
+      }
+    },
+    {
+      "name": "changed: an expiry or location change alone writes nothing",
+      "event": {
+        "kind": "changed",
+        "before": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": {
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "action": "none"
+      }
+    },
+    {
+      "name": "changed: a new name on a forgotten product creates it again",
+      "event": {
+        "kind": "changed",
+        "before": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire SPF50",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": null,
+      "expect": {
+        "action": "remember",
+        "name": "Crème solaire SPF50",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "changed: nothing is written when the new values are already remembered",
+      "event": {
+        "kind": "changed",
+        "before": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire SPF50",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": {
+        "name": "Crème solaire SPF50",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "action": "none"
+      }
+    },
+    {
+      "name": "changed: a known code remembers nothing",
+      "event": {
+        "kind": "changed",
+        "before": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire SPF50",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": true,
+      "current": null,
+      "expect": {
+        "action": "none"
+      }
+    },
+    {
+      "name": "changed: nothing is remembered while the reference is unavailable",
+      "event": {
+        "kind": "changed",
+        "before": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire SPF50",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": null,
+      "current": null,
+      "expect": {
+        "action": "none"
+      }
+    },
+    {
+      "name": "changed: a box without a code remembers nothing",
+      "event": {
+        "kind": "changed",
+        "before": {
+          "gtin": null,
+          "name": "Thermomètre",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        "after": {
+          "gtin": null,
+          "name": "Thermomètre 2",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": null,
+      "expect": {
+        "action": "none"
+      }
+    },
+    {
+      "name": "sessionCorrected: a corrected name is remembered",
+      "event": {
+        "kind": "sessionCorrected",
+        "before": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire SPF50",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": {
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "action": "remember",
+        "name": "Crème solaire SPF50",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      }
+    },
+    {
+      "name": "sessionCorrected: a correction of the expiry alone writes nothing",
+      "event": {
+        "kind": "sessionCorrected",
+        "before": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        },
+        "after": {
+          "gtin": "03401900000003",
+          "name": "Crème solaire",
+          "category": "uncategorized",
+          "categoryOverridden": false
+        }
+      },
+      "codeKnown": false,
+      "current": {
+        "name": "Crème solaire",
+        "category": "uncategorized",
+        "categoryOverridden": false
+      },
+      "expect": {
+        "action": "none"
+      }
+    }
+  ]
+}

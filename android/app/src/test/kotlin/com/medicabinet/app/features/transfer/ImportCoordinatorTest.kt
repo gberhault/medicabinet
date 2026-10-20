@@ -162,7 +162,8 @@ class ImportFailureTest {
             "duplicateId" to ImportFailure.DAMAGED,
             "unknownLocation" to ImportFailure.DAMAGED,
             "defaultLocation" to ImportFailure.DAMAGED,
-            "duplicateSerial" to ImportFailure.DAMAGED
+            "duplicateSerial" to ImportFailure.DAMAGED,
+            "duplicateNamedProduct" to ImportFailure.DAMAGED
         )
         for (kind in com.medicabinet.core.archive.ArchiveErrorKind.entries) {
             assertEquals(expected.getValue(kind.rawValue), ImportFailure.of(kind), kind.rawValue)

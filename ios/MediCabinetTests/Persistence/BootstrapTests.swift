@@ -1,6 +1,7 @@
 import Foundation
 import GRDB
 import MediCabinetCore
+import MediCabinetCoreTestSupport
 import Testing
 @testable import MediCabinet
 
@@ -94,8 +95,8 @@ import Testing
         let kept = Location(name: "Kitchen", createdAt: clock.now)
         try await first.locations.insert(kept)
 
-        let withV4 = migrator(adding: [("v4", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
-        let second = try environment(await bootstrap(withV4).run())
+        let withV5 = migrator(adding: [("v5", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
+        let second = try environment(await bootstrap(withV5).run())
 
         #expect(backupFiles().count == 1)
         #expect(try await second.locations.all().map(\.name).sorted() == ["Armoire", "Kitchen"])
@@ -109,8 +110,8 @@ import Testing
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         for day in 1...6 { try Data().write(to: dir.appendingPathComponent("pre-migration-2026010\(day)-080000-v1.sqlite")) }
 
-        let withV4 = migrator(adding: [("v4", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
-        _ = try environment(await bootstrap(withV4).run())
+        let withV5 = migrator(adding: [("v5", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
+        _ = try environment(await bootstrap(withV5).run())
 
         #expect(backupFiles().count == 5)
         #expect(backupFiles().contains { $0.hasPrefix("pre-migration-20270115") })
@@ -123,10 +124,10 @@ import Testing
         let first = try environment(await bootstrap().run())
         try await first.locations.insert(Location(name: "Kitchen", createdAt: clock.now))
 
-        // v4 commits, v5 fails: without a restore the database would be left half-upgraded.
+        // v5 commits, v6 fails: without a restore the database would be left half-upgraded.
         let broken = migrator(adding: [
-            ("v4", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") }),
-            ("v5", { _ in throw Boom() })
+            ("v5", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") }),
+            ("v6", { _ in throw Boom() })
         ])
         let state = await bootstrap(broken).run()
 
@@ -143,10 +144,10 @@ import Testing
     @Test func retryingAfterAFailedMigrationSucceedsOnceFixed() async throws {
         defer { try? FileManager.default.removeItem(at: root) }
         _ = try environment(await bootstrap().run())
-        let broken = migrator(adding: [("v4", { _ in throw Boom() })])
+        let broken = migrator(adding: [("v5", { _ in throw Boom() })])
         guard case .failed = await bootstrap(broken).run() else { throw Failure("expected failure") }
 
-        let fixed = migrator(adding: [("v4", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
+        let fixed = migrator(adding: [("v5", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
         let environment = try environment(await bootstrap(fixed).run())
         #expect(try await environment.locations.all().count == 1)
         #expect(try tableNames().contains("later"))
@@ -170,8 +171,8 @@ import Testing
         _ = try environment(await bootstrap().run())
         try Data("x".utf8).write(to: BackupService.defaultDirectory(in: root))   // a file blocks the folder
 
-        let withV4 = migrator(adding: [("v4", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
-        guard case .failed(let failure) = await bootstrap(withV4).run() else { throw Failure("expected failure") }
+        let withV5 = migrator(adding: [("v5", { db in try db.execute(sql: "CREATE TABLE later (id INTEGER)") })])
+        guard case .failed(let failure) = await bootstrap(withV5).run() else { throw Failure("expected failure") }
 
         #expect(failure == .backup)
         #expect(!(try tableNames().contains("later")))
@@ -202,10 +203,48 @@ import Testing
     @Test @MainActor func bootstrapWorkRunsOffTheMainThread() async throws {
         defer { try? FileManager.default.removeItem(at: root) }
         let probe = ThreadProbe()
-        let probing = migrator(adding: [("v4", { _ in probe.record(isMain: Thread.isMainThread) })])
+        let probing = migrator(adding: [("v5", { _ in probe.record(isMain: Thread.isMainThread) })])
         _ = try environment(await bootstrap(probing).run())
         #expect(probe.sawMigration)
         #expect(!probe.ranOnMain)
+    }
+
+    // MARK: the named products fill (#57)
+
+    @Test func theFillRunsOnceFromTheBootstrappedCabinetAndClearsItsMark() async throws {
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let reference = root.appendingPathComponent("reference.sqlite")
+        try FileManager.default.copyItem(at: SharedFixtures.referenceSampleURL, to: reference)
+        var launch = bootstrap()
+        launch.referenceURL = reference
+        let environment = try environment(await launch.run())
+        let location = try #require(try await environment.locations.defaultLocation())
+        for (gtin, name) in [("03400900000013", "Testamol"), ("03401900000003", "Arnica")] {
+            try await environment.boxes.insert(Box(
+                product: ProductRef(gtin: gtin, name: name), locationID: location.id, createdAt: clock.now
+            ))
+        }
+        #expect(try await environment.named.backfillPending())
+
+        #expect(await environment.namedBackfill.run() == .completed(created: 1))
+        #expect(try await environment.named.namedProduct(gtin: "03401900000003")?.name == "Arnica")
+        #expect(try await environment.named.namedProduct(gtin: "03400900000013") == nil, "the reference names this one")
+        #expect(await environment.namedBackfill.run() == .notPending)
+    }
+
+    @Test func theFillWaitsWhenTheReferenceDataIsMissing() async throws {
+        defer { try? FileManager.default.removeItem(at: root) }
+        let environment = try environment(await bootstrap().run())
+        #expect(await environment.namedBackfill.run() == .referenceUnavailable)
+        #expect(try await environment.named.backfillPending())
+    }
+
+    @Test func startingTheFillAtLaunchRunsInTheBackground() async throws {
+        defer { try? FileManager.default.removeItem(at: root) }
+        let environment = try environment(await bootstrap().run())
+        await AppLaunch.startBackfill(environment).value
+        #expect(try await environment.named.backfillPending(), "no reference data in this launch: still pending")
     }
 }
 

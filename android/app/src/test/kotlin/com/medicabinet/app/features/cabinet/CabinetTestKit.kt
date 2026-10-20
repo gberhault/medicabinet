@@ -32,7 +32,7 @@ class CabinetTestKit(products: Map<String, ReferenceProduct> = emptyMap()) {
         products,
         ReferenceStatus.Available(ReferenceDataDate(2026, 10, 1))
     )
-    val environment = AppEnvironment(store, store, clock, reference, ZoneOffset.UTC)
+    val environment = AppEnvironment(store, store, store.named, clock, reference, ZoneOffset.UTC)
     lateinit var home: Location
         private set
 
@@ -73,7 +73,7 @@ class CabinetTestKit(products: Map<String, ReferenceProduct> = emptyMap()) {
         val broken = object : BoxRepository by store {
             override fun observeCabinet(): Flow<List<Box>> = flow { throw IllegalStateException("unreadable") }
         }
-        return AppEnvironment(store, broken, clock, reference, ZoneOffset.UTC)
+        return AppEnvironment(store, broken, store.named, clock, reference, ZoneOffset.UTC)
     }
 
     /** An environment whose writes to boxes fail. */
@@ -85,7 +85,7 @@ class CabinetTestKit(products: Map<String, ReferenceProduct> = emptyMap()) {
             override suspend fun markRemoved(id: UUID, reason: RemovalReason, at: Instant) =
                 throw IllegalStateException("read only")
         }
-        return AppEnvironment(store, readOnly, clock, reference, ZoneOffset.UTC)
+        return AppEnvironment(store, readOnly, store.named, clock, reference, ZoneOffset.UTC)
     }
 
     companion object {

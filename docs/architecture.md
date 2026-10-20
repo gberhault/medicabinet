@@ -20,7 +20,7 @@ Language-neutral test vectors that both test suites run (see [`fixtures/README.m
 | `categories.json` | the twelve categories, in display order, are identical in both cores and the reference build |
 | `reference-lookup.json` + `reference-sample.sqlite` | GTIN → CIP13 and the product lookup answer identically on both platforms |
 | `text-normalization.json`, `location-names.json` | search matching and location-name rules are identical |
-| `archive-cases.json`, `archive/v1/golden.medicabinet`, `archive-code-points.json`, `archive-store-contract.json` | the export archive is read, refused and written identically (the golden file is reproduced byte for byte), and every cabinet store passes the same contract; format in [`export-format.md`](export-format.md) |
+| `archive-cases.json`, `archive/v1/golden.medicabinet`, `archive/v2/golden.medicabinet`, `archive-code-points.json`, `archive-store-contract.json` | the export archive is read, refused and written identically (the golden file is reproduced byte for byte), and every cabinet store passes the same contract; format in [`export-format.md`](export-format.md) |
 | `cabinet-rows.json`, `scan-removal.json` | the Cabinet list (grouping, status, order, filters) and removal by scan decide identically |
 | `README.md` | the cross-platform names (error kinds, enum raw values) — both suites assert the code matches |
 
@@ -83,6 +83,7 @@ Android refuses a downgrade.
 | v1 | `location`, `box`, their indexes | `schema-v1.sql`, `schema-v1.json` |
 | v2 | `box.deletedAt` (a box added by mistake), unique serial among boxes that are not deleted | `schema-v2.sql`, `schema-v2.json` |
 | v3 | `location.deletedAt` (a location the user deleted; removed and deleted boxes keep pointing at it) | `schema-v3.sql`, `schema-v3.json` |
+| v4 | `namedProduct` (the name and category the household gave a code the reference database does not name; one live row per GTIN, a forgotten one keeps its `deletedAt`), `cabinetMeta` (the `namedProductBackfill` marker: the one-time fill of `namedProduct` from the boxes, which needs the reference data, so it runs in the app after the upgrade) | `schema-v4.sql`, `schema-v4.json` |
 
 `*.sql` is the migration step both platforms run (compared as text); `*.json` is the full schema a freshly
 migrated database must have (compared by introspection).
@@ -131,7 +132,7 @@ session ends. See [export-import.md](export-import.md) and [export-format.md](ex
 ## The reference database
 
 A second, **read-only** SQLite database ships inside each app: the BDPM names and categories by CIP13
-(`reference-data/bundle/reference.sqlite`, ~1.7 MB, the same file for both apps; contents, rules and the update
+(`reference-data/bundle/reference.sqlite`, ~1.9 MB, the same file for both apps; contents, rules and the update
 procedure are in [reference-data.md](reference-data.md)). It is separate from the cabinet database, holds no
 household data, and is never migrated: a new data release replaces the whole file.
 

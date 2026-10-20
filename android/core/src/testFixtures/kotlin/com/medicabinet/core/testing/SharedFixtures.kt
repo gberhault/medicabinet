@@ -36,7 +36,7 @@ data class ReferenceLookupCase(val name: String, val gtin: String, val expect: E
     data class Expect(val cip13: String? = null, val product: Product? = null)
 
     @Serializable
-    data class Product(val name: String, val category: String)
+    data class Product(val name: String, val category: String, val cis: String, val isWithdrawn: Boolean)
 
     override fun toString(): String = name
 }
@@ -115,11 +115,15 @@ data class IntakeCase(
 data class ProductResolutionCase(
     val name: String,
     val reference: Reference? = null,
+    val named: Named? = null,
     val previousBox: Previous? = null,
     val expect: Expect
 ) {
     @Serializable
     data class Reference(val name: String, val category: String? = null)
+
+    @Serializable
+    data class Named(val name: String, val category: String, val categoryOverridden: Boolean)
 
     @Serializable
     data class Previous(val name: String, val category: String, val categoryOverridden: Boolean)

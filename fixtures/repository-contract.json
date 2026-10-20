@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "description": "Names, in order, of the checks every LocationRepository + BoxRepository implementation must pass (RepositoryContract on each platform). Each platform asserts that its own contract check names equal this list, so the two contracts cannot drift.",
+  "description": "Names, in order, of the checks every LocationRepository + BoxRepository + NamedProductRepository implementation must pass (RepositoryContract on each platform). Each platform asserts that its own contract check names equal this list, so the two contracts cannot drift.",
   "cases": [
     {
       "name": "a new store has no locations and no default"
@@ -106,6 +106,54 @@
     },
     {
       "name": "observeAll emits after location changes"
+    },
+    {
+      "name": "named products: remember creates the live named product of a gtin"
+    },
+    {
+      "name": "named products: remember with equal values does not write"
+    },
+    {
+      "name": "named products: remember updates the name, category and flag of the live product"
+    },
+    {
+      "name": "named products: at most one live named product per gtin"
+    },
+    {
+      "name": "named products: rename renames the product and every box with its gtin that is not deleted"
+    },
+    {
+      "name": "named products: setCategory sets the category and flag of the product and of those boxes"
+    },
+    {
+      "name": "named products: rename and setCategory throw notFound for an unknown or forgotten product"
+    },
+    {
+      "name": "named products: forget hides the product and keeps its boxes"
+    },
+    {
+      "name": "named products: undoForget restores the product as it was"
+    },
+    {
+      "name": "named products: undoForget refuses when the gtin was named again"
+    },
+    {
+      "name": "named products: forget and undoForget throw notFound when there is nothing to forget or restore"
+    },
+    {
+      "name": "named products: summaries count only boxes in the cabinet and order by normalized name then gtin"
+    },
+    {
+      "name": "named products: observeSummaries emits after a named product or a box changes"
+    },
+    {
+      "name": "named products: a new store has a pending backfill and completeBackfill clears it"
+    },
+    {
+      "name": "named products: completeBackfill keeps a live product that appeared meanwhile"
+    },
+    {
+      "name": "boxes: latestBoxPerGTIN returns the newest non-deleted box of every gtin"
     }
   ]
 }

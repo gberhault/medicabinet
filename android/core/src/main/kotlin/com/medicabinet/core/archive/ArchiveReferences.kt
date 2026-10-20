@@ -5,7 +5,8 @@ import java.util.UUID
 
 /**
  * The checks that relate rows to each other: unique ids, exactly one default location, boxes in known locations,
- * and the database's unique (GTIN, serial). Paths name the later offender; they never carry a value.
+ * the database's unique (GTIN, serial) and one live named product per GTIN. Paths name the later offender; they never
+ * carry a value.
  */
 internal object ArchiveReferences {
     fun validate(cabinet: CabinetContents) {
@@ -20,6 +21,21 @@ internal object ArchiveReferences {
         val unknown = cabinet.boxes.indexOfFirst { !isPlaced(it, known, live) }
         if (unknown >= 0) throw ArchiveException(ArchiveErrorKind.UNKNOWN_LOCATION, "boxes[$unknown].locationId")
         requireUniqueSerials(cabinet.boxes)
+        requireUnique(cabinet.namedProducts.map { it.product.id }, "namedProducts")
+        requireOneLiveProductPerGtin(cabinet.namedProducts)
+    }
+
+    /**
+     * Among named products that are not forgotten, a GTIN appears once, like the database's partial unique index. A
+     * forgotten product and a live one (or several forgotten ones) may share it.
+     */
+    private fun requireOneLiveProductPerGtin(products: List<ArchivedNamedProduct>) {
+        val seen = HashSet<String>()
+        products.forEachIndexed { index, archived ->
+            if (archived.deletedAt == null && !seen.add(archived.product.gtin)) {
+                throw ArchiveException(ArchiveErrorKind.DUPLICATE_NAMED_PRODUCT, "namedProducts[$index].gtin")
+            }
+        }
     }
 
     /**

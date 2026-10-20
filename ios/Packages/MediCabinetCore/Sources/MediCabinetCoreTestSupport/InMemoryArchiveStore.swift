@@ -3,15 +3,26 @@ import MediCabinetCore
 
 /// In-memory fake of `CabinetArchiveStore`; also documents the expected behaviour (the contract in
 /// `ArchiveStoreContract` runs against it and against every real store).
-public actor InMemoryArchiveStore: CabinetArchiveStore {
+public actor InMemoryArchiveStore: ArchiveStoreUnderContract {
     private var cabinet: CabinetContents
+    /// The named-product backfill marker (`cabinetMeta` in the database): set by a replace whose cabinet needs the fill.
+    private var fillIsPending: Bool
 
+    /// A cabinet whose `namedProductsNeedFill` is set starts with the marker pending, like `replace`.
     public init(_ cabinet: CabinetContents = CabinetContents(locations: [], boxes: [])) {
-        self.cabinet = cabinet
+        var stored = cabinet
+        stored.namedProductsNeedFill = false
+        self.cabinet = stored
+        fillIsPending = cabinet.namedProductsNeedFill
     }
 
+    /// Always `namedProductsNeedFill == false`: the marker is state of the store, not part of the cabinet.
     public func snapshot() async throws -> CabinetContents {
         cabinet
+    }
+
+    public func backfillPending() async throws -> Bool {
+        fillIsPending
     }
 
     public func replace(
@@ -19,13 +30,20 @@ public actor InMemoryArchiveStore: CabinetArchiveStore {
     ) async throws {
         try beforeReplacing(cabinet)
         try Self.requireHoldable(snapshot)
-        cabinet = snapshot
+        var stored = snapshot
+        stored.namedProductsNeedFill = false
+        cabinet = stored
+        fillIsPending = snapshot.namedProductsNeedFill
     }
 
-    /// The constraints a database enforces: unique ids, one default location, boxes in known locations.
+    /// The constraints a database enforces: unique ids, one default location, boxes in known locations, one live named
+    /// product per GTIN.
     private static func requireHoldable(_ snapshot: CabinetContents) throws {
+        let liveGTINs = snapshot.namedProducts.filter { $0.deletedAt == nil }.map(\.product.gtin)
         guard Set(snapshot.locations.map(\.location.id)).count == snapshot.locations.count,
-              Set(snapshot.boxes.map(\.box.id)).count == snapshot.boxes.count
+              Set(snapshot.boxes.map(\.box.id)).count == snapshot.boxes.count,
+              Set(snapshot.namedProducts.map(\.product.id)).count == snapshot.namedProducts.count,
+              Set(liveGTINs).count == liveGTINs.count
         else { throw RepositoryError.duplicate }
         guard snapshot.locations.filter(\.location.isDefault).count <= 1 else { throw RepositoryError.duplicateDefault }
         let known = Set(snapshot.locations.map(\.location.id))

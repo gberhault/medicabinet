@@ -43,6 +43,7 @@ class LocationsNavigationTest {
                     AppEnvironment(
                         store,
                         store,
+                        store.named,
                         clock,
                         InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING))
                     ),

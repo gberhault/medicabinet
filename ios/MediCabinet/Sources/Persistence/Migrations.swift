@@ -6,8 +6,9 @@ enum Migrations {
     static let v1 = "v1"
     static let schemaV2 = "v2"
     static let schemaV3 = "v3"
+    static let schemaV4 = "v4"
     /// Every migration, in the order they run.
-    static let identifiers = [v1, schemaV2, schemaV3]
+    static let identifiers = [v1, schemaV2, schemaV3, schemaV4]
 
     /// The v1 schema SQL; `fixtures/schema-v1.sql` holds the same text and a test compares them.
     static let v1SQL = """
@@ -65,6 +66,29 @@ enum Migrations {
         ALTER TABLE location ADD COLUMN deletedAt DATETIME;
         """
 
+    /// The v4 migration step; `fixtures/schema-v4.sql` holds the same text and a test compares them. `namedProduct`
+    /// is the name and category the household gave a code the reference database does not name (one live row per
+    /// GTIN, a forgotten one keeps its tombstone); `cabinetMeta` marks the one-time fill of it from the boxes.
+    static let schemaV4SQL = """
+        CREATE TABLE namedProduct (
+          id                 TEXT PRIMARY KEY NOT NULL,
+          gtin               TEXT NOT NULL CHECK (length(gtin) = 14),
+          name               TEXT NOT NULL CHECK (length(name) BETWEEN 1 AND 200),
+          category           TEXT NOT NULL DEFAULT 'uncategorized',
+          categoryOverridden INTEGER NOT NULL DEFAULT 0,
+          createdAt          DATETIME NOT NULL,
+          updatedAt          DATETIME NOT NULL,
+          deletedAt          DATETIME
+        );
+        CREATE UNIQUE INDEX namedProduct_gtin ON namedProduct(gtin) WHERE deletedAt IS NULL;
+
+        CREATE TABLE cabinetMeta (
+          key   TEXT PRIMARY KEY NOT NULL,
+          value TEXT NOT NULL
+        ) WITHOUT ROWID;
+        INSERT INTO cabinetMeta (key, value) VALUES ('namedProductBackfill', 'pending');
+        """
+
     static var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         migrator.registerMigration(v1) { db in
@@ -75,6 +99,9 @@ enum Migrations {
         }
         migrator.registerMigration(schemaV3) { db in
             try db.execute(sql: schemaV3SQL)
+        }
+        migrator.registerMigration(schemaV4) { db in
+            try db.execute(sql: schemaV4SQL)
         }
         return migrator
     }

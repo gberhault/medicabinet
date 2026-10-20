@@ -68,7 +68,9 @@ import com.medicabinet.app.features.settings.ExpirySettingsSection
 import com.medicabinet.app.features.settings.PackageAppInfo
 import com.medicabinet.app.features.settings.SettingsScreen
 import com.medicabinet.app.features.settings.locations.LocationsRoute
+import com.medicabinet.app.features.settings.namedproducts.NamedProductsRoute
 import com.medicabinet.app.features.transfer.ImportCoordinator
+import com.medicabinet.app.features.transfer.LocalAfterCabinetReplaced
 import com.medicabinet.app.features.transfer.LocalImportCoordinator
 import com.medicabinet.app.features.transfer.OpenIncomingImport
 import com.medicabinet.app.features.transfer.PendingImportBanner
@@ -85,6 +87,7 @@ import kotlinx.coroutines.launch
 private const val SETTINGS_HOME = "settings/home"
 private const val SETTINGS_ABOUT = "settings/about"
 private const val SETTINGS_LOCATIONS = "settings/locations"
+private const val SETTINGS_NAMED_PRODUCTS = "settings/namedProducts"
 
 /** The models shared by several tabs: the Expiring list and its badge, and the monthly-reminder setting. */
 private class MainModels(
@@ -115,7 +118,9 @@ fun MainScaffold(
     scanServices: ScanServices = ScanServices.live(LocalContext.current, environment.reference),
     reminderServices: ReminderServices = LocalContext.current.reminderServices(),
     tabRouter: TabRouter = remember { TabRouter() },
-    importCoordinator: ImportCoordinator? = null
+    importCoordinator: ImportCoordinator? = null,
+    /** Runs after an import or a restore replaced the cabinet (the named-products fill). */
+    afterCabinetReplaced: () -> Unit = {}
 ) {
     val aboutViewModel = remember(appInfo, environment.reference) { AboutViewModel(appInfo, environment.reference) }
     val navController = rememberNavController()
@@ -160,7 +165,8 @@ fun MainScaffold(
     }
     CompositionLocalProvider(
         LocalUndoController provides undoController,
-        LocalImportCoordinator provides importCoordinator
+        LocalImportCoordinator provides importCoordinator,
+        LocalAfterCabinetReplaced provides afterCabinetReplaced
     ) {
         MainContent(
             navController,
@@ -265,6 +271,7 @@ private fun MainNavHost(
                 SettingsScreen(
                     onOpenAbout = { navController.navigate(SETTINGS_ABOUT) },
                     onOpenLocations = { navController.navigate(SETTINGS_LOCATIONS) },
+                    onOpenNamedProducts = { navController.navigate(SETTINGS_NAMED_PRODUCTS) },
                     expirySection = {
                         ExpirySettingsSection(environment.expiryPreferences, models.reminder, models.reminderActions)
                     },
@@ -278,6 +285,9 @@ private fun MainNavHost(
             }
             composable(SETTINGS_ABOUT) { AboutScreen(aboutViewModel, onBack = { navController.popBackStack() }) }
             composable(SETTINGS_LOCATIONS) { LocationsRoute(environment, onBack = { navController.popBackStack() }) }
+            composable(SETTINGS_NAMED_PRODUCTS) {
+                NamedProductsRoute(environment, onBack = { navController.popBackStack() })
+            }
             transferRoutes(navController, environment)
             debugRoutes()
         }

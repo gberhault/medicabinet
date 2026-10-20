@@ -75,6 +75,7 @@ class ScanViewModelRemovalTest {
         val environment = AppEnvironment(
             kit.store,
             kit.store,
+            kit.store.named,
             kit.clock,
             InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING))
         )

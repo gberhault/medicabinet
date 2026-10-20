@@ -4,13 +4,19 @@ import MediCabinetCore
 /// Behaviour every `CabinetArchiveStore` implementation must satisfy (the fake, GRDB in the app). Call from any test
 /// framework: each check throws `ContractFailure` on violation. The names and their order are listed in
 /// `fixtures/archive-store-contract.json`, which the Android contract asserts too, so the two cannot drift.
+/// A store the contract can run on: the port, plus a way to read the named-product backfill marker that `replace` writes
+/// (`NamedProductRepository.backfillPending()` on a real store).
+public protocol ArchiveStoreUnderContract: CabinetArchiveStore {
+    func backfillPending() async throws -> Bool
+}
+
 public enum ArchiveStoreContract {
     /// Makes a new, empty store for one check.
-    public typealias Factory = @Sendable () async throws -> any CabinetArchiveStore
+    public typealias Factory = @Sendable () async throws -> any ArchiveStoreUnderContract
 
     public struct Check: Sendable, CustomStringConvertible {
         public let name: String
-        let body: @Sendable (any CabinetArchiveStore) async throws -> Void
+        let body: @Sendable (any ArchiveStoreUnderContract) async throws -> Void
         public var description: String { name }
 
         public func run(_ make: Factory) async throws {
@@ -24,7 +30,9 @@ public enum ArchiveStoreContract {
         [
             Check(name: "a new store snapshots as empty") { store in
                 let snapshot = try await store.snapshot()
-                try require(snapshot.locations.isEmpty && snapshot.boxes.isEmpty, "a new store is not empty")
+                try require(
+                    snapshot.locations.isEmpty && snapshot.boxes.isEmpty && snapshot.namedProducts.isEmpty, "a new store is not empty"
+                )
             },
             Check(name: "replace swaps the whole cabinet keeping ids, fields and dates") { store in
                 try await store.replace(with: Sample.first) { _ in }
@@ -87,7 +95,75 @@ public enum ArchiveStoreContract {
                 try await store.replace(with: Sample.first) { _ in }
                 try await store.replace(with: CabinetContents(locations: [], boxes: [])) { _ in }
                 let snapshot = try await store.snapshot()
-                try require(snapshot.locations.isEmpty && snapshot.boxes.isEmpty, "the store was not emptied")
+                try require(
+                    snapshot.locations.isEmpty && snapshot.boxes.isEmpty && snapshot.namedProducts.isEmpty,
+                    "the store was not emptied"
+                )
+            },
+            Check(name: "snapshot includes named products, forgotten ones too") { store in
+                try await store.replace(with: Sample.first) { _ in }
+                let products = try await store.snapshot().namedProducts
+                try require(products.contains { $0.deletedAt != nil }, "a forgotten named product is missing")
+                try require(products.contains { $0.deletedAt == nil }, "a live named product is missing")
+                try require(products.count == Sample.first.namedProducts.count, "a named product is missing")
+                try require(try await store.snapshot().namedProductsNeedFill == false, "a snapshot never asks for the fill")
+            },
+            Check(name: "replace swaps the named products") { store in
+                try await store.replace(with: Sample.first) { _ in }
+                try await store.replace(with: Sample.second) { _ in }
+                let products = try await store.snapshot().namedProducts.sorted { $0.product.id.uuidString < $1.product.id.uuidString }
+                try require(products == Sample.second.namedProducts, "the old named products were not replaced")
+                try await store.replace(with: CabinetContents(locations: Sample.second.locations, boxes: [])) { _ in }
+                try require(try await store.snapshot().namedProducts.isEmpty, "the named products were not emptied")
+            },
+            Check(name: "a version 1 replace marks the named products to fill") { store in
+                var fromVersion1 = Sample.second
+                fromVersion1.namedProducts = []
+                fromVersion1.namedProductsNeedFill = true
+                try await store.replace(with: fromVersion1) { _ in }
+                try require(try await store.backfillPending(), "the fill mark was not set")
+                let snapshot = try await store.snapshot()
+                try require(snapshot.namedProducts.isEmpty && snapshot.namedProductsNeedFill == false, "the snapshot changed")
+            },
+            Check(name: "a version 2 replace clears the fill mark") { store in
+                var fromVersion1 = Sample.second
+                fromVersion1.namedProductsNeedFill = true
+                try await store.replace(with: fromVersion1) { _ in }
+                try require(try await store.backfillPending(), "the fill mark was not set")
+                try await store.replace(with: Sample.first) { _ in }
+                try require(try await store.backfillPending() == false, "the fill mark was not cleared")
+            },
+            Check(name: "a throwing hook leaves the named products and the fill mark unchanged") { store in
+                var pending = Sample.first
+                pending.namedProductsNeedFill = true
+                try await store.replace(with: pending) { _ in }
+                try await expectFailure(HookFailure.self) {
+                    try await store.replace(with: Sample.second) { _ in throw HookFailure() }
+                }
+                try require(normalized(try await store.snapshot()) == normalized(Sample.first), "a failed replace changed the cabinet")
+                try require(try await store.backfillPending(), "a failed replace cleared the fill mark")
+                try await store.replace(with: Sample.first) { _ in }
+                var other = Sample.second
+                other.namedProductsNeedFill = true
+                try await expectFailure(HookFailure.self) { try await store.replace(with: other) { _ in throw HookFailure() } }
+                try require(try await store.backfillPending() == false, "a failed replace set the fill mark")
+            },
+            Check(name: "two live named products with one gtin are rejected and change nothing") { store in
+                try await store.replace(with: Sample.first) { _ in }
+                var bad = Sample.second
+                bad.namedProducts = [Sample.product(7, gtin: Sample.gtinA), Sample.product(8, gtin: Sample.gtinA)]
+                bad.namedProductsNeedFill = true
+                try await expectError(.duplicate) { try await store.replace(with: bad) { _ in } }
+                try require(normalized(try await store.snapshot()) == normalized(Sample.first), "a rejected replace changed the cabinet")
+                try require(try await store.backfillPending() == false, "a rejected replace set the fill mark")
+                // A forgotten and a live product, or several forgotten ones, may share a GTIN.
+                var fine = Sample.second
+                fine.namedProducts = [
+                    Sample.product(7, gtin: Sample.gtinA, forgotten: true), Sample.product(8, gtin: Sample.gtinA),
+                    Sample.product(9, gtin: Sample.gtinA, forgotten: true)
+                ]
+                try await store.replace(with: fine) { _ in }
+                try require(try await store.snapshot().namedProducts.count == 3, "forgotten twins were not kept")
             }
         ]
     }
@@ -102,7 +178,8 @@ public enum ArchiveStoreContract {
     private static func normalized(_ snapshot: CabinetContents) -> CabinetContents {
         CabinetContents(
             locations: snapshot.locations.sorted { $0.location.id.uuidString < $1.location.id.uuidString },
-            boxes: snapshot.boxes.sorted { $0.box.id.uuidString < $1.box.id.uuidString }
+            boxes: snapshot.boxes.sorted { $0.box.id.uuidString < $1.box.id.uuidString },
+            namedProducts: snapshot.namedProducts.sorted { $0.product.id.uuidString < $1.product.id.uuidString }
         )
     }
 
@@ -167,6 +244,18 @@ private enum Sample {
         )
     }
 
+    static let gtinA = "03401234567890"
+    static let gtinB = "03401234567891"
+
+    static func product(_ number: Int, gtin: String, forgotten: Bool = false, category: String = "skin-wound") -> ArchivedNamedProduct {
+        let id = UUID(uuidString: String(format: "C%07d-0000-4000-8000-%012d", number, number)) ?? UUID()
+        let named = NamedProduct(
+            id: id, gtin: gtin, name: "Product \(number)", category: CategoryID(rawValue: category),
+            categoryOverridden: category != "uncategorized", createdAt: stamp, updatedAt: stamp.addingTimeInterval(1)
+        )
+        return ArchivedNamedProduct(product: named, deletedAt: forgotten ? stamp.addingTimeInterval(2) : nil)
+    }
+
     static let extraDefault = location(5, name: "Extra", isDefault: true)
 
     static let first: CabinetContents = {
@@ -180,12 +269,18 @@ private enum Sample {
             boxes: [
                 ArchivedBox(box: box(1, in: home.location.id)), ArchivedBox(box: removed),
                 ArchivedBox(box: box(3, in: car.location.id), deletedAt: stamp)
+            ],
+            namedProducts: [
+                product(1, gtin: gtinA, forgotten: true), product(2, gtin: gtinA), product(3, gtin: gtinB, category: "uncategorized")
             ]
         )
     }()
 
     static let second: CabinetContents = {
         let kitchen = location(3, name: "Kitchen", isDefault: true)
-        return CabinetContents(locations: [kitchen], boxes: [ArchivedBox(box: box(4, in: kitchen.location.id))])
+        return CabinetContents(
+            locations: [kitchen], boxes: [ArchivedBox(box: box(4, in: kitchen.location.id))],
+            namedProducts: [product(4, gtin: gtinB)]
+        )
     }()
 }

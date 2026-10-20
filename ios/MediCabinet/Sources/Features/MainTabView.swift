@@ -32,7 +32,8 @@ struct MainTabView: View {
                 .accessibilityHidden(importer?.active != nil)
             if let importer, let request = importer.active, let transfer = environment.transfer {
                 ImportFlowView(
-                    request: request, transfer: transfer, revision: environment.revision, onClose: { importer.finish() }
+                    request: request, transfer: transfer, revision: environment.revision,
+                    afterReplace: { AppLaunch.startBackfill(environment) }, onClose: { importer.finish() }
                 )
                     .transition(.move(edge: .bottom))
                     .zIndex(1)

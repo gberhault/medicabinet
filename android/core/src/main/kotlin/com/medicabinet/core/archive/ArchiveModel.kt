@@ -2,11 +2,13 @@ package com.medicabinet.core.archive
 
 import com.medicabinet.core.Box
 import com.medicabinet.core.Location
+import com.medicabinet.core.NamedProduct
 import java.time.Instant
 
 private const val DEFAULT_MAX_FILE_BYTES = 32 * 1024 * 1024
 private const val DEFAULT_MAX_BOXES = 20_000
 private const val DEFAULT_MAX_LOCATIONS = 200
+private const val DEFAULT_MAX_NAMED_PRODUCTS = 20_000
 private const val DEFAULT_MAX_STRING_BYTES = 4_096
 
 object ArchiveFormat {
@@ -26,6 +28,7 @@ data class ArchiveLimits(
     val maxFileBytes: Int = DEFAULT_MAX_FILE_BYTES,
     val maxBoxes: Int = DEFAULT_MAX_BOXES,
     val maxLocations: Int = DEFAULT_MAX_LOCATIONS,
+    val maxNamedProducts: Int = DEFAULT_MAX_NAMED_PRODUCTS,
     /** A decoded string: longer than any field allows (200 code points of 4 bytes). */
     val maxStringBytes: Int = DEFAULT_MAX_STRING_BYTES
 ) {
@@ -46,6 +49,12 @@ data class ArchivedLocation(val location: Location, val deletedAt: Instant? = nu
  */
 data class ArchivedBox(val box: Box, val deletedAt: Instant? = null)
 
+/**
+ * A named product as the archive carries it (`formatVersion` 2): one the user forgot keeps its row, with
+ * [deletedAt], so a later sync can tell "forgotten" from "never existed".
+ */
+data class ArchivedNamedProduct(val product: NamedProduct, val deletedAt: Instant? = null)
+
 /** What a cabinet holds, in numbers (the import preview). */
 data class CabinetSummary(
     /** Locations that are not deleted. */
@@ -57,14 +66,32 @@ data class CabinetSummary(
     /** Added by mistake (tombstones). */
     val deleted: Int,
     /** Boxes in the cabinet with no expiry date. */
-    val unknownExpiry: Int
+    val unknownExpiry: Int,
+    /** Products the household named and has not forgotten. */
+    val namedProducts: Int = 0
 ) {
-    /** False when there is nothing to lose: no box of any kind and no location besides (at most) the default one. */
-    val needsBackup: Boolean get() = locations > 1 || inCabinet + removed + deleted > 0
+    /**
+     * False when there is nothing to lose: no box of any kind, no named product and no location besides (at most)
+     * the default one. Forgotten named products are not in a summary: [CabinetContents.needsBackup] also counts them.
+     */
+    val needsBackup: Boolean get() = locations > 1 || inCabinet + removed + deleted + namedProducts > 0
 }
 
-/** The whole cabinet data: every location and every box, removed and deleted ones included. */
-data class CabinetContents(val locations: List<ArchivedLocation>, val boxes: List<ArchivedBox>) {
+/**
+ * The whole cabinet data: every location, every box and every named product, removed, deleted and forgotten ones
+ * included.
+ */
+data class CabinetContents(
+    val locations: List<ArchivedLocation>,
+    val boxes: List<ArchivedBox>,
+    val namedProducts: List<ArchivedNamedProduct> = emptyList(),
+    /**
+     * True when the named products still have to be filled from the boxes: the archive was a version 1 file, which
+     * has none (`NamedProductBackfillRunner` does it after the import). Never part of a file: the decoder sets it, a
+     * store snapshot is always false, and `replace` turns it into the backfill marker.
+     */
+    val namedProductsNeedFill: Boolean = false
+) {
     val summary: CabinetSummary
         get() {
             val live = boxes.filter { it.deletedAt == null }
@@ -74,11 +101,13 @@ data class CabinetContents(val locations: List<ArchivedLocation>, val boxes: Lis
                 inCabinet = inCabinet.size,
                 removed = live.size - inCabinet.size,
                 deleted = boxes.size - live.size,
-                unknownExpiry = inCabinet.count { it.box.expiry == null }
+                unknownExpiry = inCabinet.count { it.box.expiry == null },
+                namedProducts = namedProducts.count { it.deletedAt == null }
             )
         }
 
-    val needsBackup: Boolean get() = summary.needsBackup
+    /** A forgotten named product still counts: it is the household's data too. */
+    val needsBackup: Boolean get() = summary.needsBackup || namedProducts.isNotEmpty()
 }
 
 /** Who wrote the archive. */

@@ -5,7 +5,8 @@ import Testing
     @Test func kindsUseThePlatformNeutralNames() {
         let expected = [
             "tooLarge", "notJSON", "notArchive", "unsupportedVersion", "newerVersion", "invalidStructure",
-            "invalidValue", "tooManyItems", "duplicateId", "unknownLocation", "defaultLocation", "duplicateSerial"
+            "invalidValue", "tooManyItems", "duplicateId", "unknownLocation", "defaultLocation", "duplicateSerial",
+            "duplicateNamedProduct"
         ]
         #expect(ArchiveErrorKind.allCases.map(\.rawValue) == expected)
     }

@@ -5,6 +5,7 @@ import com.medicabinet.core.testing.ArchiveFixtureFiles
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.DynamicTest
@@ -21,7 +22,7 @@ class ArchiveFixtureTest {
     fun theSharedFixtureLoadsAndHasCases() {
         val fixture = ArchiveFixtureFiles.archiveCaseFixture()
         assertEquals(1, fixture.formatVersion)
-        assertTrue(fixture.cases.size >= 150, "expected at least 150 cases, found ${fixture.cases.size}")
+        assertTrue(fixture.cases.size >= 250, "expected at least 250 cases, found ${fixture.cases.size}")
     }
 
     @TestFactory
@@ -50,17 +51,47 @@ class ArchiveFixtureTest {
         assertEquals(summary.removed, counts.removed)
         assertEquals(summary.deleted, counts.deleted)
         assertEquals(summary.unknownExpiry, counts.unknownExpiry)
+        assertEquals(summary.namedProducts, counts.namedProducts)
+        assertEquals(summary.namedProductsNeedFill, archive.cabinet.namedProductsNeedFill)
         assertEquals(case.expect.needsBackup, archive.cabinet.needsBackup)
     }
 
     /**
-     * The canonical writer reproduces the golden file byte for byte: the proof that both platforms write the same
-     * bytes (the Swift suite runs the same check on the same file).
+     * The canonical writer reproduces the golden file of the current version byte for byte: the proof that both
+     * platforms write the same bytes (the Swift suite runs the same check on the same file).
      */
     @Test
     fun theEncoderReproducesTheGoldenArchiveByteForByte() {
-        val golden = ArchiveFixtureFiles.goldenArchive()
-        assertContentEquals(golden, ArchiveEncoder.encode(ArchiveDecoder.decode(golden)))
+        val golden = ArchiveFixtureFiles.goldenArchive(ArchiveFormat.currentVersion)
+        val archive = ArchiveDecoder.decode(golden)
+        assertEquals(2, archive.sourceFormatVersion)
+        assertContentEquals(golden, ArchiveEncoder.encode(archive))
+    }
+
+    /**
+     * Every later version imports every earlier golden file (F9). Version 1 has no named products: they are filled from
+     * the boxes after the import.
+     */
+    @TestFactory
+    fun everyGoldenArchiveStillDecodes(): List<DynamicTest> = (1..ArchiveFormat.currentVersion).map { version ->
+        dynamicTest("version $version") {
+            val archive = ArchiveDecoder.decode(ArchiveFixtureFiles.goldenArchive(version))
+            assertEquals(version, archive.sourceFormatVersion)
+            assertEquals(version == 1, archive.cabinet.namedProductsNeedFill)
+            assertEquals(version == 1, archive.cabinet.namedProducts.isEmpty())
+        }
+    }
+
+    /** The version 1 golden is never rewritten: re-encoding it gives the same cabinet in the current version. */
+    @Test
+    fun theVersionOneGoldenReEncodesAsTheSameCabinetInVersionTwo() {
+        val old = ArchiveDecoder.decode(ArchiveFixtureFiles.goldenArchive(1))
+        val renewed = ArchiveDecoder.decode(ArchiveEncoder.encode(old))
+        assertEquals(2, renewed.sourceFormatVersion)
+        assertEquals(old.cabinet.locations, renewed.cabinet.locations)
+        assertEquals(old.cabinet.boxes, renewed.cabinet.boxes)
+        assertTrue(renewed.cabinet.namedProducts.isEmpty())
+        assertFalse(renewed.cabinet.namedProductsNeedFill)
     }
 
     @Test
@@ -74,6 +105,6 @@ class ArchiveFixtureTest {
     @Test
     fun theCurrentVersionIsTheNumberOfReaders() {
         assertEquals(ArchiveDecoder.readers.size, ArchiveFormat.currentVersion)
-        assertEquals(1, ArchiveFormat.currentVersion)
+        assertEquals(2, ArchiveFormat.currentVersion)
     }
 }

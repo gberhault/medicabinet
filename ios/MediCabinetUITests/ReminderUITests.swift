@@ -29,6 +29,7 @@ final class ReminderUITests: XCTestCase {
 
     private func openSettings(_ app: XCUIApplication) {
         app.tabBars.buttons["Settings"].tap()
+        app.scroll(to: toggle(app))
         XCTAssertTrue(toggle(app).waitForExistence(timeout: 5))
     }
 

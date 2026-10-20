@@ -13,6 +13,7 @@ public enum ArchiveErrorKind: String, Sendable, CaseIterable {
     case unknownLocation
     case defaultLocation
     case duplicateSerial
+    case duplicateNamedProduct
 }
 
 /// A refused archive. `path` names the field (`boxes[12].expiry`): keys and list indexes only,

@@ -114,6 +114,7 @@ private fun BoxDetailContent(
 ) {
     val box = state.box
     val failed by model.writeFailed.collectAsStateWithLifecycle()
+    val leaflet by model.leaflet.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     Column(
         modifier.verticalScroll(rememberScrollState()).padding(16.dp),
@@ -132,6 +133,7 @@ private fun BoxDetailContent(
         OpenedRow(box.isOpened) { scope.launch { model.setOpened(it) } }
         box.lot?.let { Field(R.string.box_lot, it, "box.lot") }
         Field(R.string.box_added, addedDate(box, zone), "box.added")
+        leaflet?.let { LeafletRow(it) }
         TakeOutMenu(model)
     }
 }

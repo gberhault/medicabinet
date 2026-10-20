@@ -34,6 +34,7 @@
     <string name="placeholder_scan_message">Soon you will be able to scan your medicine boxes one after the other.</string>
     <string name="placeholder_scan_title">Scanning is coming soon</string>
     <string name="settings_about">About</string>
+    <string name="settings_namedProducts">Products you named</string>
     <string name="settings_title">Settings</string>
     <string name="tab_cabinet">Cabinet</string>
     <string name="tab_expiring">Expiring</string>
@@ -197,6 +198,10 @@
     <string name="box_edit_title">Edit box</string>
     <string name="box_error">Can\'t save the change.</string>
     <string name="box_expiry">Expiry</string>
+    <string name="box_leaflet_hint">Opens in the browser</string>
+    <string name="box_leaflet_note">Page of the French public medicines database, opened in the browser.</string>
+    <string name="box_leaflet_open">Official page and leaflet</string>
+    <string name="box_leaflet_openFailed">The page could not be opened.</string>
     <string name="box_location">Location</string>
     <string name="box_lot">Lot</string>
     <string name="box_noCode">No code</string>
@@ -310,6 +315,7 @@
     <string name="transfer_export_title">Export the cabinet</string>
     <string name="transfer_export_warning">This file contains health data (your medicines). It is not encrypted: anyone who gets it can read it. Share it only with people you trust.</string>
     <string name="transfer_export_writing">Creating the file…</string>
+    <string name="transfer_import_preview_namedProducts">Products you named: %1$d</string>
     <string name="transfer_section_footer">A .medicabinet file holds the whole cabinet. Use it as a backup or to move to another phone, iPhone or Android.</string>
     <string name="transfer_section_title">Backup and transfer</string>
     <string name="transfer_error_close">Close</string>
@@ -366,4 +372,26 @@
     <string name="transfer_backups_restore">Restore</string>
     <string name="transfer_backups_title">Automatic backups</string>
     <string name="transfer_backups_unreadable">Unreadable</string>
+    <string name="namedProducts_edit_note">The name and category apply to every box of this product, including used-up and thrown-away ones.</string>
+    <string name="namedProducts_edit_title">Edit product</string>
+    <string name="namedProducts_empty_message">When you scan a product the medicines database does not know, the name you give it appears here.</string>
+    <string name="namedProducts_empty_title">No named product</string>
+    <string name="namedProducts_error_message">The named products could not be read.</string>
+    <string name="namedProducts_error_title">List unavailable</string>
+    <string name="namedProducts_forget">Forget</string>
+    <string name="namedProducts_forget_message">The next scan of this code will ask you for a name.</string>
+    <plurals name="namedProducts_forget_messageInCabinet">
+        <item quantity="one">%1$d box is still in the cabinet and keeps its name. The next scan of this code will ask you for a name.</item>
+        <item quantity="other">%1$d boxes are still in the cabinet and keep their name. The next scan of this code will ask you for a name.</item>
+    </plurals>
+    <string name="namedProducts_forget_title">Forget “%1$s”?</string>
+    <string name="namedProducts_forgotten">“%1$s” forgotten</string>
+    <plurals name="namedProducts_inCabinet">
+        <item quantity="one">%1$d box in the cabinet</item>
+        <item quantity="other">%1$d boxes in the cabinet</item>
+    </plurals>
+    <string name="namedProducts_more">More actions</string>
+    <string name="namedProducts_notInCabinet">Not in the cabinet</string>
+    <string name="namedProducts_title">Products you named</string>
+    <string name="namedProducts_undoFailed">Cannot restore: this code has been named again.</string>
 </resources>

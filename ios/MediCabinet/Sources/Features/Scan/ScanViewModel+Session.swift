@@ -32,11 +32,23 @@ extension ScanViewModel {
         edited.locationID = locationID
         do {
             try await boxes.update(edited)
-            if let saved = try await boxes.box(id: box.id) { session.replace(saved) }
+            if let saved = try await boxes.box(id: box.id) {
+                session.replace(saved)
+                await remember(.sessionCorrected(before: box, after: saved))
+            }
             return true
         } catch {
             show(.failed, feedback: .rejected)
             return false
+        }
+    }
+
+    /// The box is saved: a failing memory write is logged by kind and never fails the correction.
+    private func remember(_ event: MemoryEvent) async {
+        do {
+            try await memory.record(event)
+        } catch {
+            Log.memoryFailed(error)
         }
     }
 

@@ -5,11 +5,26 @@ public struct ContractFailure: Error, CustomStringConvertible {
     public let description: String
 }
 
-/// Behaviour every `LocationRepository` + `BoxRepository` implementation must satisfy.
+/// Behaviour every `LocationRepository` + `BoxRepository` + `NamedProductRepository` implementation must satisfy.
 /// Call from any test framework: each check throws `ContractFailure` on violation.
 /// Dates used are whole seconds so stores with millisecond precision round-trip them exactly.
 public enum RepositoryContract {
-    public typealias Factory = @Sendable (MutableClock) async throws -> (any LocationRepository, any BoxRepository)
+    /// The three ports of one store; the named products and the boxes share their state.
+    public struct Stores: Sendable {
+        public let locations: any LocationRepository
+        public let boxes: any BoxRepository
+        public let named: any NamedProductRepository
+
+        public init(
+            locations: any LocationRepository, boxes: any BoxRepository, named: any NamedProductRepository
+        ) {
+            self.locations = locations
+            self.boxes = boxes
+            self.named = named
+        }
+    }
+
+    public typealias Factory = @Sendable (MutableClock) async throws -> Stores
 
     public struct Check: Sendable, CustomStringConvertible {
         public let name: String
@@ -18,8 +33,8 @@ public enum RepositoryContract {
 
         public func run(_ make: Factory) async throws {
             let clock = MutableClock(Fixture.epoch)
-            let (locations, boxes) = try await make(clock)
-            try await body(Fixture(clock: clock, locations: locations, boxes: boxes))
+            let stores = try await make(clock)
+            try await body(Fixture(clock: clock, locations: stores.locations, boxes: stores.boxes, named: stores.named))
         }
     }
 
@@ -28,6 +43,7 @@ public enum RepositoryContract {
         let clock: MutableClock
         let locations: any LocationRepository
         let boxes: any BoxRepository
+        let named: any NamedProductRepository
 
         func location(_ name: String = "Bathroom", isDefault: Bool = false, sortOrder: Int = 0) -> Location {
             Location(name: name, isDefault: isDefault, sortOrder: sortOrder, createdAt: clock.now)
@@ -43,7 +59,7 @@ public enum RepositoryContract {
         }
     }
 
-    public static var checks: [Check] { locationChecks + boxChecks }
+    public static var checks: [Check] { locationChecks + boxChecks + namedProductChecks }
 
     static func require(_ condition: Bool, _ message: String) throws {
         if !condition { throw ContractFailure(description: message) }

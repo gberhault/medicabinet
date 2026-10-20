@@ -1,11 +1,14 @@
 package com.medicabinet.core.scan
 
+import com.medicabinet.core.Box
 import com.medicabinet.core.CategoryID
 import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.Location
+import com.medicabinet.core.ProductRef
 import com.medicabinet.core.RemovalReason
 import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
+import com.medicabinet.core.named.ProductMemory
 import com.medicabinet.core.reference.ProductLookup
 import com.medicabinet.core.reference.ReferenceDataDate
 import com.medicabinet.core.reference.ReferenceProduct
@@ -40,7 +43,8 @@ class ScanIntakeTest {
     private val store = InMemoryCabinetStore(clock)
     private val doliprane = StubLookup(mapOf(gtin to ReferenceProduct("DOLIPRANE")))
 
-    private fun intake(lookup: ProductLookup = StubLookup()) = ScanIntake(store, lookup, clock)
+    private fun intake(lookup: ProductLookup = StubLookup()) =
+        ScanIntake(store, ProductMemory(store.named, lookup), clock)
 
     private fun code(expiry: ExpiryReading = ExpiryReading.Date(march), serial: String? = "SER1") =
         ScannedCode(gtin, expiry, lot = "LOT1", serial = serial, symbology = Symbology.DATA_MATRIX)
@@ -125,15 +129,55 @@ class ScanIntakeTest {
     }
 
     @Test
-    fun theNameOfAnEarlierBoxIsReusedWhenTheReferenceDoesNotKnowTheProduct() = test { location ->
-        val service = intake()
-        service.add(
-            BoxDraft(gtin, "Mon paracétamol", CategoryID("pain-fever"), categoryOverridden = true, serial = "OLD"),
-            location.id
-        )
-        val draft = assertIs<IntakeOutcome.Ready>(service.evaluate(code(), emptySet())).draft
+    fun theNamedProductNameIsReusedWhenTheReferenceDoesNotKnowTheProduct() = test {
+        store.named.remember(gtin, "Mon paracétamol", CategoryID("pain-fever"), categoryOverridden = true)
+        val draft = assertIs<IntakeOutcome.Ready>(intake().evaluate(code(), emptySet())).draft
         assertEquals("Mon paracétamol", draft.name)
         assertEquals(CategoryID("pain-fever"), draft.category)
+        assertTrue(draft.categoryOverridden)
+    }
+
+    @Test
+    fun aForgottenProductAsksForANameAgain() = test {
+        store.named.remember(gtin, "Mon paracétamol", CategoryID.UNCATEGORIZED, categoryOverridden = false)
+        store.named.forget(checkNotNull(store.named.namedProduct(gtin)).id)
+        val outcome = intake().evaluate(code(), emptySet())
+        assertEquals(setOf(IntakeField.NAME), assertIs<IntakeOutcome.NeedsCompletion>(outcome).missing)
+    }
+
+    // Regression #57: a used-up box that carries a test name must not name the next scan of the code. The box
+    // is written straight to the store: it predates the named products (or was saved while nothing was remembered).
+    @Test
+    fun aUsedUpBoxWithATestNameNoLongerNamesTheNextScan() = test { location ->
+        val box = Box(
+            product = ProductRef(gtin, "Test"),
+            category = CategoryID("pain-fever"),
+            categoryOverridden = true,
+            locationId = location.id,
+            serial = "OLD",
+            createdAt = clock.now()
+        )
+        store.insert(box)
+        store.markRemoved(box.id, RemovalReason.USED_UP, clock.now())
+        val outcome = assertIs<IntakeOutcome.NeedsCompletion>(intake().evaluate(code(), emptySet()))
+        assertNull(outcome.draft.name)
+        assertEquals(setOf(IntakeField.NAME), outcome.missing)
+        assertEquals(CategoryID.UNCATEGORIZED, outcome.draft.category)
+        assertEquals(false, outcome.draft.categoryOverridden)
+    }
+
+    @Test
+    fun theReferenceNameWinsOverTheNamedProductAndAPreviousUserCategoryStillApplies() = test { location ->
+        val known = "03400935955838"
+        store.named.remember(known, "Not this one", CategoryID.EYES, categoryOverridden = true)
+        val service = intake(reference())
+        service.add(
+            BoxDraft(known, "PARACETAMOL EXEMPLE 500 mg", CategoryID("cold-ent"), categoryOverridden = true),
+            location.id
+        )
+        val draft = assertIs<IntakeOutcome.Ready>(service.evaluate(code().copy(gtin = known), emptySet())).draft
+        assertEquals("PARACETAMOL EXEMPLE 500 mg", draft.name)
+        assertEquals(CategoryID("cold-ent"), draft.category)
         assertTrue(draft.categoryOverridden)
     }
 
@@ -153,7 +197,7 @@ class ScanIntakeTest {
 
     @Test
     fun aGtinKnownToTheReferenceDataIsNamedAndCategorisedWithoutAsking() = test {
-        val outcome = ScanIntake(store, reference(), clock).evaluate(code().copy(gtin = "03400935955838"), emptySet())
+        val outcome = intake(reference()).evaluate(code().copy(gtin = "03400935955838"), emptySet())
         val draft = assertIs<IntakeOutcome.Ready>(outcome).draft
         assertEquals("PARACETAMOL EXEMPLE 500 mg", draft.name)
         assertEquals(CategoryID("pain-fever"), draft.category)
@@ -162,14 +206,14 @@ class ScanIntakeTest {
 
     @Test
     fun aGtinMissingFromTheReferenceDataStillAsksForAName() = test {
-        val outcome = ScanIntake(store, reference(), clock).evaluate(code(), emptySet())
+        val outcome = intake(reference()).evaluate(code(), emptySet())
         assertEquals(setOf(IntakeField.NAME), assertIs<IntakeOutcome.NeedsCompletion>(outcome).missing)
     }
 
     @Test
     fun unavailableReferenceDataLeavesEveryProductUnknownInsteadOfStoppingIntake() = test {
         val unavailable = reference(ReferenceStatus.Unavailable(ReferenceUnavailableReason.UNREADABLE))
-        val outcome = ScanIntake(store, unavailable, clock).evaluate(code().copy(gtin = "03400935955838"), emptySet())
+        val outcome = intake(unavailable).evaluate(code().copy(gtin = "03400935955838"), emptySet())
         assertEquals(setOf(IntakeField.NAME), assertIs<IntakeOutcome.NeedsCompletion>(outcome).missing)
     }
 
