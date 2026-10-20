@@ -117,7 +117,7 @@ each other once T2 and T4 are done.
 
 ## 5. Release
 
-- [ ] **T10 — Version bump, PATCH on both apps** `[ios]` `[android]` (X5; §11)
+- [x] **T10 — Version bump, PATCH on both apps** `[ios]` `[android]` (X5; §11)
   - iOS: `MARKETING_VERSION` +0.0.1 and `CURRENT_PROJECT_VERSION` +1, plus a
     `ios/CHANGELOG.md` entry "New app icon".
   - Android: `versionName` +0.0.1 and `versionCode` +1, plus an `android/CHANGELOG.md`
