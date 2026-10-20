@@ -38,7 +38,7 @@ class FakeDocuments : ArchiveDocuments {
     val shared = mutableListOf<Pair<String, ByteArray>>()
     var failWrites = false
     var failShares = false
-    val shareUri: Uri = Uri.parse("content://com.medicabinet.app.export/export/file.medicabinet")
+    val shareUri: Uri by lazy { Uri.parse("content://com.medicabinet.app.export/export/file.medicabinet") }
 
     override fun writeDocument(uri: Uri, bytes: ByteArray) {
         if (failWrites) throw IOException("disk full")

@@ -144,10 +144,15 @@ independent of each other.
   Done: only `content:` addresses are read (the activity is exported: a `file:` address could
   name the app's own files); anything else is refused as unreadable. A file that cannot be
   opened at launch (storage unavailable) is refused in a dialog over the launch error.
-- [ ] **T20 — Import flow** `[android]` [#29] (I1–I10, V5, O3; §7.2, flows 3–6, 8)
+- [x] **T20 — Import flow** `[android]` [#29] (I1–I10, V5, O3; §7.2, flows 3–6, 8)
   `OpenDocument`, `ImportViewModel`, `ImportPreviewScreen`, confirmation `AlertDialog`,
   `ImportResultScreen`, error screens, the "file not offered?" hint. *Tests:* as T14
   (Robolectric Compose).
+  Done: the flow is a screen of the Settings tab (`settings/import`), so opening it leaves
+  the Scan tab and stops the camera (O4); it holds a newer incoming file back until it
+  closes. The "file not offered?" hint is the supporting text of **Import a cabinet** in
+  the section. Once confirmed, the replace and the revision bump run to the end even if the
+  screen goes away (back is refused meanwhile).
 - [ ] **T21 — Automatic backups and restore** `[android]` [#29] (B4, B5)
   `BackupsScreen` → restore flow. *Tests:* as T15.
 - [ ] **T22 — Android accessibility pass** `[android]` (X3, X4)
