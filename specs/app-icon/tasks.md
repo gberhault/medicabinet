@@ -53,7 +53,7 @@ each other once T2 and T4 are done.
 
 ## 3. Raster outputs
 
-- [ ] **T4 — PNG pipeline, safe-zone check, hash manifest** `[shared]` (A3, R3–R6; §1.3, §1.4, §4)
+- [x] **T4 — PNG pipeline, safe-zone check, hash manifest** `[shared]` (A3, R3–R6; §1.3, §1.4, §4)
   - Chrome lookup through `$CHROME` or the default path, with a clear message when it is
     missing.
   - Rendering from a temporary SVG at an exact size and DSF 1.
