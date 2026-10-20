@@ -24,8 +24,9 @@ the same box twice.
 ### Decisions taken in the challenge (2026-10-19)
 
 1. **Product names depend on epic #7.** This epic is built against a product-lookup port.
-   The epic PR is opened only once the BDPM lookup (#11) is on `develop` and bound, so the
-   released scan does not ask a name for every box.
+   The scan is released (versions 0.2.0 tagged) only once the BDPM lookup (#11) is on `develop` and bound,
+   so the released scan does not ask a name for every box. *(Amended 2026-10-20: the PR into `develop`
+   no longer waits for #11 — it is opened as a draft first; only the release does.)*
 2. **Ask while the box is in hand.** A missing/unreadable expiry or an unknown product opens
    a short completion step right after the scan, not at the end of the session.
 3. **Schema v2** adds a deletion tombstone to boxes and a database-level unique serial (#40).
@@ -230,7 +231,8 @@ so that I only type names for products it has never seen.*
    box's name, and its category when that category was set by the user.
 4. Otherwise the product SHALL be unknown (K4). New boxes SHALL be `uncategorized` unless L3
    applies (classification arrives with #10).
-5. The epic PR SHALL be opened only when L1 is bound to the BDPM lookup from #11.
+5. Versions 0.2.0 SHALL be tagged and released only when L1 is bound to the BDPM lookup from #11 (the PR into `develop` may be
+   merged earlier, with the lookup answering "unknown" for every product).
 
 ### V — Schema v2: box tombstone and unique serial (#40)
 

@@ -78,5 +78,5 @@ Schema v2 (`fixtures/schema-v2.sql`): `box.deletedAt` (tombstone of a box added 
 ## Not yet
 
 - BDPM product names and categories (epic #7): until then every product is "unknown" and the app asks for its name
-  (`UnknownProductLookup`). The epic PR waits for #11.
+  (`UnknownProductLookup`). The 0.2.0 release waits for #11; the PR into `develop` does not.
 - Real-box payload shapes (task T6) and the on-device timing (T28) need a phone: see `reports/bulk-scan/`.

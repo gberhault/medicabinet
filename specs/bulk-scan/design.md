@@ -518,7 +518,7 @@ precision).
 
 - **Scanner payload shapes** (VisionKit GS handling, zxing-cpp `PLAIN` mode) are verified in
   T6 on real boxes; a surprise there changes §1.1–1.2 and the fixture, not the parser's rules.
-- **Dependency on #11**: the epic PR waits for the BDPM lookup; the branch may need a rebase
-  on `develop` after epic #7 merges (schema v2 vs any reference-data change).
+- **Dependency on #11**: the release (not the PR) waits for the BDPM lookup; epic #7 may need a rebase
+  on `develop` after this PR merges (schema v2 vs any reference-data change).
 - **Robolectric timing** is noisy: the §8 budgets are generous and use medians.
 - **Native library size** (zxing-cpp) measured in T5.
