@@ -3,6 +3,9 @@ import XCTest
 /// The Cabinet tab, box detail and edit on a seeded cabinet (English), through the real screens.
 @MainActor
 final class CabinetUITests: XCTestCase {
+    /// Frames are floating point: a 44 pt target can measure 43.99999999999997.
+    private static let pointTolerance = 0.01
+
     override func setUp() {
         continueAfterFailure = false
     }
@@ -48,8 +51,8 @@ final class CabinetUITests: XCTestCase {
         let app = launch()
         let pill = row(app, "Smecta")
         XCTAssertTrue(pill.waitForExistence(timeout: 10))
-        XCTAssertGreaterThanOrEqual(pill.frame.height, 44)
-        XCTAssertGreaterThanOrEqual(pill.frame.width, 44)
+        XCTAssertGreaterThanOrEqual(pill.frame.height, 44 - Self.pointTolerance)
+        XCTAssertGreaterThanOrEqual(pill.frame.width, 44 - Self.pointTolerance)
     }
 
     func testSearchNarrowsTheListAndAnUnmatchedSearchOffersClear() {
@@ -223,7 +226,7 @@ final class CabinetUITests: XCTestCase {
         // A Menu has a nested button over the same frame, so `isHittable` of the outer element is false.
         let filter = app.buttons["cabinet.filter.button"]
         XCTAssertTrue(filter.exists)
-        XCTAssertGreaterThanOrEqual(filter.frame.height, 44)
+        XCTAssertGreaterThanOrEqual(filter.frame.height, 44 - Self.pointTolerance)
         XCTAssertTrue(app.frame.contains(filter.frame), "the filter button stays on screen")
         let spasfon = row(app, "Spasfon")
         for _ in 0..<8 where !(spasfon.exists && spasfon.isHittable) { app.swipeUp() }
