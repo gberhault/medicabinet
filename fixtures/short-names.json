@@ -1,0 +1,23 @@
+{
+  "formatVersion": 1,
+  "description": "ShortName.of: the name trimmed (Unicode White_Space, as TextNormalizer.trimmed), cut before its first \", \" (U+002C then U+0020 only) and trimmed again. When the trimmed name has no \", \" or the cut leaves nothing, the result is the whole trimmed name. Display only: a stored name is never rewritten. BDPM names read 'NAME DOSE, pharmaceutical form'; a decimal comma ('0,05 %') has no space after it and is never cut.",
+  "cases": [
+    { "name": "a BDPM name loses its pharmaceutical form", "input": "DOLIPRANE 1000 mg, comprimé", "expect": "DOLIPRANE 1000 mg" },
+    { "name": "a decimal comma is not a cut", "input": "DIPROSONE 0,05 %, lotion", "expect": "DIPROSONE 0,05 %" },
+    { "name": "a name that is only a decimal comma is kept whole", "input": "BUPRENORPHINE TEVA 0,4 mg", "expect": "BUPRENORPHINE TEVA 0,4 mg" },
+    { "name": "the cut is at the first separator", "input": "SMECTA 3 g FRAISE, poudre pour suspension buvable, en sachet", "expect": "SMECTA 3 g FRAISE" },
+    { "name": "no comma keeps the name", "input": "Thermomètre", "expect": "Thermomètre" },
+    { "name": "a comma without a space is not a separator", "input": "A,B", "expect": "A,B" },
+    { "name": "a space before the comma is trimmed away", "input": "A , B", "expect": "A" },
+    { "name": "a comma then a no-break space is not a separator", "input": "A, B", "expect": "A, B" },
+    { "name": "a leading separator leaves nothing, so the whole name is kept", "input": ", comprimé", "expect": ", comprimé" },
+    { "name": "a leading separator after spaces is kept whole and trimmed", "input": "  , comprimé  ", "expect": ", comprimé" },
+    { "name": "only a comma and spaces", "input": " ,  ", "expect": "," },
+    { "name": "surrounding whitespace is trimmed", "input": "  DOLIPRANE 500 mg ,  gélule \t", "expect": "DOLIPRANE 500 mg" },
+    { "name": "inner whitespace is untouched", "input": "NUROFEN  ENFANTS, suspension", "expect": "NUROFEN  ENFANTS" },
+    { "name": "a manually entered name is shortened the same way", "input": "Sirop maison, 2 cuillères", "expect": "Sirop maison" },
+    { "name": "an empty name stays empty", "input": "", "expect": "" },
+    { "name": "a blank name becomes empty", "input": " \t ", "expect": "" },
+    { "name": "supplementary characters are kept", "input": "💊 Vitamine, gélule", "expect": "💊 Vitamine" }
+  ]
+}

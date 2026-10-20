@@ -44,6 +44,7 @@ Every file is JSON with:
 | `repository-contract.json` | names of the repository contract checks both platforms run (the checks themselves are code) |
 | `text-normalization.json` | `TextNormalizer`: `normalize` (accent/case/ligature/whitespace folding) and `matches` (search: every query word is a substring) — also the comparison for location-name uniqueness and name ordering |
 | `location-names.json` | `LocationName.validate`: trim, 1…50 code points, no duplicate (normalized) name among the other locations |
+| `short-names.json` | `ShortName.of`: a medicine's name cut before its first ", " for the Cabinet pills (display only) |
 | `cabinet-rows.json` | `CabinetRows.build`: the Cabinet list — product rows under category sections, row status (most urgent box), ordering, location / status / search filters |
 | `scan-removal.json` | `RemovalPolicy` / `ScanRemoval`: what a scan in Remove mode does — remove, choose among candidates, alreadyRemoved, notInCabinet |
 

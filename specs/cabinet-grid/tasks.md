@@ -9,7 +9,7 @@ change would otherwise break the other platform's suite.
 
 ## Shared rules (both cores)
 
-- [ ] **T1** `[shared]` `[ios]` `[android]` **Short names.** Add `fixtures/short-names.json` (the cases in design §2.4)
+- [x] **T1** `[shared]` `[ios]` `[android]` **Short names.** Add `fixtures/short-names.json` (the cases in design §2.4)
   and its row in `fixtures/README.md`. Add `ShortName.of` to `MediCabinetCore` and Kotlin `:core`, with
   `ShortNameTests` / `ShortNameTest` running every fixture case through `SharedFixtures`. Run
   `check-fixtures.py`, `swift test` and `:core:test`. *(N1, N2)*

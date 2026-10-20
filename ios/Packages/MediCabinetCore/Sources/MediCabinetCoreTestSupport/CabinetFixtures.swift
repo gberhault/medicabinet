@@ -13,6 +13,15 @@ public struct TextNormalizationCase: Decodable, Sendable, CustomStringConvertibl
     public var description: String { name }
 }
 
+/// One case of `fixtures/short-names.json`.
+public struct ShortNameCase: Decodable, Sendable, CustomStringConvertible {
+    public let name: String
+    public let input: String
+    public let expect: String
+
+    public var description: String { name }
+}
+
 /// One case of `fixtures/location-names.json`.
 public struct LocationNameCase: Decodable, Sendable, CustomStringConvertible {
     public struct Expect: Decodable, Sendable {
@@ -154,6 +163,15 @@ extension SharedFixtures {
     /// has a test asserting the file loads.
     public static func textNormalizationCases() -> [TextNormalizationCase] {
         (try? textNormalization().cases) ?? []
+    }
+
+    public static func shortNames() throws -> (formatVersion: Int, cases: [ShortNameCase]) {
+        let list = try JSONDecoder().decode(CabinetCaseList<ShortNameCase>.self, from: data("short-names.json"))
+        return (list.formatVersion, list.cases)
+    }
+
+    public static func shortNameCases() -> [ShortNameCase] {
+        (try? shortNames().cases) ?? []
     }
 
     public static func locationNameCases() -> [LocationNameCase] {
