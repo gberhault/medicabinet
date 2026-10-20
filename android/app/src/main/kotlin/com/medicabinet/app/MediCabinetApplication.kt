@@ -5,9 +5,14 @@ import com.medicabinet.app.app.BootstrapState
 import com.medicabinet.app.app.ExpiryPreferences
 import com.medicabinet.app.app.SharedExpiryPreferences
 import com.medicabinet.app.app.TabRouter
+import com.medicabinet.app.features.transfer.ArchiveFiles
+import com.medicabinet.app.features.transfer.ImportCoordinator
+import com.medicabinet.app.persistence.AppPaths
 import com.medicabinet.app.persistence.Bootstrap
 import com.medicabinet.app.reminders.ReminderChannel
 import com.medicabinet.app.reminders.ReminderServices
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -15,6 +20,15 @@ import kotlinx.coroutines.sync.withLock
 class MediCabinetApplication : Application() {
     /** Lets `MainActivity` switch tab for a notification tap, even before the main screen exists. */
     val tabRouter = TabRouter()
+
+    /**
+     * Archives opened or shared with the app wait here (read into memory at once) until the cabinet is open and no form
+     * holds unsaved input. Process-wide, like [tabRouter], so a recreated activity keeps the waiting file.
+     */
+    val importCoordinator: ImportCoordinator by lazy {
+        val files = ArchiveFiles(this, AppPaths(this).exportDirectory)
+        ImportCoordinator(MainScope(), Dispatchers.IO, files::read)
+    }
 
     /** The one set of expiry preferences: the screens, the alarm and the receivers all read this file. */
     val expiryPreferences: ExpiryPreferences by lazy { SharedExpiryPreferences(this) }

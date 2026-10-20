@@ -17,6 +17,11 @@ struct AppEnvironment: Sendable {
     var todaySource: TodaySource = .live()
     /// The wall-clock zone that decides what "today" is; the device's, unless a test pins it.
     var timeZone: @Sendable () -> TimeZone = { TimeZone.current }
+    /// Export, import and the automatic backups (design §6). Always set by `Bootstrap`; `nil` only in tests of
+    /// screens that do not use it, and Settings then offers no transfer.
+    var transfer: CabinetTransfer?
+    /// Bumped when an import or a restore replaced the whole cabinet: what caches cabinet data reloads (I7).
+    var revision = CabinetRevision()
 
     /// How early a box counts as "expiring soon": the setting, read now (it can change while the app runs).
     var expiryWindow: ExpiryWindow { preferences.window }

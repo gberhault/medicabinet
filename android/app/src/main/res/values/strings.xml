@@ -285,4 +285,85 @@
         <item quantity="other">%1$d boîtes périment dans les %2$d jours</item>
     </plurals>
     <string name="reminder_digest_body_both">%1$s · %2$s</string>
+    <string name="transfer_export_action">Exporter l\'armoire</string>
+    <string name="transfer_export_cancel">Annuler</string>
+    <string name="transfer_export_continue">Continuer</string>
+    <string name="transfer_export_failed">Le fichier n\'a pas pu être créé. Votre armoire n\'a pas été modifiée.</string>
+    <string name="transfer_export_loading">Préparation de l\'export…</string>
+    <string name="transfer_export_retry">Réessayer</string>
+    <string name="transfer_export_saveToFile">Enregistrer dans un fichier</string>
+    <string name="transfer_export_saved">Fichier enregistré</string>
+    <string name="transfer_export_share">Partager</string>
+    <plurals name="transfer_export_summary_boxes">
+        <item quantity="one">%1$d boîte dans l\'armoire</item>
+        <item quantity="other">%1$d boîtes dans l\'armoire</item>
+    </plurals>
+    <string name="transfer_export_summary_empty">L\'armoire ne contient aucune boîte. Le fichier contiendra seulement les lieux.</string>
+    <plurals name="transfer_export_summary_locations">
+        <item quantity="one">%1$d lieu</item>
+        <item quantity="other">%1$d lieux</item>
+    </plurals>
+    <plurals name="transfer_export_summary_removed">
+        <item quantity="one">%1$d boîte retirée (historique)</item>
+        <item quantity="other">%1$d boîtes retirées (historique)</item>
+    </plurals>
+    <string name="transfer_export_title">Exporter l\'armoire</string>
+    <string name="transfer_export_warning">Ce fichier contient des données de santé (vos médicaments). Il n\'est pas chiffré : toute personne qui l\'obtient peut le lire. Ne le partagez qu\'avec des personnes de confiance.</string>
+    <string name="transfer_export_writing">Création du fichier…</string>
+    <string name="transfer_section_footer">Un fichier .medicabinet contient toute l\'armoire. Il sert de sauvegarde ou à passer sur un autre téléphone, iPhone ou Android.</string>
+    <string name="transfer_section_title">Sauvegarde et transfert</string>
+    <string name="transfer_error_close">Fermer</string>
+    <string name="transfer_error_title">Import impossible</string>
+    <string name="transfer_import_pendingBanner">Un fichier d\'armoire attend. Terminez ou annulez la saisie en cours.</string>
+    <string name="transfer_import_unavailable">Import impossible : le stockage de l\'armoire n\'est pas disponible.</string>
+    <string name="transfer_backups_restoreTitle">Restaurer la sauvegarde du %1$s</string>
+    <string name="transfer_error_backupFailed">La sauvegarde n\'a pas pu être enregistrée. Votre armoire n\'a pas été modifiée.</string>
+    <string name="transfer_error_damaged">Ce fichier est endommagé ou incomplet. Rien n\'a été importé.</string>
+    <string name="transfer_error_newerVersion">Ce fichier vient d\'une version plus récente de MediCabinet. Mettez l\'application à jour, puis réessayez.</string>
+    <string name="transfer_error_notArchive">Ce fichier n\'est pas une armoire MediCabinet.</string>
+    <string name="transfer_error_readFailed">Le fichier n\'a pas pu être lu.</string>
+    <string name="transfer_error_replaceFailed">L\'import a échoué. Votre armoire n\'a pas été modifiée.</string>
+    <string name="transfer_error_retry">Réessayer</string>
+    <string name="transfer_error_tooLarge">Ce fichier est trop volumineux pour être une armoire MediCabinet.</string>
+    <string name="transfer_import_action">Importer une armoire</string>
+    <string name="transfer_import_applying">Import en cours…</string>
+    <string name="transfer_import_backingUp">Sauvegarde de l\'armoire actuelle…</string>
+    <string name="transfer_import_cancel">Annuler</string>
+    <string name="transfer_import_checking">Vérification du fichier…</string>
+    <string name="transfer_import_confirm_message">Toute l\'armoire actuelle sera remplacée par celle du fichier.</string>
+    <string name="transfer_import_confirm_replace">Remplacer</string>
+    <string name="transfer_import_confirm_title">Remplacer votre armoire ?</string>
+    <string name="transfer_import_done">Armoire importée</string>
+    <string name="transfer_import_done_backupKept">La sauvegarde de l\'armoire précédente est dans « Sauvegardes automatiques ».</string>
+    <string name="transfer_import_done_close">Terminé</string>
+    <string name="transfer_import_preview_backupStatement">Une sauvegarde de l\'armoire actuelle sera gardée sur ce téléphone. Vous pourrez la restaurer.</string>
+    <string name="transfer_import_preview_currentTitle">Sur ce téléphone</string>
+    <string name="transfer_import_preview_exportedAt">Exporté le %1$s</string>
+    <string name="transfer_import_preview_exportedBy">Par %1$s %2$s (%3$s)</string>
+    <string name="transfer_import_preview_fileTitle">Dans le fichier</string>
+    <string name="transfer_import_preview_formatVersion">Format du fichier : version %1$d</string>
+    <string name="transfer_import_preview_noBackupNeeded">L\'armoire actuelle est vide : aucune sauvegarde n\'est nécessaire.</string>
+    <string name="transfer_import_preview_replaceStatement">L\'import remplace toute l\'armoire de ce téléphone par celle du fichier. Rien n\'est fusionné.</string>
+    <plurals name="transfer_import_preview_unknownExpiry">
+        <item quantity="one">%1$d boîte sans date de péremption</item>
+        <item quantity="other">%1$d boîtes sans date de péremption</item>
+    </plurals>
+    <string name="transfer_import_reading">Lecture du fichier…</string>
+    <string name="transfer_import_replace">Remplacer mon armoire</string>
+    <string name="transfer_import_title">Importer une armoire</string>
+    <string name="transfer_import_wrongFileHint">Fichier non proposé ? Utilisez « Importer une armoire » et choisissez le fichier .medicabinet.</string>
+    <string name="transfer_backups_action">Sauvegardes automatiques</string>
+    <string name="transfer_backups_beforeImport">Avant un import</string>
+    <string name="transfer_backups_beforeRestore">Avant une restauration</string>
+    <plurals name="transfer_backups_boxes">
+        <item quantity="one">%1$d boîte</item>
+        <item quantity="other">%1$d boîtes</item>
+    </plurals>
+    <string name="transfer_backups_empty">Aucune sauvegarde. Une sauvegarde est faite avant chaque import.</string>
+    <string name="transfer_backups_error">Les sauvegardes n\'ont pas pu être lues.</string>
+    <string name="transfer_backups_footer">Les 3 dernières armoires remplacées par un import ou une restauration.</string>
+    <string name="transfer_backups_loading">Chargement des sauvegardes…</string>
+    <string name="transfer_backups_restore">Restaurer</string>
+    <string name="transfer_backups_title">Sauvegardes automatiques</string>
+    <string name="transfer_backups_unreadable">Illisible</string>
 </resources>

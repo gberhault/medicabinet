@@ -177,6 +177,14 @@ MediCabinet's import, so that moving to a new phone takes a few taps.*
    for them. The filters SHALL be scoped so that MediCabinet is not offered for ordinary JSON
    or arbitrary files. The exact filters SHALL be chosen in the design and verified on a real
    device.
+   *Amended 2026-10-20 (device report, #28): "arbitrary files" is relaxed for unknown binary
+   files only. WhatsApp opens a received file through its own provider address (no file name,
+   no extension) with an octet-stream type, so a filter on the file name could not offer
+   MediCabinet there. MediCabinet is now also offered for `content:` files of type
+   `application/octet-stream`, whatever their name; it is still never offered for JSON, text,
+   images, `*/*` or `file:` addresses. A file that is not a cabinet SHALL be refused by the
+   import validation without changing anything (V), and the user SHALL see the preview and
+   confirm before any replace (I). Design §7.3.*
 3. Both platforms SHALL offer **Import a cabinet** in the backup-and-transfer section, which
    opens the system document picker.
 4. WHEN a file is opened while another flow is in progress (scan session, a form, another

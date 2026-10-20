@@ -285,4 +285,85 @@
         <item quantity="other">%1$d boxes expire within %2$d days</item>
     </plurals>
     <string name="reminder_digest_body_both">%1$s · %2$s</string>
+    <string name="transfer_export_action">Export the cabinet</string>
+    <string name="transfer_export_cancel">Cancel</string>
+    <string name="transfer_export_continue">Continue</string>
+    <string name="transfer_export_failed">The file could not be created. Your cabinet was not changed.</string>
+    <string name="transfer_export_loading">Preparing the export…</string>
+    <string name="transfer_export_retry">Try again</string>
+    <string name="transfer_export_saveToFile">Save to file</string>
+    <string name="transfer_export_saved">File saved</string>
+    <string name="transfer_export_share">Share</string>
+    <plurals name="transfer_export_summary_boxes">
+        <item quantity="one">%1$d box in the cabinet</item>
+        <item quantity="other">%1$d boxes in the cabinet</item>
+    </plurals>
+    <string name="transfer_export_summary_empty">The cabinet has no box. The file will hold the locations only.</string>
+    <plurals name="transfer_export_summary_locations">
+        <item quantity="one">%1$d location</item>
+        <item quantity="other">%1$d locations</item>
+    </plurals>
+    <plurals name="transfer_export_summary_removed">
+        <item quantity="one">%1$d removed box (history)</item>
+        <item quantity="other">%1$d removed boxes (history)</item>
+    </plurals>
+    <string name="transfer_export_title">Export the cabinet</string>
+    <string name="transfer_export_warning">This file contains health data (your medicines). It is not encrypted: anyone who gets it can read it. Share it only with people you trust.</string>
+    <string name="transfer_export_writing">Creating the file…</string>
+    <string name="transfer_section_footer">A .medicabinet file holds the whole cabinet. Use it as a backup or to move to another phone, iPhone or Android.</string>
+    <string name="transfer_section_title">Backup and transfer</string>
+    <string name="transfer_error_close">Close</string>
+    <string name="transfer_error_title">Couldn\'t import</string>
+    <string name="transfer_import_pendingBanner">A cabinet file is waiting. Finish or cancel the current entry.</string>
+    <string name="transfer_import_unavailable">Cannot import: the cabinet storage is unavailable.</string>
+    <string name="transfer_backups_restoreTitle">Restore the backup of %1$s</string>
+    <string name="transfer_error_backupFailed">The backup could not be saved. Your cabinet was not changed.</string>
+    <string name="transfer_error_damaged">This file is damaged or incomplete. Nothing was imported.</string>
+    <string name="transfer_error_newerVersion">This file comes from a newer version of MediCabinet. Update the app, then try again.</string>
+    <string name="transfer_error_notArchive">This file is not a MediCabinet cabinet.</string>
+    <string name="transfer_error_readFailed">The file could not be read.</string>
+    <string name="transfer_error_replaceFailed">The import failed. Your cabinet was not changed.</string>
+    <string name="transfer_error_retry">Try again</string>
+    <string name="transfer_error_tooLarge">This file is too large to be a MediCabinet cabinet.</string>
+    <string name="transfer_import_action">Import a cabinet</string>
+    <string name="transfer_import_applying">Importing…</string>
+    <string name="transfer_import_backingUp">Backing up the current cabinet…</string>
+    <string name="transfer_import_cancel">Cancel</string>
+    <string name="transfer_import_checking">Checking the file…</string>
+    <string name="transfer_import_confirm_message">The whole current cabinet will be replaced with the one in the file.</string>
+    <string name="transfer_import_confirm_replace">Replace</string>
+    <string name="transfer_import_confirm_title">Replace your cabinet?</string>
+    <string name="transfer_import_done">Cabinet imported</string>
+    <string name="transfer_import_done_backupKept">The backup of the previous cabinet is in \"Automatic backups\".</string>
+    <string name="transfer_import_done_close">Done</string>
+    <string name="transfer_import_preview_backupStatement">A backup of the current cabinet will be kept on this phone. You can restore it.</string>
+    <string name="transfer_import_preview_currentTitle">On this phone</string>
+    <string name="transfer_import_preview_exportedAt">Exported on %1$s</string>
+    <string name="transfer_import_preview_exportedBy">By %1$s %2$s (%3$s)</string>
+    <string name="transfer_import_preview_fileTitle">In the file</string>
+    <string name="transfer_import_preview_formatVersion">File format: version %1$d</string>
+    <string name="transfer_import_preview_noBackupNeeded">The current cabinet is empty: no backup is needed.</string>
+    <string name="transfer_import_preview_replaceStatement">Importing replaces the whole cabinet on this phone with the one in the file. Nothing is merged.</string>
+    <plurals name="transfer_import_preview_unknownExpiry">
+        <item quantity="one">%1$d box with no expiry date</item>
+        <item quantity="other">%1$d boxes with no expiry date</item>
+    </plurals>
+    <string name="transfer_import_reading">Reading the file…</string>
+    <string name="transfer_import_replace">Replace my cabinet</string>
+    <string name="transfer_import_title">Import a cabinet</string>
+    <string name="transfer_import_wrongFileHint">File not offered? Use \"Import a cabinet\" and choose the .medicabinet file.</string>
+    <string name="transfer_backups_action">Automatic backups</string>
+    <string name="transfer_backups_beforeImport">Before an import</string>
+    <string name="transfer_backups_beforeRestore">Before a restore</string>
+    <plurals name="transfer_backups_boxes">
+        <item quantity="one">%1$d box</item>
+        <item quantity="other">%1$d boxes</item>
+    </plurals>
+    <string name="transfer_backups_empty">No backups. A backup is made before every import.</string>
+    <string name="transfer_backups_error">The backups could not be read.</string>
+    <string name="transfer_backups_footer">The last 3 cabinets replaced by an import or a restore.</string>
+    <string name="transfer_backups_loading">Loading backups…</string>
+    <string name="transfer_backups_restore">Restore</string>
+    <string name="transfer_backups_title">Automatic backups</string>
+    <string name="transfer_backups_unreadable">Unreadable</string>
 </resources>

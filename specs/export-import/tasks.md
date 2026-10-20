@@ -1,7 +1,9 @@
 # Export and import of the cabinet — Tasks
 
-Status: **Draft — awaiting approval**
+Status: **Approved**
 Epic: #26 · Branch: `feature/26-export-import`
+
+Wording of every new string: [`strings.md`](strings.md) (both platforms use it as is).
 
 One task = one focused commit (code + tests + this file checked off). Tags: `[shared]`,
 `[ios]`, `[android]`. Child issue in brackets; requirement IDs refer to
@@ -15,13 +17,10 @@ independent of each other.
 
 ## 0. Prerequisite
 
-- [ ] **T0 — Rebase on `develop` after #12** *(2026-10-20: rebased on `feature/22-expiry-tracking`, which carries
-  the merged bulk-scan work. Schema v2 is as assumed, but v3 added `location.deletedAt`; the format change that
-  follows is pending approval, see the epic comment. Rebase again on `develop` once #22 is merged.)* `[shared]` (decision 1; §14) — **blocked by #12**
-  Rebase this branch on `develop` once the bulk-scan epic is merged. Check that schema v2
-  is exactly what §2.2 assumes (`box.deletedAt`, unique live serial, `delete` /
-  `undoDelete`), and that no other schema change landed (e.g. location tombstones from
-  #18). If anything differs, stop and update the spec first. Mark #27–#29 in progress.
+- [x] **T0 — Rebase on `develop` after #12** `[shared]` (decision 1; §14)
+  Done 2026-10-20: the branch is fast-forwarded to `develop` (#12, #17, #22 and the first slice of this epic
+  merged). Schema is v3 (`box.deletedAt`, unique live serial, `location.deletedAt`), exactly what §2.2
+  assumes; no other schema change landed. #26, #28, #29 marked in progress.
 
 ## 1. Archive format in both cores (#27)
 
@@ -71,29 +70,44 @@ independent of each other.
 
 ## 3. Persistence (#29)
 
-- [ ] **T9 — iOS store and backup files** `[ios]` [#29] (F7, I4–I6, B1–B2, B4, B6; §1.2, §1.3, §5)
+- [x] **T9 — iOS store and backup files** `[ios]` [#29] (F7, I4–I6, B1–B2, B4, B6; §1.2, §1.3, §5)
   `GRDBCabinetArchiveStore`, `FileArchiveBackupStore` (names, `.partial` → decode → rename,
   protection class, unreadable entries, keep 3 over both prefixes). *Tests:* contract checks
   on GRDB; integration round trip (every field variant → export → apply on a fresh database
   → equal snapshot); rollback when an insert fails; backup-store tests (pre-migration files
   untouched); performance `exportArchive` / `apply` ≤ 600 ms (§9).
-- [ ] **T10 — Android store and backup files** `[android]` [#29] (same)
+  Done 2026-10-20: the golden file goes through SQLite and comes back byte for byte. GRDB reads a
+  millisecond date back through a calendar, a hair off the exact value, so the store's snapshot rounds
+  dates to the exact millisecond (the database precision). Measured on the simulator (debug build),
+  best of 5: export 47 ms, apply with backup 165 ms.
+- [x] **T10 — Android store and backup files** `[android]` [#29] (same)
   `SqlCabinetArchiveStore`, `FileArchiveBackupStore` in `persistence/`; the same tests
   (Robolectric SQLite), including the performance budgets.
+  Done: measured (best of 5, Robolectric SQLite, 1 000 boxes) `exportArchive` ≈ 27 ms, `apply` with its backup
+  ≈ 390 ms (budget 600 ms). The store also refuses two live boxes with the same GTIN and serial
+  (`duplicateSerial`) before the hook, so no backup file is written for a cabinet the database would refuse.
 
 ## 4. iOS app (#28, #29)
 
-- [ ] **T11 — Environment, revision and scan session reset** `[ios]` (I7; §1.6, §6)
+- [x] **T11 — Environment, revision and scan session reset** `[ios]` (I7; §1.6, §6)
   `AppEnvironment.transfer` and `revision`, built in `Bootstrap` (`ArchiveApp` from
   `BundleAppInfo`); launch cleanup of `tmp/Export` and `Documents/Inbox`; the scan session
   ends on a revision change. *Tests:* bootstrap builds the environment; cleanup;
   scan view-model reset.
-- [ ] **T12 — Export** `[ios]` [#28] (E1–E9, X1, X4; §6, flow 1)
+  Done 2026-10-20: `AppEnvironment.transfer` is optional (`nil` only in tests of other screens, which then
+  offer no transfer). The launch cleanup runs once bootstrap ends, so a file opened at launch is kept
+  (T13 passes it in). Only the scan session needs the revision: every other screen observes the
+  repositories, which follow the replace by themselves.
+- [x] **T12 — Export** `[ios]` [#28] (E1–E9, X1, X4; §6, flow 1)
   `TransferSection` in Settings, `ExportViewModel`, `ExportSummaryView` (counts, warning,
   empty cabinet), `ActivityView` with temp-file deletion, error + **Try again**. Strings
   (fr + en). *Tests:* view-model states (cancel exports nothing, failure → retry, temp
   deleted on completion); UI test: the warning is shown before the share sheet.
-- [ ] **T13 — Document type, open-with and coordinator** `[ios]` [#28, #29] (O1, O4, O5; §1.4, §6)
+  Done 2026-10-20: the share sheet is presented by UIKit (`SharePresenter`), because its completion is
+  the one reliable "share ended" signal, cancel included; "File saved" is shown for Save to Files only
+  (other apps confirm their own sharing) and reuses `transfer.import.done.close` as its Done button.
+  `transfer.export.saveToFile` / `.share` are Android-only (the iOS share sheet has both).
+- [x] **T13 — Document type, open-with and coordinator** `[ios]` [#28, #29] (O1, O4, O5; §1.4, §6)
   `UTType+Archive`, `project.yml` Info.plist keys (`UTExportedTypeDeclarations`,
   `CFBundleDocumentTypes`, `LSSupportsOpeningDocumentsInPlace = NO`), localized type name;
   `.onOpenURL` → `ImportCoordinator` (pending while loading, refused when failed, waits while
@@ -101,46 +115,85 @@ independent of each other.
   registration in the scan completion step, manual entry and row editor; launch argument
   `-UITestingOpenArchive <fixture>`. *Tests:* coordinator unit tests; Info.plist key test;
   UI test opening the golden file.
-- [ ] **T14 — Import flow** `[ios]` [#29] (I1–I10, V5, O3; §6, flows 3–6, 8)
+  Done 2026-10-20: the flow is a layer over the tabs, not a `fullScreenCover` (design §6 amended). Busy forms:
+  scan completion, manual entry, session row editor, plus the Cabinet box editor and the location name
+  sheet (same unsaved-input risk); each shows the waiting banner. The launch cleanup keeps the files the
+  coordinator still holds. The type name is localized with its French value as key.
+- [x] **T14 — Import flow** `[ios]` [#29] (I1–I10, V5, O3; §6, flows 3–6, 8)
   `.fileImporter`, capped read, `ImportViewModel` (staged progress), `ImportPreviewView`
   (file vs phone, replace and backup statements, nothing to lose), destructive button +
   confirmation dialog, `ImportResultView`, error screens per kind. *Tests:* view-model per
   state and kind; UI tests: preview → confirm → result shows the imported cabinet; Cancel
   changes nothing; newer-version file shows "update MediCabinet".
-- [ ] **T15 — Automatic backups and restore** `[ios]` [#29] (B4, B5; §6, flow 7)
+  Done 2026-10-20: "Replace my cabinet" and Cancel are pinned at the bottom of the preview, so the
+  decision stays in reach at any text size. One progress line per stage: "Backing up the current
+  cabinet…" while the transaction backs up and replaces, "Importing…" when there is nothing to back up
+  (the two happen in one transaction, so they cannot be told apart). A failure to read the phone's own
+  cabinet while previewing shows `replaceFailed` ("The import failed. Your cabinet was not changed.").
+  `transfer.import.wrongFileHint` is Android-only (iOS opens by extension; the picker also lists JSON).
+- [x] **T15 — Automatic backups and restore** `[ios]` [#29] (B4, B5; §6, flow 7)
   `BackupsView` (newest first, reason, count, unreadable row, empty state) → restore through
   the import flow (`beforeRestore`). *Tests:* view-model; UI test: import then restore
   brings the first cabinet back.
-- [ ] **T16 — iOS accessibility pass** `[ios]` (X3, X4)
+- [x] **T16 — iOS accessibility pass** `[ios]` (X3, X4)
   Accessibility text sizes, dark mode, VoiceOver labels and announcements for progress and
   results, 44 pt targets, statuses not by colour alone. *Tests:* UI tests at accessibility
   sizes.
+  Done 2026-10-20: "Replace my cabinet" uses a darker red (`DestructiveFill`, 5.6:1 light, 5.4:1 dark
+  with white) because the system red under white text is 3.6:1; the result's Done is pinned like the
+  preview's buttons. VoiceOver hears each long step (making the file, backing up / importing), each
+  result and failure, and the waiting-file banner; the flow is a modal container over the hidden tabs.
 
 ## 5. Android app (#28, #29)
 
-- [ ] **T17 — Environment, revision and scan session reset** `[android]` (I7; §1.6, §7.4)
+- [x] **T17 — Environment, revision and scan session reset** `[android]` (I7; §1.6, §7.4)
   `AppEnvironment.transfer` and `revision`, `ArchiveApp` from `PackageAppInfo`; launch
   cleanup of `cache/export`; the scan session ends on a revision change. *Tests:* as T11.
-- [ ] **T18 — Export: save and share** `[android]` [#28] (E1–E9, X1; §7.1, flows 1–2)
+  Done: the scan view model checks the revision each time the Scan tab loads (the tab is never on screen during an
+  import, which runs from Settings), so it needs no coroutine of its own.
+- [x] **T18 — Export: save and share** `[android]` [#28] (E1–E9, X1; §7.1, flows 1–2)
   `TransferSection`, `ExportViewModel`, `ExportSummarySheet`; **Save to file**
   (`CreateDocument`, delete on failure) and **Share** (`FileProvider`, `export_paths.xml`,
   chooser); architecture rule + fixture (§7.4). Strings (fr + en, same wording as iOS).
   *Tests:* view-model (Turbine); Robolectric: CreateDocument result → bytes written, failure
   → document deleted, share intent grants read on the provider URI only; manifest test
   (provider not exported); `PrivacyTest` unchanged.
-- [ ] **T19 — Open-with filters and coordinator** `[android]` [#28, #29] (O2, O4, O5; §7.3)
+  Done: the summary sheet offers **Save to file** and **Share** directly (Android has no
+  separate Continue step; `transfer_export_continue` exists for parity only). The provider
+  authority is `${applicationId}.export` (= `com.medicabinet.app.export` in the shipped app),
+  so the side-by-side `.perf` build can be installed too (design §7.1 amended).
+- [x] **T19 — Open-with filters and coordinator** `[android]` [#28, #29] (O2, O4, O5; §7.3)
   The §7.3 intent filters, `singleTop`, `onNewIntent`, `ImportCoordinator` (immediate capped
   read, gating like iOS); busy registration in the scan sheets. *Tests:* manifest test (the
   filters exactly, no JSON, no `*/*`); Robolectric `ACTION_VIEW` / `ACTION_SEND` intents;
   coordinator unit tests.
-- [ ] **T20 — Import flow** `[android]` [#29] (I1–I10, V5, O3; §7.2, flows 3–6, 8)
+  Done: only `content:` addresses are read (the activity is exported: a `file:` address could
+  name the app's own files); anything else is refused as unreadable. A file that cannot be
+  opened at launch (storage unavailable) is refused in a dialog over the launch error.
+  Amended 2026-10-20 (device report, #28): WhatsApp did not offer the app. The octet-stream
+  filter is now `content` + type only, with no path (§7.3 amendment, O2 note); tests: exact
+  filters without host/path, a WhatsApp-style `content://…/item/42` address, and a garbage
+  file refused with `notArchive`.
+- [x] **T20 — Import flow** `[android]` [#29] (I1–I10, V5, O3; §7.2, flows 3–6, 8)
   `OpenDocument`, `ImportViewModel`, `ImportPreviewScreen`, confirmation `AlertDialog`,
   `ImportResultScreen`, error screens, the "file not offered?" hint. *Tests:* as T14
   (Robolectric Compose).
-- [ ] **T21 — Automatic backups and restore** `[android]` [#29] (B4, B5)
+  Done: the flow is a screen of the Settings tab (`settings/import`), so opening it leaves
+  the Scan tab and stops the camera (O4); it holds a newer incoming file back until it
+  closes. The "file not offered?" hint is the supporting text of **Import a cabinet** in
+  the section. Once confirmed, the replace and the revision bump run to the end even if the
+  screen goes away (back is refused meanwhile).
+- [x] **T21 — Automatic backups and restore** `[android]` [#29] (B4, B5)
   `BackupsScreen` → restore flow. *Tests:* as T15.
-- [ ] **T22 — Android accessibility pass** `[android]` (X3, X4)
+  Done: each **Restore** button is described to TalkBack with the backup's date
+  (`transfer_backups_restoreTitle`), since every row has one.
+- [x] **T22 — Android accessibility pass** `[android]` (X3, X4)
   Font scale 2.0, dark theme, TalkBack labels and live regions, 48 dp targets.
+  Done: `TransferAccessibilityTest` (200 % font in the dark theme: everything reachable,
+  48 dp buttons, headings, live regions for progress, results and empty lists, a labelled
+  Restore per row) and `TransferFrenchTest`. A restore repeats its long title in the content,
+  since the app bar shows one line. Material icon buttons are 40 dp drawn with a 48 dp touch
+  target of their own (Compose 1.7 has no touch-bounds assertion, so they are not measured).
 
 ## 6. Finish
 
@@ -149,10 +202,13 @@ independent of each other.
   (`ANDROID_SERIAL`, never an unnamed device) plus the emulator (Files / Downloads, Gmail,
   Quick Share or Bluetooth). Results in `reports/export-import/README.md`. If the filters
   must change, update the design first.
+  Include the **WhatsApp case**: share the exported file to a WhatsApp chat, tap the received
+  file, check that MediCabinet is listed in "Open with" and opens the import preview; also
+  open a non-cabinet file of unknown type and check the "not a MediCabinet cabinet" message.
 - [ ] **T24 — Cross-platform round trip on devices** `[shared]` (F7, X7)
   **Needs the user:** export on iPhone → import on Android → export → import on iPhone;
   compare the summaries; result in the report.
-- [ ] **T25 — Docs** `[shared]` (X6)
+- [x] **T25 — Docs** `[shared]` (X6)
   `docs/export-format.md`, `docs/export-import.md` (+ `docs/README.md` link),
   `docs/architecture.md` (archive layer, backups folder, cabinet revision),
   `fixtures/README.md` final; string parity green.
@@ -161,5 +217,5 @@ independent of each other.
   recorded in `reports/export-import/README.md` with the test budgets.
 - [ ] **T27 — Versions and gate** `[shared]` (X8)
   The next MINOR on both apps (read the current versions from the source of truth;
-  expected iOS 0.5.0 build 6, Android 0.5.0 versionCode 6: the branch is based on 0.4.0, build 5), changelog entries;
+  develop holds 0.5.0, build 7: iOS 0.6.0 build 8, Android 0.6.0 versionCode 8), changelog entries;
   `bash scripts/local-ci.sh` green. Coverage stated in the PR.

@@ -114,6 +114,7 @@ struct EditBoxSheet: View {
                 }
             }
         }
+        .importBusy()
     }
 }
 

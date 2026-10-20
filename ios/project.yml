@@ -49,13 +49,32 @@ targets:
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         ITSAppUsesNonExemptEncryption: false
+        # The .medicabinet archive (design §1.4): an exported type that conforms to public.data, not public.json, so
+        # other apps do not offer to open it; opened files are copied into Documents/Inbox, never edited in place.
+        LSSupportsOpeningDocumentsInPlace: false
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Armoire MediCabinet
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Owner
+            LSItemContentTypes:
+              - com.medicabinet.archive
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: com.medicabinet.archive
+            UTTypeDescription: Armoire MediCabinet
+            UTTypeConformsTo:
+              - public.data
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - medicabinet
+              public.mime-type:
+                - application/vnd.medicabinet+json
         NSCameraUsageDescription: MediCabinet utilise l'appareil photo pour lire les codes des boîtes de médicaments. Aucune image n'est enregistrée ni envoyée.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.medicabinet.app
         PRODUCT_NAME: MediCabinet
-        CURRENT_PROJECT_VERSION: 7
-        MARKETING_VERSION: "0.5.0"
+        CURRENT_PROJECT_VERSION: 8
+        MARKETING_VERSION: "0.6.0"
         CODE_SIGN_STYLE: Automatic
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor

@@ -23,6 +23,9 @@ ANDROID_ONLY = {
     "locations_reorder": "iOS reorders in edit mode with system controls; Android has its own drag handle to describe",
     "reminder_channel_name": "Android 8+ notification channels have a name the user sees in the system settings; iOS has none",
     "reminder_channel_description": "Android 8+ notification channels have a description in the system settings; iOS has none",
+    "transfer_export_saveToFile": "the iOS share sheet already offers Save to Files; Android offers Save to file and Share as two buttons",
+    "transfer_export_share": "the iOS share sheet is the whole export action; Android offers Save to file and Share as two buttons",
+    "transfer_import_wrongFileHint": "Android open-with can miss a file whose extension was lost; iOS has no such case",
 }
 
 

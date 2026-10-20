@@ -27,14 +27,51 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MediCabinet">
+        <!-- singleTop: a notification tap or a file opened while the app is shown reaches onNewIntent. -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Open with (design §7.3): never ordinary JSON, never every file. Files this app wrote or shared carry
+                 its MIME type. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="application/vnd.medicabinet+json" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/vnd.medicabinet+json" />
+            </intent-filter>
+            <!-- Files come back as octet-stream: a saved file, and the copy another app (WhatsApp, Mail, a file manager)
+                 opens through its own provider, whose address has no file name or extension and whose type it derived
+                 itself. A filter cannot see the display name, so there is NO host and NO path restriction: MediCabinet
+                 may be offered for any unknown binary file. Safe because only content addresses are read and the import
+                 refuses anything that is not a cabinet before changing anything (design §7.3, O2). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="application/octet-stream" />
+            </intent-filter>
         </activity>
+
+        <!-- Hands one shared archive (cache/export/ only) to the app the user picked in the share sheet, with a
+             one-time read grant. Not exported: no other app can open it by itself. The authority follows the
+             applicationId so the side-by-side perf build can be installed too. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.export"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/export_paths" />
+        </provider>
 
         <!-- The digest alarm. No intent filter: only this app's own PendingIntent reaches it. -->
         <receiver

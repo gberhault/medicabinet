@@ -50,6 +50,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.medicabinet.app.R
+import com.medicabinet.app.features.transfer.HoldsUnsavedInput
 import com.medicabinet.core.Box
 import com.medicabinet.core.Location
 import com.medicabinet.core.scan.IntakeField
@@ -201,6 +202,7 @@ fun SessionListSheet(
             }
         }
     }
+    HoldsUnsavedInput(editing != null)
     editing?.let { box ->
         EditBoxDialog(box, locations, { name, expiry, location ->
             onEdit(box, name, expiry, location)

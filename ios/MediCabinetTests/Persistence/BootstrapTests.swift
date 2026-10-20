@@ -46,6 +46,28 @@ import Testing
         return ((try? FileManager.default.contentsOfDirectory(atPath: dir.path)) ?? []).sorted()
     }
 
+    // MARK: transfer (design §6)
+
+    private struct StubInfo: AppInfo {
+        let version = "9.8.7"
+        let build = "42"
+    }
+
+    @Test func theEnvironmentCarriesTheTransferWithThisAppAsAuthor() async throws {
+        defer { try? FileManager.default.removeItem(at: root) }
+        var launch = bootstrap()
+        launch.appInfo = StubInfo()
+        let environment = try environment(await launch.run())
+        let transfer = try #require(environment.transfer)
+
+        let archive = try ArchiveDecoder.decode(try await transfer.exportArchive())
+        #expect(archive.app == ArchiveApp(name: "MediCabinet", platform: "ios", version: "9.8.7", build: "42"))
+        #expect(archive.exportedAt == clock.now)
+        #expect(archive.cabinet.summary.locations == 1)
+        #expect(try await transfer.backups().isEmpty)
+        #expect(await environment.revision.value == 0)
+    }
+
     // MARK: first launch and upgrade
 
     @Test func firstLaunchMigratesCreatesTheDefaultLocationAndTakesNoBackup() async throws {

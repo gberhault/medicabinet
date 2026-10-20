@@ -2,6 +2,7 @@ package com.medicabinet.app.features.scan
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import com.medicabinet.app.features.transfer.HoldsUnsavedInput
 import kotlinx.coroutines.launch
 
 /** The sheets and dialogs that sit on top of the Scan tab: prompts, candidates, session list, manual entry, summary. */
@@ -15,6 +16,8 @@ internal fun ScanSheetHost(
     onCloseManual: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    // A file opened with the app waits while the user is typing here (O4); the session editor holds it too.
+    HoldsUnsavedInput(state.completion != null || showsManualEntry)
     state.completion?.let { completion ->
         CompletionSheet(
             completion,

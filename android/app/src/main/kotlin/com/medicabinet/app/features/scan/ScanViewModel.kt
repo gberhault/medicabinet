@@ -136,6 +136,8 @@ class ScanViewModel(environment: AppEnvironment, private val services: ScanServi
     private val removal = ScanRemoval(environment.boxes, environment.clock)
     private val locationRepository = environment.locations
     private val boxes = environment.boxes
+    private val cabinetRevision = environment.revision
+    private var seenRevision = cabinetRevision.value
     private var debouncer = ScanDebouncer()
     private val reportedUnrecognized = mutableSetOf<String>()
 
@@ -192,7 +194,18 @@ class ScanViewModel(environment: AppEnvironment, private val services: ScanServi
 
     // region Locations and preferences
 
+    /** The cabinet was replaced (an import or a restore) since this model last looked: the session cannot go on. */
+    val revision: StateFlow<Long> get() = cabinetRevision
+
+    /**
+     * Reads the locations. When the whole cabinet was replaced meanwhile (I7, design §1.6), the session ends first:
+     * its boxes no longer exist, and a session location that is gone falls back to the default (I10).
+     */
     suspend fun load() {
+        if (cabinetRevision.value != seenRevision) {
+            seenRevision = cabinetRevision.value
+            endSession()
+        }
         val loaded = try {
             locationRepository.all()
         } catch (cancelled: CancellationException) {
@@ -522,6 +535,23 @@ class ScanViewModel(environment: AppEnvironment, private val services: ScanServi
                 thrownAway = removed.count { box -> box.removal?.reason == RemovalReason.THROWN_AWAY }
             )
         )
+    }
+
+    /** Forgets everything the scan session held; nothing is written. */
+    private fun endSession() {
+        debouncer = ScanDebouncer()
+        reportedUnrecognized.clear()
+        mutableState.update {
+            it.copy(
+                session = ScanSession(),
+                removalSession = ScanSession(),
+                notice = null,
+                another = null,
+                completion = null,
+                candidates = null,
+                summary = null
+            )
+        }
     }
 
     fun closeSummary() {

@@ -29,6 +29,8 @@ struct Bootstrap: Sendable {
     var referenceURL: URL?
     /// The expiry preferences the app runs with (the device's `UserDefaults`; UI tests pass an in-memory set).
     var preferences: any ExpiryPreferences = UserDefaultsExpiryPreferences()
+    /// The identity written into exports and automatic backups.
+    var appInfo: any AppInfo = BundleAppInfo()
 
     /// Runs off the main actor.
     func run() async -> BootstrapState {
@@ -76,7 +78,10 @@ struct Bootstrap: Sendable {
             boxes: GRDBBoxRepository(database: database, clock: clock),
             clock: clock,
             reference: GRDBReferenceData(url: referenceURL),
-            preferences: preferences
+            preferences: preferences,
+            transfer: AppTransfer.make(
+                database: database, backupsDirectory: backups.directory, clock: clock, app: AppTransfer.app(info: appInfo)
+            )
         ))
     }
 

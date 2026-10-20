@@ -34,6 +34,10 @@ struct SettingsView: View {
                 if let reminder {
                     ReminderSettingsSection(model: reminder)
                 }
+                // After the everyday settings, which earlier screens and tests expect at the top.
+                if let environment, let transfer = environment.transfer {
+                    TransferSection(environment: environment, transfer: transfer)
+                }
                 NavigationLink {
                     AboutView(model: AboutViewModel(info: info))
                 } label: {

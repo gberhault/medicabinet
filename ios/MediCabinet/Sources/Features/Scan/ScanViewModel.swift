@@ -93,6 +93,10 @@ final class ScanViewModel {
     let boxes: any BoxRepository
     let removal: ScanRemoval
     let services: ScanServices
+    /// Bumped when an import or a restore replaced the cabinet: the session then ends (design §1.6).
+    let revision: CabinetRevision
+    /// The revision this screen's data belongs to (see `resetIfCabinetReplaced`).
+    var seenRevision: Int
     private var debouncer = ScanDebouncer()
     private var reportedUnrecognized = Set<String>()
 
@@ -104,6 +108,8 @@ final class ScanViewModel {
         locationRepository = environment.locations
         boxes = environment.boxes
         soundEnabled = services.preferences.soundEnabled
+        revision = environment.revision
+        seenRevision = environment.revision.value
     }
 
     var showsSummary: Bool { summary != nil }
@@ -113,6 +119,7 @@ final class ScanViewModel {
     /// Opens the scanner and consumes it until the task is cancelled (tab left, app backgrounded). The camera runs
     /// only while this does.
     func run() async {
+        await resetIfCabinetReplaced()
         await loadLocations()
         refreshAccess()
         guard cameraState == .starting else { return }
@@ -164,11 +171,12 @@ final class ScanViewModel {
 
     // MARK: Locations
 
-    func loadLocations() async {
+    /// `keepingCurrent: false` after the cabinet was replaced: the session location is chosen again.
+    func loadLocations(keepingCurrent: Bool = true) async {
         guard let loaded = try? await locationRepository.all() else { return }
         locations = loaded
         let preferred = services.preferences.lastLocationID.flatMap { id in loaded.first { $0.id == id } }
-        let current = sessionLocation.flatMap { current in loaded.first { $0.id == current.id } }
+        let current = sessionLocation.flatMap { current in keepingCurrent ? loaded.first { $0.id == current.id } : nil }
         sessionLocation = current ?? preferred ?? loaded.first { $0.isDefault } ?? loaded.first
     }
 
@@ -277,10 +285,15 @@ final class ScanViewModel {
             session = ScanSession()
         }
         summary = nil
-        debouncer = ScanDebouncer()
-        reportedUnrecognized = []
+        forgetSightings()
         notice = nil
         another = nil
+    }
+
+    /// Forgets the codes seen so far, so the same box can be scanned again.
+    func forgetSightings() {
+        debouncer = ScanDebouncer()
+        reportedUnrecognized = []
     }
 
     // MARK: Feedback
