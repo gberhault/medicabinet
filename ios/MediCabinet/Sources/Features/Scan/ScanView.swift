@@ -4,6 +4,7 @@ import SwiftUI
 struct ScanView: View {
     @Bindable var model: ScanViewModel
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.importCoordinator) private var importer
 
     /// Restarts the scanner when it is retried, and stops it when the app leaves the foreground.
     private struct Lifecycle: Hashable {
@@ -15,8 +16,9 @@ struct ScanView: View {
         content
             .onAppear { model.resetMode() }
             .onChange(of: model.revision.value) { Task { await model.resetIfCabinetReplaced() } }
-            .task(id: Lifecycle(attempt: model.attempt, active: scenePhase == .active)) {
-                guard scenePhase == .active else { return }
+            // The camera stops while the import flow covers the tabs (O4).
+            .task(id: Lifecycle(attempt: model.attempt, active: cameraWanted)) {
+                guard cameraWanted else { return }
                 await model.run()
             }
             .sheet(item: $model.completion) { completion in
@@ -34,6 +36,10 @@ struct ScanView: View {
             .sheet(isPresented: Binding(get: { model.showsSummary }, set: { if !$0 { model.closeSummary() } })) {
                 ScanSummaryView(model: model)
             }
+    }
+
+    private var cameraWanted: Bool {
+        scenePhase == .active && importer?.active == nil
     }
 
     @ViewBuilder private var content: some View {

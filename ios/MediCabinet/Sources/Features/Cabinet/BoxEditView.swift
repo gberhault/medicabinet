@@ -56,6 +56,7 @@ struct BoxEditView: View {
             }
         }
         .interactiveDismissDisabled(model.isSaving)
+        .importBusy()
     }
 
     /// B4: pick a category from the taxonomy, or give it back to the classifier.

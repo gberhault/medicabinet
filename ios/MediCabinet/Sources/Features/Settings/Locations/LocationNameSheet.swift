@@ -52,6 +52,7 @@ struct LocationNameSheet: View {
             focused = true
         }
         .onChange(of: text) { problem = nil }
+        .importBusy()
     }
 
     private func save() async {

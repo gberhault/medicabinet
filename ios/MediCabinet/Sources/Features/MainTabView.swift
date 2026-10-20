@@ -9,6 +9,7 @@ struct MainTabView: View {
     @State private var reminder: ReminderModel
     @State private var scheduler: ReminderScheduler
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.importCoordinator) private var importer
 
     init(environment: AppEnvironment, router: TabRouter = TabRouter(), notifications: any NotificationClient) {
         self.environment = environment
@@ -24,8 +25,23 @@ struct MainTabView: View {
     }
 
     var body: some View {
+        // The import flow covers the tabs. Not a modal presentation: a sheet still open in a tab cannot block it, and
+        // it shows as soon as that sheet closes (O4).
+        ZStack {
+            tabs
+                .accessibilityHidden(importer?.active != nil)
+            if let importer, let request = importer.active {
+                ImportFlowView(request: request, environment: environment, onClose: { importer.finish() })
+                    .transition(.move(edge: .bottom))
+                    .zIndex(1)
+            }
+        }
+        .animation(.default, value: importer?.active?.id)
+    }
+
+    private var tabs: some View {
         @Bindable var router = router
-        TabView(selection: $router.selection) {
+        return TabView(selection: $router.selection) {
             ScanTab(environment: environment)
                 .undoBanner()
                 .tabItem { Label("tab.scan", systemImage: "barcode.viewfinder") }

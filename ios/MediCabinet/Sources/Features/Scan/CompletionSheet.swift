@@ -51,5 +51,6 @@ struct CompletionSheet: View {
             }
         }
         .interactiveDismissDisabled()
+        .importBusy()
     }
 }

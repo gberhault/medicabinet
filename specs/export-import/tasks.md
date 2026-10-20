@@ -104,7 +104,7 @@ independent of each other.
   the one reliable "share ended" signal, cancel included; "File saved" is shown for Save to Files only
   (other apps confirm their own sharing) and reuses `transfer.import.done.close` as its Done button.
   `transfer.export.saveToFile` / `.share` are Android-only (the iOS share sheet has both).
-- [ ] **T13 — Document type, open-with and coordinator** `[ios]` [#28, #29] (O1, O4, O5; §1.4, §6)
+- [x] **T13 — Document type, open-with and coordinator** `[ios]` [#28, #29] (O1, O4, O5; §1.4, §6)
   `UTType+Archive`, `project.yml` Info.plist keys (`UTExportedTypeDeclarations`,
   `CFBundleDocumentTypes`, `LSSupportsOpeningDocumentsInPlace = NO`), localized type name;
   `.onOpenURL` → `ImportCoordinator` (pending while loading, refused when failed, waits while
@@ -112,6 +112,10 @@ independent of each other.
   registration in the scan completion step, manual entry and row editor; launch argument
   `-UITestingOpenArchive <fixture>`. *Tests:* coordinator unit tests; Info.plist key test;
   UI test opening the golden file.
+  Done 2026-10-20: the flow is a layer over the tabs, not a `fullScreenCover` (design §6 amended). Busy forms:
+  scan completion, manual entry, session row editor, plus the Cabinet box editor and the location name
+  sheet (same unsaved-input risk); each shows the waiting banner. The launch cleanup keeps the files the
+  coordinator still holds. The type name is localized with its French value as key.
 - [ ] **T14 — Import flow** `[ios]` [#29] (I1–I10, V5, O3; §6, flows 3–6, 8)
   `.fileImporter`, capped read, `ImportViewModel` (staged progress), `ImportPreviewView`
   (file vs phone, replace and backup statements, nothing to lose), destructive button +
