@@ -39,7 +39,7 @@ order avoids conflicts. Rebase onto `origin/develop` (never merge it) whenever d
 
 ## Shared rule (both cores)
 
-- [ ] **T2** `[shared]` `[ios]` `[android]` **`LeafletLink`.** Add `fixtures/leaflet-links.json` (the cases in design
+- [x] **T2** `[shared]` `[ios]` `[android]` **`LeafletLink`.** Add `fixtures/leaflet-links.json` (the cases in design
   §3.2) and its README row. Add `LeafletLink` to `MediCabinetCore` and Kotlin `:core`, with
   `LeafletLinkTests` / `LeafletLinkTest` running every case through `SharedFixtures`. Extend
   `scripts/tests/test-shared-fixtures-break.sh` with a broken `leaflet-links` case. Run `check-fixtures.py`,

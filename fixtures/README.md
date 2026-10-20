@@ -45,6 +45,7 @@ Every file is JSON with:
 | `text-normalization.json` | `TextNormalizer`: `normalize` (accent/case/ligature/whitespace folding) and `matches` (search: every query word is a substring) — also the comparison for location-name uniqueness and name ordering |
 | `location-names.json` | `LocationName.validate`: trim, 1…50 code points, no duplicate (normalized) name among the other locations |
 | `short-names.json` | `ShortName.of`: a medicine's name cut before its first ", " for the Cabinet pills (display only) |
+| `leaflet-links.json` | `LeafletLink.address`: the public BDPM page of a medicine built from its CIS (8 ASCII digits, not withdrawn), else no link |
 | `category-order.json` | `CategoryOrder.alphabetical`: the order of the Cabinet's category cards — A–Z by the localized label (normalized text, by code point), then `other`, then `uncategorized`; includes the shipped French and English labels |
 | `cabinet-rows.json` | `CabinetRows.build`: the Cabinet list — product rows under category sections, row status (most urgent box), ordering, location / status / search filters |
 | `scan-removal.json` | `RemovalPolicy` / `ScanRemoval`: what a scan in Remove mode does — remove, choose among candidates, alreadyRemoved, notInCabinet |

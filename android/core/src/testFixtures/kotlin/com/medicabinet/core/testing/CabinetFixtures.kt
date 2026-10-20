@@ -23,6 +23,15 @@ data class ShortNameCase(val name: String, val input: String, val expect: String
     override fun toString(): String = name
 }
 
+/** One case of `fixtures/leaflet-links.json`: the reference product (`null` = unknown code) and the address, or `null`. */
+@Serializable
+data class LeafletLinkCase(val name: String, val product: Product? = null, val expect: String? = null) {
+    @Serializable
+    data class Product(val cis: String? = null, val isWithdrawn: Boolean)
+
+    override fun toString(): String = name
+}
+
 /** One case of `fixtures/category-order.json`. */
 @Serializable
 data class CategoryOrderCase(val name: String, val labels: Map<String, String>, val expect: List<String>) {
@@ -133,6 +142,9 @@ fun SharedFixtures.textNormalization(): CabinetCaseList<TextNormalizationCase> =
 
 fun SharedFixtures.shortNames(): CabinetCaseList<ShortNameCase> =
     cabinetFixtureJson.decodeFromString(text("short-names.json"))
+
+fun SharedFixtures.leafletLinks(): CabinetCaseList<LeafletLinkCase> =
+    cabinetFixtureJson.decodeFromString(text("leaflet-links.json"))
 
 fun SharedFixtures.categoryOrder(): CabinetCaseList<CategoryOrderCase> =
     cabinetFixtureJson.decodeFromString(text("category-order.json"))
