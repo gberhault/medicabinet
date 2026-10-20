@@ -70,11 +70,11 @@ change would otherwise break the other platform's suite.
 
 ## Android
 
-- [ ] **T12** `[android]` Add `CategoryIcons` (CategoryID → `Icons.Outlined.*`, design §5) with a test: every
+- [x] **T12** `[android]` Add `CategoryIcons` (CategoryID → `Icons.Outlined.*`, design §5) with a test: every
   taxonomy id is mapped and no two ids share an icon. *(G3)*
-- [ ] **T13** `[android]` Add `PillColors` (light/dark, design §6) with a contrast unit test requiring ≥ 4.5:1 for
+- [x] **T13** `[android]` Add `PillColors` (light/dark, design §6) with a contrast unit test requiring ≥ 4.5:1 for
   every pair. *(K4, K5)*
-- [ ] **T14** `[android]` **ViewModel.**
+- [x] **T14** `[android]` **ViewModel.**
   - Add `setCategoryOrder(order)`; until it is first called, the order is `Taxonomy.ordered`.
   - Remove `AppEnvironment.categoryOrder`.
   - Add `clearLocation()`, `clearStatus()` and `activeFilterCount`.
