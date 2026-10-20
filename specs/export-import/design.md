@@ -645,8 +645,8 @@ localized (ASCII).
   how a version is added. `docs/export-import.md`: behaviour, backups, privacy, Android
   open-with limits. `docs/architecture.md`: archive layer, backup folder, cabinet revision.
   `docs/README.md` index. `fixtures/README.md`.
-- Version: the next MINOR on both apps after bulk-scan (expected iOS 0.3.0 build 3, Android
-  0.3.0 versionCode 3), confirmed from the source of truth at bump time.
+- Version: the next MINOR on both apps after expiry tracking (expected iOS 0.5.0 build 6, Android
+  0.5.0 versionCode 6, from the 0.4.0 build 5 of the expiry-tracking epic), confirmed from the source of truth at bump time.
 
 ## 14. Risks
 

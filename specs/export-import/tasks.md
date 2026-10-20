@@ -161,5 +161,5 @@ independent of each other.
   recorded in `reports/export-import/README.md` with the test budgets.
 - [ ] **T27 — Versions and gate** `[shared]` (X8)
   The next MINOR on both apps (read the current versions from the source of truth;
-  expected iOS 0.3.0 build 3, Android 0.3.0 versionCode 3), changelog entries;
+  expected iOS 0.5.0 build 6, Android 0.5.0 versionCode 6: the branch is based on 0.4.0, build 5), changelog entries;
   `bash scripts/local-ci.sh` green. Coverage stated in the PR.
