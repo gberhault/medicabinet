@@ -45,6 +45,11 @@ object AppLog {
         Log.e(TAG, "named product fill stopped: $what$cause")
     }
 
+    /** A change to the products the household named failed; [what] is a fixed word such as `rename`, never a name. */
+    fun namedProductsFailed(what: String, error: Throwable) {
+        Log.e(TAG, "named products $what failed: ${error::class.java.simpleName}")
+    }
+
     /** A step of the monthly digest failed; [what] is a fixed word such as `read` or `notify`. */
     fun reminderFailed(what: String, error: Throwable) {
         Log.e(TAG, "reminder $what failed: ${error::class.java.simpleName}")
