@@ -129,7 +129,7 @@ boxes`). The Expiring view uses them as they are.
   Expiring list scrolls without dropped frames on both; a digest delivered on a real
   iPhone and Android phone (clock moved forward), and still armed after an Android app
   update. Results in `reports/expiry-tracking/README.md`.
-- [ ] **T20 — Versions and gate** `[shared]` (X7)
+- [x] **T20 — Versions and gate** `[shared]` (X7)
   Next minor on both apps from what `develop` holds (0.3.0 / build and versionCode +1 if #12
   shipped 0.2.0), changelog entries; `bash scripts/local-ci.sh` green; close delivered child
   issues (#23, #24, #25) with commit references.
