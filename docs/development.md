@@ -4,7 +4,7 @@
 
 | | |
 |--|--|
-| Both | Python 3 (standard library only), `git`, `gh` |
+| Both | Python 3 (standard library only), `git`, `gh`. Google Chrome only to regenerate the app icon (`scripts/build-app-icon.py build`, see [app-icon.md](app-icon.md)); the gate's `check` does not need it |
 | iOS | Xcode 16+ (developed with 27), `brew install xcodegen swiftlint` |
 | Android | JDK 17+ (developed on 21: `brew install --cask temurin@21`), Android SDK (Android Studio or the command-line tools). `android/local.properties` with `sdk.dir=…` is created for you by `scripts/android-local-ci.sh`; Gradle downloads missing SDK platforms (licences must be accepted). |
 

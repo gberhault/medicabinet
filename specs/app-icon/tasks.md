@@ -95,7 +95,7 @@ each other once T2 and T4 are done.
     giving an iOS PNG an alpha channel, adding a `<text>` to the source, or pointing the
     manifest at `sym_def_app_icon`.
   - *Test:* `bash scripts/local-ci.sh shared` is green, and each break case reports `ok`.
-- [ ] **T8 — Documentation** `[shared]` (X3, R2; §10)
+- [x] **T8 — Documentation** `[shared]` (X3, R2; §10)
   - New `docs/app-icon.md`: the source and its subset, the rights rules and the reason
     there's no cross or caduceus, how to rebuild, the variants, the Play requirements.
   - Link it from `docs/README.md`.
