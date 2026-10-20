@@ -30,24 +30,6 @@ import MediCabinetCoreTestSupport
         func status() async -> ReferenceStatus { reference }
     }
 
-    /// A named product repository whose `remember` always fails.
-    private struct FailingNamed: NamedProductRepository {
-        let base: any NamedProductRepository
-        func namedProduct(gtin: String) async throws -> NamedProduct? { try await base.namedProduct(gtin: gtin) }
-        func remember(gtin: String, name: String, category: CategoryID, categoryOverridden: Bool) async throws {
-            throw RepositoryError.notFound
-        }
-        func observeSummaries() -> AsyncThrowingStream<[NamedProductSummary], any Error> { base.observeSummaries() }
-        func rename(id: NamedProduct.ID, to name: String) async throws { try await base.rename(id: id, to: name) }
-        func setCategory(id: NamedProduct.ID, _ category: CategoryID, overridden: Bool) async throws {
-            try await base.setCategory(id: id, category, overridden: overridden)
-        }
-        func forget(id: NamedProduct.ID) async throws { try await base.forget(id: id) }
-        func undoForget(id: NamedProduct.ID) async throws { try await base.undoForget(id: id) }
-        func backfillPending() async throws -> Bool { try await base.backfillPending() }
-        func completeBackfill(_ products: [NamedProduct]) async throws { try await base.completeBackfill(products) }
-    }
-
     private let clock = MutableClock(Date(timeIntervalSince1970: 1_800_000_000))
     private let store: InMemoryCabinetStore
     private let location: Location
@@ -137,7 +119,7 @@ import MediCabinetCoreTestSupport
     }
 
     @Test func aFailingWriteIsReportedByRecord() async throws {
-        let memory = ProductMemory(named: FailingNamed(base: store.named), reference: CountingReference())
+        let memory = ProductMemory(named: FailingRememberNamedProducts(base: store.named), reference: CountingReference())
         await #expect(throws: RepositoryError.notFound) { try await memory.record(.added(box())) }
     }
 
@@ -153,7 +135,7 @@ import MediCabinetCoreTestSupport
     @Test func aFailingMemoryWriteLeavesTheAddedBoxAndIsReported() async throws {
         let reported = Reported()
         let intake = ScanIntake(
-            boxes: store, memory: ProductMemory(named: FailingNamed(base: store.named), reference: CountingReference()),
+            boxes: store, memory: ProductMemory(named: FailingRememberNamedProducts(base: store.named), reference: CountingReference()),
             clock: clock, onMemoryFailure: { _ in reported.report() }
         )
         let added = try await intake.add(BoxDraft(gtin: Self.gtin, name: "Crème solaire", serial: "S1"), location: location.id)

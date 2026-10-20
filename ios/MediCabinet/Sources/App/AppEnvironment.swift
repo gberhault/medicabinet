@@ -28,6 +28,11 @@ struct AppEnvironment: Sendable {
     /// Resolves a scanned code to a name (reference, then the named product) and remembers the names typed.
     var productMemory: ProductMemory { ProductMemory(named: named, reference: reference) }
 
+    /// The one-time fill of the named products from the boxes already in the cabinet (#57).
+    var namedBackfill: NamedProductBackfillRunner {
+        NamedProductBackfillRunner(named: named, boxes: boxes, reference: reference, clock: clock)
+    }
+
     /// How early a box counts as "expiring soon": the setting, read now (it can change while the app runs).
     var expiryWindow: ExpiryWindow { preferences.window }
 

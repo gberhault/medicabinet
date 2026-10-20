@@ -152,7 +152,10 @@ final class BoxDetailViewModel {
 
     func makeEditor() -> BoxEditViewModel? {
         guard let box else { return nil }
-        return BoxEditViewModel(box: box, locations: locations, boxes: environment.boxes, lookup: environment.reference)
+        return BoxEditViewModel(
+            box: box, locations: locations, boxes: environment.boxes, lookup: environment.reference,
+            memory: environment.productMemory
+        )
     }
 
     private func fail(_ error: any Error) {

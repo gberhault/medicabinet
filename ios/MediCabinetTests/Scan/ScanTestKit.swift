@@ -77,7 +77,7 @@ struct ScanTestKit {
     static func make(
         access: CameraAccess = .authorized,
         lookup: StubLookup = StubLookup(products: [ScanTestKit.gtin: ReferenceProduct(name: "DOLIPRANE")]),
-        loadsLocations: Bool = true
+        loadsLocations: Bool = true, failingMemory: Bool = false
     ) async throws -> ScanTestKit {
         let clock = MutableClock(start)
         let database = try AppDatabase.inMemory()
@@ -86,7 +86,8 @@ struct ScanTestKit {
         let named = GRDBNamedProductRepository(database: database, clock: clock)
         let location = try await locations.ensureDefault(named: "Cabinet")
         let kit = ScanTestKit(
-            clock: clock, locations: locations, boxes: boxes, named: named, access: access, lookup: lookup, location: location
+            clock: clock, locations: locations, boxes: boxes, named: named, access: access, lookup: lookup, location: location,
+            failingMemory: failingMemory
         )
         if loadsLocations { await kit.model.loadLocations() }
         return kit
@@ -94,7 +95,7 @@ struct ScanTestKit {
 
     private init(
         clock: MutableClock, locations: GRDBLocationRepository, boxes: GRDBBoxRepository, named: GRDBNamedProductRepository,
-        access: CameraAccess, lookup: StubLookup, location: Location
+        access: CameraAccess, lookup: StubLookup, location: Location, failingMemory: Bool
     ) {
         self.clock = clock
         self.locations = locations
@@ -107,7 +108,8 @@ struct ScanTestKit {
             feedback: feedback, lookup: lookup
         )
         let environment = AppEnvironment(
-            locations: locations, boxes: boxes, named: named, clock: clock,
+            locations: locations, boxes: boxes,
+            named: failingMemory ? FailingRememberNamedProducts(base: named) : named, clock: clock,
             reference: InMemoryReferenceData(status: .unavailable(.missing))
         )
         model = ScanViewModel(environment: environment, services: services)

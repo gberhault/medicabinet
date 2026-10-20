@@ -89,6 +89,7 @@ final class ScanViewModel {
     }
 
     let intake: ScanIntake
+    let memory: ProductMemory
     private let locationRepository: any LocationRepository
     let boxes: any BoxRepository
     let removal: ScanRemoval
@@ -102,10 +103,8 @@ final class ScanViewModel {
 
     init(environment: AppEnvironment, services: ScanServices) {
         self.services = services
-        intake = ScanIntake(
-            boxes: environment.boxes, memory: ProductMemory(named: environment.named, reference: services.lookup),
-            clock: environment.clock, onMemoryFailure: Log.memoryFailed
-        )
+        memory = ProductMemory(named: environment.named, reference: services.lookup)
+        intake = ScanIntake(boxes: environment.boxes, memory: memory, clock: environment.clock, onMemoryFailure: Log.memoryFailed)
         removal = ScanRemoval(boxes: environment.boxes, clock: environment.clock)
         removalReason = services.preferences.removalReason
         locationRepository = environment.locations

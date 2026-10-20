@@ -1,6 +1,7 @@
 import Foundation
 import GRDB
 import MediCabinetCore
+import MediCabinetCoreTestSupport
 import Testing
 @testable import MediCabinet
 
@@ -206,6 +207,44 @@ import Testing
         _ = try environment(await bootstrap(probing).run())
         #expect(probe.sawMigration)
         #expect(!probe.ranOnMain)
+    }
+
+    // MARK: the named products fill (#57)
+
+    @Test func theFillRunsOnceFromTheBootstrappedCabinetAndClearsItsMark() async throws {
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let reference = root.appendingPathComponent("reference.sqlite")
+        try FileManager.default.copyItem(at: SharedFixtures.referenceSampleURL, to: reference)
+        var launch = bootstrap()
+        launch.referenceURL = reference
+        let environment = try environment(await launch.run())
+        let location = try #require(try await environment.locations.defaultLocation())
+        for (gtin, name) in [("03400900000013", "Testamol"), ("03401900000003", "Arnica")] {
+            try await environment.boxes.insert(Box(
+                product: ProductRef(gtin: gtin, name: name), locationID: location.id, createdAt: clock.now
+            ))
+        }
+        #expect(try await environment.named.backfillPending())
+
+        #expect(await environment.namedBackfill.run() == .completed(created: 1))
+        #expect(try await environment.named.namedProduct(gtin: "03401900000003")?.name == "Arnica")
+        #expect(try await environment.named.namedProduct(gtin: "03400900000013") == nil, "the reference names this one")
+        #expect(await environment.namedBackfill.run() == .notPending)
+    }
+
+    @Test func theFillWaitsWhenTheReferenceDataIsMissing() async throws {
+        defer { try? FileManager.default.removeItem(at: root) }
+        let environment = try environment(await bootstrap().run())
+        #expect(await environment.namedBackfill.run() == .referenceUnavailable)
+        #expect(try await environment.named.backfillPending())
+    }
+
+    @Test func startingTheFillAtLaunchRunsInTheBackground() async throws {
+        defer { try? FileManager.default.removeItem(at: root) }
+        let environment = try environment(await bootstrap().run())
+        await AppLaunch.startBackfill(environment).value
+        #expect(try await environment.named.backfillPending(), "no reference data in this launch: still pending")
     }
 }
 

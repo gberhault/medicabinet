@@ -20,12 +20,14 @@ final class BoxEditViewModel: Identifiable {
 
     private let boxes: any BoxRepository
     private let lookup: any ProductLookup
+    private let memory: ProductMemory
 
-    init(box: Box, locations: [Location], boxes: any BoxRepository, lookup: any ProductLookup) {
+    init(box: Box, locations: [Location], boxes: any BoxRepository, lookup: any ProductLookup, memory: ProductMemory) {
         self.box = box
         self.locations = locations
         self.boxes = boxes
         self.lookup = lookup
+        self.memory = memory
         name = box.product.name
         expiry = ExpiryChoice(box.expiry, editing: true)
         locationID = box.locationID
@@ -100,12 +102,23 @@ final class BoxEditViewModel: Identifiable {
         applied.expiry = expiry.expiry
         applied.locationID = locationID
         do {
-            try await boxes.update(try applied.applied(to: box))
+            let edited = try applied.applied(to: box)
+            try await boxes.update(edited)
+            await remember(edited)
             return true
         } catch {
             Log.persistence.error("Saving a box edit failed: \(String(describing: type(of: error)))")
             failed = true
             return false
+        }
+    }
+
+    /// The box is saved: a failing memory write is logged by kind and never fails the save.
+    private func remember(_ edited: Box) async {
+        do {
+            try await memory.record(.changed(before: box, after: edited))
+        } catch {
+            Log.memoryFailed(error)
         }
     }
 }

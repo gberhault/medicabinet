@@ -49,6 +49,8 @@ enum UITestSeed {
                 )
                 try await environment.boxes.insert(box)
             }
+            // The seeded boxes are the fixture: the upgrade fill must not turn them into named products behind a test.
+            try await environment.named.completeBackfill([])
         } catch {
             Log.persistence.error("The UI test cabinet could not be seeded: \(String(describing: type(of: error)))")
         }
