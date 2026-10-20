@@ -35,6 +35,25 @@ public struct NamedProductEdit: Hashable, Sendable {
         name = product.name
     }
 
+    /// The category the form shows: the pending choice, else the product's own when the user chose it, else
+    /// `uncategorized`.
+    public var category: CategoryID {
+        switch categoryChoice {
+        case .chosen(let category): category
+        case .automatic: .uncategorized
+        case nil: original.categoryOverridden ? original.category : .uncategorized
+        }
+    }
+
+    /// "Set by you": the category was picked by the user.
+    public var isCategorySetByUser: Bool {
+        switch categoryChoice {
+        case .chosen: true
+        case .automatic: false
+        case nil: original.categoryOverridden
+        }
+    }
+
     /// The user picks a category from the taxonomy. A category the user may not pick is refused and changes nothing.
     public mutating func chooseCategory(_ category: CategoryID) throws(NamedProductEditError) {
         guard Taxonomy.userSelectable.contains(category) else { throw .categoryNotSelectable }

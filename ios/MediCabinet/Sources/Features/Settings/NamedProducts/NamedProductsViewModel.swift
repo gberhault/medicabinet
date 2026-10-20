@@ -131,9 +131,10 @@ final class NamedProductsViewModel {
             locale: locale, count)
     }
 
-    /// Forgets the product (its boxes are untouched) and offers Undo.
-    func confirmForget() async {
-        guard let request = forgetRequest else { return }
+    /// Forgets the product (its boxes are untouched) and offers Undo. `request` is the one the dialog was showing: the
+    /// dialog clears `forgetRequest` as it closes, so the button passes it along.
+    func confirmForget(_ request: ForgetRequest? = nil) async {
+        guard let request = request ?? forgetRequest else { return }
         forgetRequest = nil
         let product = request.summary.product
         let repository = repository

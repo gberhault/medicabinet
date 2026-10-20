@@ -103,7 +103,9 @@ enum AppLaunch {
             if case .ready(let environment) = state {
                 let process = ProcessInfo.processInfo
                 await UITestSeed.apply(
-                    UITestSeed.items(from: process.environment, arguments: process.arguments), to: environment)
+                    UITestSeed.items(from: process.environment, arguments: process.arguments),
+                    namedProducts: UITestSeed.namedProducts(from: process.environment, arguments: process.arguments),
+                    to: environment)
                 startBackfill(environment)
             }
             return state

@@ -28,6 +28,12 @@ struct SettingsView: View {
                     Label("settings.locations", systemImage: "mappin.and.ellipse")
                 }
                 .accessibilityIdentifier("settings.locations")
+                NavigationLink {
+                    NamedProductsEntry()
+                } label: {
+                    Label("settings.namedProducts", systemImage: "tag")
+                }
+                .accessibilityIdentifier("settings.namedProducts")
                 if let environment {
                     ExpirySettingsSection(preferences: environment.preferences)
                 }

@@ -14,6 +14,15 @@ enum UITestApp {
     }
 }
 
+extension XCUIApplication {
+    /// Swipes up, at most `attempts` times, until `element` exists and can be tapped: the Settings list is longer than
+    /// the screen at large text sizes.
+    @MainActor
+    func scroll(to element: XCUIElement, attempts: Int = 8) {
+        for _ in 0..<attempts where !(element.exists && element.isHittable) { swipeUp() }
+    }
+}
+
 @MainActor
 final class MainTabUITests: XCTestCase {
     override func setUp() {

@@ -8,6 +8,14 @@ import MediCabinetCore
 /// so statuses do not rot with the calendar.
 enum UITestSeed {
     static let environmentKey = "MEDICABINET_UI_TEST_CABINET"
+    /// `MEDICABINET_UI_TEST_NAMED_PRODUCTS`: a JSON array of products the household named (`category` set = chosen).
+    static let namedProductsKey = "MEDICABINET_UI_TEST_NAMED_PRODUCTS"
+
+    struct NamedItem: Decodable {
+        var gtin: String
+        var name: String
+        var category: String?
+    }
 
     struct Item: Decodable {
         var name: String
@@ -30,8 +38,16 @@ enum UITestSeed {
         return items
     }
 
-    static func apply(_ items: [Item], to environment: AppEnvironment) async {
-        guard !items.isEmpty else { return }
+    static func namedProducts(from environment: [String: String], arguments: [String]) -> [NamedItem] {
+        guard arguments.contains(AppLaunch.temporaryStorageArgument),
+              let text = environment[namedProductsKey], let data = text.data(using: .utf8),
+              let items = try? JSONDecoder().decode([NamedItem].self, from: data)
+        else { return [] }
+        return items
+    }
+
+    static func apply(_ items: [Item], namedProducts: [NamedItem] = [], to environment: AppEnvironment) async {
+        guard !items.isEmpty || !namedProducts.isEmpty else { return }
         do {
             var locations = try await environment.locations.all()
             for item in items {
@@ -48,6 +64,13 @@ enum UITestSeed {
                     createdAt: environment.clock.now
                 )
                 try await environment.boxes.insert(box)
+            }
+            for product in namedProducts {
+                try await environment.named.remember(
+                    gtin: product.gtin, name: product.name,
+                    category: product.category.map { CategoryID(rawValue: $0) } ?? .uncategorized,
+                    categoryOverridden: product.category != nil
+                )
             }
             // The seeded boxes are the fixture: the upgrade fill must not turn them into named products behind a test.
             try await environment.named.completeBackfill([])

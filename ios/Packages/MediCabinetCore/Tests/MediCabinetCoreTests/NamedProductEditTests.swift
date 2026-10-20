@@ -105,6 +105,17 @@ import MediCabinetCore
         #expect(throws: NamedProductEditError.emptyName) { try edit.validated() }
     }
 
+    @Test func theFormShowsThePendingCategoryAndWhetherTheUserSetIt() throws {
+        var edit = NamedProductEdit(from: product(category: Self.skin, overridden: false))
+        #expect(edit.category == .uncategorized && !edit.isCategorySetByUser, "an automatic category shows as uncategorized")
+        try edit.chooseCategory(CategoryID(rawValue: "eyes"))
+        #expect(edit.category.rawValue == "eyes" && edit.isCategorySetByUser)
+        edit.resetCategory()
+        #expect(edit.category == .uncategorized && !edit.isCategorySetByUser)
+        let chosen = NamedProductEdit(from: product(category: Self.skin, overridden: true))
+        #expect(chosen.category == Self.skin && chosen.isCategorySetByUser)
+    }
+
     @Test func errorsUseThePlatformNeutralNames() {
         #expect(NamedProductEditError.emptyName.kind == "emptyName")
         #expect(NamedProductEditError.nameTooLong.kind == "nameTooLong")
