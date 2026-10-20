@@ -32,6 +32,39 @@ struct LocationRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
     }
 }
 
+struct NamedProductRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
+    static let databaseTableName = "namedProduct"
+
+    var id: String
+    var gtin: String
+    var name: String
+    var category: String
+    var categoryOverridden: Bool
+    var createdAt: Date
+    var updatedAt: Date
+    /// Tombstone of a product the user forgot; `nil` for every product the app uses.
+    var deletedAt: Date?
+
+    init(_ product: NamedProduct) {
+        id = product.id.uuidString
+        gtin = product.gtin
+        name = product.name
+        category = product.category.rawValue
+        categoryOverridden = product.categoryOverridden
+        createdAt = product.createdAt
+        updatedAt = product.updatedAt
+        deletedAt = nil
+    }
+
+    func model() throws -> NamedProduct {
+        guard let uuid = UUID(uuidString: id) else { throw PersistenceError.corruptRow(table: "namedProduct") }
+        return NamedProduct(
+            id: uuid, gtin: gtin, name: name, category: CategoryID(rawValue: category),
+            categoryOverridden: categoryOverridden, createdAt: createdAt, updatedAt: updatedAt
+        )
+    }
+}
+
 struct BoxRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
     static let databaseTableName = "box"
 

@@ -11,9 +11,10 @@ import Testing
     func grdbSatisfiesContract(check: RepositoryContract.Check) async throws {
         try await check.run { clock in
             let (database, _) = try AppDatabase.temporary()
-            return (
-                GRDBLocationRepository(database: database, clock: clock),
-                GRDBBoxRepository(database: database, clock: clock)
+            return RepositoryContract.Stores(
+                locations: GRDBLocationRepository(database: database, clock: clock),
+                boxes: GRDBBoxRepository(database: database, clock: clock),
+                named: GRDBNamedProductRepository(database: database, clock: clock)
             )
         }
     }
