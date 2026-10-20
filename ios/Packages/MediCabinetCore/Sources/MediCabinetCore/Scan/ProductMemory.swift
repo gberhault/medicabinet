@@ -30,4 +30,28 @@ public struct ProductMemory: Sendable {
         if reference == nil { product = try await named.namedProduct(gtin: gtin) }
         return ProductResolver.resolve(reference: reference, named: product, previousBox: previousBox)
     }
+
+    /// Remembers what `event` taught about the code, when `MemoryPolicy` says so. Throws only when the write fails:
+    /// the caller has already saved the box and must not undo it (losing one memory update must not lose a box).
+    public func record(_ event: MemoryEvent) async throws {
+        // Saves that cannot remember (no code, nothing changed) cost no reference lookup and no read.
+        guard MemoryPolicy.decide(event, codeKnown: false, current: nil) != .none,
+              let gtin = event.after.product.gtin else { return }
+        let codeKnown = await isKnown(gtin: gtin)
+        var current: NamedProduct?
+        if codeKnown == false { current = try await named.namedProduct(gtin: gtin) }
+        guard case let .remember(name, category, overridden) = MemoryPolicy.decide(event, codeKnown: codeKnown, current: current)
+        else { return }
+        try await named.remember(gtin: gtin, name: name, category: category, categoryOverridden: overridden)
+    }
+
+    /// `nil` = cannot tell: the reference is unavailable (every code would look unknown) or the lookup failed.
+    private func isKnown(gtin: String) async -> Bool? {
+        guard await isReferenceAvailable() else { return nil }
+        do {
+            return try await lookup.product(gtin: gtin) != nil
+        } catch {
+            return nil
+        }
+    }
 }

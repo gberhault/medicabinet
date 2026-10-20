@@ -60,16 +60,25 @@ public struct ScanIntake: Sendable {
     private let boxes: any BoxRepository
     private let memory: ProductMemory
     private let clock: any Clock
+    private let onMemoryFailure: (@Sendable (any Error) -> Void)?
 
-    public init(boxes: any BoxRepository, memory: ProductMemory, clock: any Clock) {
+    /// `onMemoryFailure` hears about a failed `ProductMemory.record` after the box was saved (log the kind only).
+    public init(
+        boxes: any BoxRepository, memory: ProductMemory, clock: any Clock,
+        onMemoryFailure: (@Sendable (any Error) -> Void)? = nil
+    ) {
         self.boxes = boxes
         self.memory = memory
         self.clock = clock
+        self.onMemoryFailure = onMemoryFailure
     }
 
     /// With a reference lookup that has no status of its own (a test double).
-    public init(boxes: any BoxRepository, named: any NamedProductRepository, lookup: any ProductLookup, clock: any Clock) {
-        self.init(boxes: boxes, memory: ProductMemory(named: named, lookup: lookup), clock: clock)
+    public init(
+        boxes: any BoxRepository, named: any NamedProductRepository, lookup: any ProductLookup, clock: any Clock,
+        onMemoryFailure: (@Sendable (any Error) -> Void)? = nil
+    ) {
+        self.init(boxes: boxes, memory: ProductMemory(named: named, lookup: lookup), clock: clock, onMemoryFailure: onMemoryFailure)
     }
 
     public func evaluate(_ code: ScannedCode, sessionGTINs: Set<String>) async throws -> IntakeOutcome {
@@ -116,7 +125,9 @@ public struct ScanIntake: Sendable {
     }
 
     /// Validates the name (1…200 characters once trimmed), stamps the identity and the creation date and
-    /// inserts. Throws `RepositoryError.duplicateSerial` when the same box is already in the cabinet.
+    /// inserts, then remembers the name of a code the reference does not know. Throws
+    /// `RepositoryError.duplicateSerial` when the same box is already in the cabinet. A failing memory write never
+    /// undoes the box: it is reported to `onMemoryFailure`.
     @discardableResult
     public func add(_ draft: BoxDraft, location: Location.ID) async throws -> Box {
         guard let name = draft.name?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -128,6 +139,11 @@ public struct ScanIntake: Sendable {
             lot: draft.lot, serial: draft.serial, createdAt: clock.now
         )
         try await boxes.insert(box)
+        do {
+            try await memory.record(.added(box))
+        } catch {
+            onMemoryFailure?(error)
+        }
         return box
     }
 

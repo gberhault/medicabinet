@@ -12,4 +12,9 @@ enum Log {
     static let reminders = Logger(subsystem: subsystem, category: "reminders")
     /// Export, import and backups: the stage and the error kind only, never file contents.
     static let archive = Logger(subsystem: subsystem, category: "archive")
+
+    /// A product name that could not be remembered after its box was saved (the box is kept): the error kind only.
+    @Sendable static func memoryFailed(_ error: any Error) {
+        persistence.error("Remembering a product name failed: \(String(describing: type(of: error)))")
+    }
 }

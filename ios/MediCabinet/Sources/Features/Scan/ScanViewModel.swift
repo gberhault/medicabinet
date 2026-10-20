@@ -104,7 +104,7 @@ final class ScanViewModel {
         self.services = services
         intake = ScanIntake(
             boxes: environment.boxes, memory: ProductMemory(named: environment.named, reference: services.lookup),
-            clock: environment.clock
+            clock: environment.clock, onMemoryFailure: Log.memoryFailed
         )
         removal = ScanRemoval(boxes: environment.boxes, clock: environment.clock)
         removalReason = services.preferences.removalReason

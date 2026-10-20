@@ -239,3 +239,53 @@ extension SharedFixtures {
         (try? scanRemoval().cases) ?? []
     }
 }
+
+/// One case of `fixtures/product-memory.json`: `MemoryPolicy.decide` for a box save.
+public struct MemoryCase: Decodable, Sendable, CustomStringConvertible {
+    public struct FixtureBox: Decodable, Sendable {
+        public let gtin: String?
+        public let name: String
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
+    public struct Event: Decodable, Sendable {
+        /// `added` | `changed` | `sessionCorrected`
+        public let kind: String
+        public let before: FixtureBox?
+        public let after: FixtureBox
+    }
+
+    public struct Current: Decodable, Sendable {
+        public let name: String
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
+    public struct Expect: Decodable, Sendable {
+        /// `none` | `remember`
+        public let action: String
+        public let name: String?
+        public let category: String?
+        public let categoryOverridden: Bool?
+    }
+
+    public let name: String
+    public let event: Event
+    public let codeKnown: Bool?
+    public let current: Current?
+    public let expect: Expect
+
+    public var description: String { name }
+}
+
+extension SharedFixtures {
+    public static func productMemory() throws -> (formatVersion: Int, cases: [MemoryCase]) {
+        let list = try JSONDecoder().decode(CabinetCaseList<MemoryCase>.self, from: data("product-memory.json"))
+        return (list.formatVersion, list.cases)
+    }
+
+    public static func productMemoryCases() -> [MemoryCase] {
+        (try? productMemory().cases) ?? []
+    }
+}
