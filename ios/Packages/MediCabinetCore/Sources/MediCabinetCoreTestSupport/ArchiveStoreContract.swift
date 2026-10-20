@@ -55,27 +55,27 @@ public enum ArchiveStoreContract {
             Check(name: "a box in an unknown location is rejected and changes nothing") { store in
                 try await store.replace(with: Sample.first) { _ in }
                 let lost = ArchivedBox(box: Sample.box(1, in: Sample.unknownLocationID))
-                let bad = CabinetSnapshot(locations: Sample.second.locations, boxes: [lost])
+                let bad = CabinetContents(locations: Sample.second.locations, boxes: [lost])
                 try await expectError(.unknownLocation) { try await store.replace(with: bad) { _ in } }
                 try require(normalized(try await store.snapshot()) == normalized(Sample.first), "a rejected replace changed the cabinet")
             },
             Check(name: "a duplicate id is rejected and changes nothing") { store in
                 try await store.replace(with: Sample.first) { _ in }
                 let twin = Sample.second.boxes[0]
-                let bad = CabinetSnapshot(locations: Sample.second.locations, boxes: [twin, twin])
+                let bad = CabinetContents(locations: Sample.second.locations, boxes: [twin, twin])
                 try await expectError(.duplicate) { try await store.replace(with: bad) { _ in } }
                 try require(normalized(try await store.snapshot()) == normalized(Sample.first), "a rejected replace changed the cabinet")
             },
             Check(name: "two default locations are rejected and changes nothing") { store in
                 try await store.replace(with: Sample.first) { _ in }
                 let defaults = Sample.second.locations.map { Location(id: $0.id, name: $0.name, isDefault: true, createdAt: $0.createdAt) }
-                let bad = CabinetSnapshot(locations: defaults + [Sample.extraDefault], boxes: [])
+                let bad = CabinetContents(locations: defaults + [Sample.extraDefault], boxes: [])
                 try await expectError(.duplicateDefault) { try await store.replace(with: bad) { _ in } }
                 try require(normalized(try await store.snapshot()) == normalized(Sample.first), "a rejected replace changed the cabinet")
             },
             Check(name: "replacing with an empty cabinet empties the store") { store in
                 try await store.replace(with: Sample.first) { _ in }
-                try await store.replace(with: CabinetSnapshot(locations: [], boxes: [])) { _ in }
+                try await store.replace(with: CabinetContents(locations: [], boxes: [])) { _ in }
                 let snapshot = try await store.snapshot()
                 try require(snapshot.locations.isEmpty && snapshot.boxes.isEmpty, "the store was not emptied")
             }
@@ -89,8 +89,8 @@ public enum ArchiveStoreContract {
     }
 
     /// Stores return rows in their own order; the contract compares contents.
-    private static func normalized(_ snapshot: CabinetSnapshot) -> CabinetSnapshot {
-        CabinetSnapshot(
+    private static func normalized(_ snapshot: CabinetContents) -> CabinetContents {
+        CabinetContents(
             locations: snapshot.locations.sorted { $0.id.uuidString < $1.id.uuidString },
             boxes: snapshot.boxes.sorted { $0.box.id.uuidString < $1.box.id.uuidString }
         )
@@ -120,15 +120,15 @@ public enum ArchiveStoreContract {
 
     private final class SnapshotBox: @unchecked Sendable {
         private let lock = NSLock()
-        private var stored: CabinetSnapshot?
+        private var stored: CabinetContents?
 
-        func set(_ snapshot: CabinetSnapshot) {
+        func set(_ snapshot: CabinetContents) {
             lock.lock()
             defer { lock.unlock() }
             stored = snapshot
         }
 
-        var value: CabinetSnapshot? {
+        var value: CabinetContents? {
             lock.lock()
             defer { lock.unlock() }
             return stored
@@ -158,12 +158,12 @@ private enum Sample {
 
     static let extraDefault = location(5, name: "Extra", isDefault: true)
 
-    static let first: CabinetSnapshot = {
+    static let first: CabinetContents = {
         let home = location(1, name: "Home", isDefault: true)
         let car = location(2, name: "Car", isDefault: false)
         var removed = box(2, in: car.id)
         removed.removal = Box.Removal(reason: .thrownAway, date: stamp)
-        return CabinetSnapshot(
+        return CabinetContents(
             locations: [home, car],
             boxes: [
                 ArchivedBox(box: box(1, in: home.id)), ArchivedBox(box: removed),
@@ -172,8 +172,8 @@ private enum Sample {
         )
     }()
 
-    static let second: CabinetSnapshot = {
+    static let second: CabinetContents = {
         let kitchen = location(3, name: "Kitchen", isDefault: true)
-        return CabinetSnapshot(locations: [kitchen], boxes: [ArchivedBox(box: box(4, in: kitchen.id))])
+        return CabinetContents(locations: [kitchen], boxes: [ArchivedBox(box: box(4, in: kitchen.id))])
     }()
 }

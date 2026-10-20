@@ -8,7 +8,7 @@ import java.time.Instant
  */
 interface CabinetArchiveStore {
     /** Every location and every box (in the cabinet, removed, deleted), read in one transaction. */
-    suspend fun snapshot(): CabinetSnapshot
+    suspend fun snapshot(): CabinetContents
 
     /**
      * In **one write transaction**: read the current cabinet, call [beforeReplacing] with it (anything it throws rolls
@@ -16,7 +16,7 @@ interface CabinetArchiveStore {
      * dates are kept as given. A snapshot the store cannot hold (a box in an unknown location, a duplicate id, two
      * default locations) throws the matching `RepositoryException` and changes nothing.
      */
-    suspend fun replace(snapshot: CabinetSnapshot, beforeReplacing: (CabinetSnapshot) -> Unit)
+    suspend fun replace(snapshot: CabinetContents, beforeReplacing: (CabinetContents) -> Unit)
 }
 
 /** Why an automatic backup was taken. */

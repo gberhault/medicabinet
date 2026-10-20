@@ -1,9 +1,9 @@
 package com.medicabinet.core.archive
 
+import com.medicabinet.core.testing.ArchiveFixtureFiles
 import com.medicabinet.core.testing.ArchiveStoreContract
 import com.medicabinet.core.testing.InMemoryArchiveBackupStore
 import com.medicabinet.core.testing.InMemoryArchiveStore
-import com.medicabinet.core.testing.SharedFixtures
 import com.medicabinet.core.testing.SyntheticArchive
 import java.time.Instant
 import kotlin.test.assertEquals
@@ -23,7 +23,7 @@ class InMemoryArchiveStoreTest {
 
     @Test
     fun contractChecksMatchTheSharedList() {
-        assertEquals(SharedFixtures.archiveStoreContractCheckNames(), ArchiveStoreContract.checks.map { it.name })
+        assertEquals(ArchiveFixtureFiles.archiveStoreContractCheckNames(), ArchiveStoreContract.checks.map { it.name })
     }
 }
 

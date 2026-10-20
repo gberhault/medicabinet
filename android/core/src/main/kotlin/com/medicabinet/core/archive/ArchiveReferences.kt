@@ -8,7 +8,7 @@ import java.util.UUID
  * and the database's unique (GTIN, serial). Paths name the later offender; they never carry a value.
  */
 internal object ArchiveReferences {
-    fun validate(cabinet: CabinetSnapshot) {
+    fun validate(cabinet: CabinetContents) {
         requireUnique(cabinet.locations.map { it.id }, "locations")
         requireUnique(cabinet.boxes.map { it.box.id }, "boxes")
         if (cabinet.locations.count { it.isDefault } != 1) {

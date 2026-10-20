@@ -12,14 +12,14 @@ import MediCabinetCoreTestSupport
         let backups: InMemoryArchiveBackupStore
         let transfer: CabinetTransfer
         let golden: [UInt8]
-        let goldenCabinet: CabinetSnapshot
+        let goldenCabinet: CabinetContents
     }
 
     /// A transfer whose store already holds `initial` (nothing when `nil`).
-    private func setup(initial: CabinetSnapshot? = nil, keeping: Int = CabinetTransfer.defaultKeepCount) throws -> Setup {
+    private func setup(initial: CabinetContents? = nil, keeping: Int = CabinetTransfer.defaultKeepCount) throws -> Setup {
         let golden = try SharedFixtures.goldenArchive()
         let goldenCabinet = try ArchiveDecoder.decode(golden).cabinet
-        let store = InMemoryArchiveStore(initial ?? CabinetSnapshot(locations: [], boxes: []))
+        let store = InMemoryArchiveStore(initial ?? CabinetContents(locations: [], boxes: []))
         let backups = InMemoryArchiveBackupStore()
         let transfer = CabinetTransfer(
             store: store, backups: backups, clock: FixedClock(exportedAt), app: app, keepCount: keeping
@@ -27,10 +27,10 @@ import MediCabinetCoreTestSupport
         return Setup(store: store, backups: backups, transfer: transfer, golden: golden, goldenCabinet: goldenCabinet)
     }
 
-    private func smallCabinet(named name: String) -> CabinetSnapshot {
+    private func smallCabinet(named name: String) -> CabinetContents {
         let location = Location(name: name, isDefault: true, createdAt: exportedAt)
         let box = Box(product: ProductRef(name: "Only box"), locationID: location.id, createdAt: exportedAt)
-        return CabinetSnapshot(locations: [location], boxes: [ArchivedBox(box: box)])
+        return CabinetContents(locations: [location], boxes: [ArchivedBox(box: box)])
     }
 
     // MARK: Export
@@ -43,14 +43,14 @@ import MediCabinetCoreTestSupport
 
     @Test func anEmptyCabinetCanBeExported() async throws {
         let home = Location(name: "Home", isDefault: true, createdAt: exportedAt)
-        let context = try setup(initial: CabinetSnapshot(locations: [home], boxes: []))
+        let context = try setup(initial: CabinetContents(locations: [home], boxes: []))
         let archive = try ArchiveDecoder.decode(try await context.transfer.exportArchive())
         #expect(archive.cabinet.summary.inCabinet == 0)
         #expect(archive.app == app)
     }
 
     @Test func aCabinetTheArchiveWouldRefuseIsNotExported() async throws {
-        let context = try setup(initial: CabinetSnapshot(locations: [], boxes: []))
+        let context = try setup(initial: CabinetContents(locations: [], boxes: []))
         await #expect(throws: ArchiveError(.defaultLocation, path: "locations")) { try await context.transfer.exportArchive() }
     }
 
@@ -72,7 +72,7 @@ import MediCabinetCoreTestSupport
     }
 
     @Test func aPhoneWithNothingToLoseNeedsNoBackup() async throws {
-        let empty = CabinetSnapshot(locations: [Location(name: "Home", isDefault: true, createdAt: exportedAt)], boxes: [])
+        let empty = CabinetContents(locations: [Location(name: "Home", isDefault: true, createdAt: exportedAt)], boxes: [])
         #expect(try await setup(initial: empty).transfer.preview(try SharedFixtures.goldenArchive()).willBackUp == false)
         #expect(try await setup().transfer.preview(try SharedFixtures.goldenArchive()).willBackUp == false)
     }
@@ -218,11 +218,11 @@ import MediCabinetCoreTestSupport
 private struct RefusingStore: CabinetArchiveStore {
     struct Refusal: Error {}
 
-    func snapshot() async throws -> CabinetSnapshot {
-        CabinetSnapshot(locations: [], boxes: [])
+    func snapshot() async throws -> CabinetContents {
+        CabinetContents(locations: [], boxes: [])
     }
 
-    func replace(with snapshot: CabinetSnapshot, beforeReplacing: @Sendable (CabinetSnapshot) throws -> Void) async throws {
+    func replace(with snapshot: CabinetContents, beforeReplacing: @Sendable (CabinetContents) throws -> Void) async throws {
         throw Refusal()
     }
 }

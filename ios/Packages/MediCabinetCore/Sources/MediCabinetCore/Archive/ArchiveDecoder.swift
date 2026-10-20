@@ -15,7 +15,7 @@ public enum ArchiveDecoder {
         try reader.finish()
         let archive = Archive(
             exportedAt: body.exportedAt, app: body.app,
-            cabinet: CabinetSnapshot(locations: body.locations, boxes: body.boxes), sourceFormatVersion: version
+            cabinet: CabinetContents(locations: body.locations, boxes: body.boxes), sourceFormatVersion: version
         )
         try ArchiveValidator.validate(archive, limits: limits)
         return archive

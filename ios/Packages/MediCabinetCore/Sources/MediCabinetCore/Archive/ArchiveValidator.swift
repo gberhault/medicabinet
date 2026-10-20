@@ -67,7 +67,7 @@ enum ArchiveValidator {
 
     // MARK: Cross checks
 
-    private static func validateReferences(_ cabinet: CabinetSnapshot) throws(ArchiveError) {
+    private static func validateReferences(_ cabinet: CabinetContents) throws(ArchiveError) {
         try requireUnique(cabinet.locations.map(\.id), in: "locations")
         try requireUnique(cabinet.boxes.map(\.box.id), in: "boxes")
         guard cabinet.locations.filter(\.isDefault).count == 1 else {

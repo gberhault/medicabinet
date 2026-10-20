@@ -4,9 +4,9 @@ import com.medicabinet.core.Box
 import com.medicabinet.core.FixedClock
 import com.medicabinet.core.Location
 import com.medicabinet.core.ProductRef
+import com.medicabinet.core.testing.ArchiveFixtureFiles
 import com.medicabinet.core.testing.InMemoryArchiveBackupStore
 import com.medicabinet.core.testing.InMemoryArchiveStore
-import com.medicabinet.core.testing.SharedFixtures
 import java.time.ZoneId
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -30,29 +30,29 @@ class CabinetTransferTest {
         val backups: InMemoryArchiveBackupStore,
         val transfer: CabinetTransfer,
         val golden: ByteArray,
-        val goldenCabinet: CabinetSnapshot
+        val goldenCabinet: CabinetContents
     )
 
     /** A transfer whose store already holds [initial] (nothing when `null`). */
-    private fun setup(initial: CabinetSnapshot? = null, store: CabinetArchiveStore? = null): Setup {
-        val golden = SharedFixtures.goldenArchive()
+    private fun setup(initial: CabinetContents? = null, store: CabinetArchiveStore? = null): Setup {
+        val golden = ArchiveFixtureFiles.goldenArchive()
         val goldenCabinet = ArchiveDecoder.decode(golden).cabinet
-        val memory = InMemoryArchiveStore(initial ?: CabinetSnapshot(emptyList(), emptyList()))
+        val memory = InMemoryArchiveStore(initial ?: CabinetContents(emptyList(), emptyList()))
         val backups = InMemoryArchiveBackupStore()
         val transfer = CabinetTransfer(store ?: memory, backups, FixedClock(exportedAt), app)
         return Setup(memory, backups, transfer, golden, goldenCabinet)
     }
 
-    private fun smallCabinet(name: String): CabinetSnapshot {
+    private fun smallCabinet(name: String): CabinetContents {
         val location = Location(name = name, isDefault = true, createdAt = exportedAt)
         val box = Box(product = ProductRef(name = "Only box"), locationId = location.id, createdAt = exportedAt)
-        return CabinetSnapshot(listOf(location), listOf(ArchivedBox(box)))
+        return CabinetContents(listOf(location), listOf(ArchivedBox(box)))
     }
 
     private fun refusingStore() = object : CabinetArchiveStore {
-        override suspend fun snapshot() = CabinetSnapshot(emptyList(), emptyList())
+        override suspend fun snapshot() = CabinetContents(emptyList(), emptyList())
 
-        override suspend fun replace(snapshot: CabinetSnapshot, beforeReplacing: (CabinetSnapshot) -> Unit) =
+        override suspend fun replace(snapshot: CabinetContents, beforeReplacing: (CabinetContents) -> Unit) =
             throw IllegalStateException("disk full")
     }
 
@@ -68,7 +68,7 @@ class CabinetTransferTest {
     @Test
     fun anEmptyCabinetCanBeExported() = runBlocking {
         val home = Location(name = "Home", isDefault = true, createdAt = exportedAt)
-        val context = setup(CabinetSnapshot(listOf(home), emptyList()))
+        val context = setup(CabinetContents(listOf(home), emptyList()))
         val archive = ArchiveDecoder.decode(context.transfer.exportArchive())
         assertEquals(0, archive.cabinet.summary.inCabinet)
         assertEquals(app, archive.app)
@@ -76,7 +76,7 @@ class CabinetTransferTest {
 
     @Test
     fun aCabinetTheArchiveWouldRefuseIsNotExported() = runBlocking {
-        val context = setup(CabinetSnapshot(emptyList(), emptyList()))
+        val context = setup(CabinetContents(emptyList(), emptyList()))
         val error = assertFailsWith<ArchiveException> { context.transfer.exportArchive() }
         assertEquals(ArchiveErrorKind.DEFAULT_LOCATION, error.kind)
     }
@@ -101,9 +101,9 @@ class CabinetTransferTest {
 
     @Test
     fun aPhoneWithNothingToLoseNeedsNoBackup() = runBlocking {
-        val golden = SharedFixtures.goldenArchive()
+        val golden = ArchiveFixtureFiles.goldenArchive()
         val home = Location(name = "Home", isDefault = true, createdAt = exportedAt)
-        assertFalse(setup(CabinetSnapshot(listOf(home), emptyList())).transfer.preview(golden).willBackUp)
+        assertFalse(setup(CabinetContents(listOf(home), emptyList())).transfer.preview(golden).willBackUp)
         assertFalse(setup().transfer.preview(golden).willBackUp)
     }
 
@@ -172,7 +172,7 @@ class CabinetTransferTest {
         // Two default locations: the store holds it, no archive can, so no backup can be made. Refuse, don't go on.
         val first = Location(name = "A", isDefault = true, createdAt = exportedAt)
         val second = Location(name = "B", isDefault = false, createdAt = exportedAt)
-        val broken = CabinetSnapshot(listOf(first, second.copy(isDefault = true)), emptyList())
+        val broken = CabinetContents(listOf(first, second.copy(isDefault = true)), emptyList())
         val context = setup(broken)
         val preview = context.transfer.preview(context.golden)
         val error = assertFailsWith<TransferException> { context.transfer.apply(preview, BackupReason.BEFORE_IMPORT) }
@@ -259,7 +259,7 @@ class CabinetTransferTest {
 
     @Test
     fun theSnapshotSummaryCountsEveryKindOfBox() {
-        val cabinet = ArchiveDecoder.decode(SharedFixtures.goldenArchive()).cabinet
+        val cabinet = ArchiveDecoder.decode(ArchiveFixtureFiles.goldenArchive()).cabinet
         assertEquals(CabinetSummary(3, 9, 2, 1, 2), cabinet.summary)
         assertTrue(cabinet.needsBackup)
     }

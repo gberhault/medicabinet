@@ -3,6 +3,7 @@ package com.medicabinet.core.testing
 import java.io.File
 import java.util.Base64
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 /** One case of `fixtures/archive-cases.json`, the archive decode vectors shared with the iOS app. */
 @Serializable
@@ -83,4 +84,42 @@ object SyntheticArchive {
             "\"lot\":\"LOT${index % 1000}\",\"serial\":\"SN$index\"," +
             "\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:00.000Z\"," +
             "\"updatedAt\":\"2026-10-02T10:00:00.000Z\",\"deletedAt\":null}"
+}
+
+/** One case of `fixtures/archive-code-points.json`. */
+@Serializable
+data class ArchiveCodePointCase(val name: String, val text: String, val codePoints: Int)
+
+@Serializable
+data class ArchiveCodePointFixture(
+    val formatVersion: Int,
+    val description: String,
+    val cases: List<ArchiveCodePointCase>
+)
+
+/** Loads the archive fixtures (the shared folder is `SharedFixtures.directory`). */
+object ArchiveFixtureFiles {
+    private val json = Json { ignoreUnknownKeys = true }
+
+    @Serializable
+    private data class NamedCases(val cases: List<NamedCase>)
+
+    @Serializable
+    private data class NamedCase(val name: String)
+
+    fun archiveCodePoints(): ArchiveCodePointFixture =
+        json.decodeFromString(SharedFixtures.text("archive-code-points.json"))
+
+    /** Names of the archive store contract checks, in order (`fixtures/archive-store-contract.json`). */
+    fun archiveStoreContractCheckNames(): List<String> =
+        json.decodeFromString<NamedCases>(SharedFixtures.text("archive-store-contract.json")).cases.map { it.name }
+
+    fun archiveCaseFixture(): ArchiveCaseFixture = json.decodeFromString(SharedFixtures.text("archive-cases.json"))
+
+    /** The canonical archive of [version], kept forever (`fixtures/archive/v<version>/golden.medicabinet`). */
+    fun goldenArchive(version: Int = 1): ByteArray = goldenFile(version).readBytes()
+
+    fun goldenArchiveExists(version: Int): Boolean = goldenFile(version).exists()
+
+    private fun goldenFile(version: Int) = File(SharedFixtures.directory, "archive/v$version/golden.medicabinet")
 }

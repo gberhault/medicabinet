@@ -62,7 +62,7 @@ public struct CabinetSummary: Hashable, Sendable {
 }
 
 /// The whole cabinet data: every location and every box, removed and deleted ones included.
-public struct CabinetSnapshot: Hashable, Sendable {
+public struct CabinetContents: Hashable, Sendable {
     public var locations: [Location]
     public var boxes: [ArchivedBox]
 
@@ -108,11 +108,11 @@ public struct ArchiveApp: Hashable, Sendable {
 public struct Archive: Hashable, Sendable {
     public var exportedAt: Date
     public var app: ArchiveApp
-    public var cabinet: CabinetSnapshot
+    public var cabinet: CabinetContents
     /// The `formatVersion` of the file this was read from (the import preview shows it); ignored when encoding.
     public var sourceFormatVersion: Int
 
-    public init(exportedAt: Date, app: ArchiveApp, cabinet: CabinetSnapshot, sourceFormatVersion: Int = ArchiveFormat.currentVersion) {
+    public init(exportedAt: Date, app: ArchiveApp, cabinet: CabinetContents, sourceFormatVersion: Int = ArchiveFormat.currentVersion) {
         self.exportedAt = exportedAt
         self.app = app
         self.cabinet = cabinet

@@ -57,7 +57,7 @@ data class CabinetSummary(
 }
 
 /** The whole cabinet data: every location and every box, removed and deleted ones included. */
-data class CabinetSnapshot(val locations: List<Location>, val boxes: List<ArchivedBox>) {
+data class CabinetContents(val locations: List<Location>, val boxes: List<ArchivedBox>) {
     val summary: CabinetSummary
         get() {
             val live = boxes.filter { it.deletedAt == null }
@@ -84,7 +84,7 @@ data class ArchiveApp(val name: String, val platform: String, val version: Strin
 data class Archive(
     val exportedAt: Instant,
     val app: ArchiveApp,
-    val cabinet: CabinetSnapshot,
+    val cabinet: CabinetContents,
     /** The `formatVersion` of the file this was read from (the import preview shows it); ignored when encoding. */
     val sourceFormatVersion: Int = ArchiveFormat.currentVersion
 )

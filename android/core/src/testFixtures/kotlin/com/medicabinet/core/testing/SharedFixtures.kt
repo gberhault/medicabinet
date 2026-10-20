@@ -130,17 +130,6 @@ data class ProductResolutionCase(
     override fun toString(): String = name
 }
 
-/** One case of `fixtures/archive-code-points.json`. */
-@Serializable
-data class ArchiveCodePointCase(val name: String, val text: String, val codePoints: Int)
-
-@Serializable
-data class ArchiveCodePointFixture(
-    val formatVersion: Int,
-    val description: String,
-    val cases: List<ArchiveCodePointCase>
-)
-
 @Serializable
 private data class CaseList<T>(val cases: List<T>)
 
@@ -164,19 +153,6 @@ object SharedFixtures {
         json.decodeFromString<CaseList<ProductResolutionCase>>(text("product-resolution.json")).cases
 
     fun gs1Datamatrix(): GS1Fixture = json.decodeFromString(text("gs1-datamatrix.json"))
-
-    fun archiveCodePoints(): ArchiveCodePointFixture = json.decodeFromString(text("archive-code-points.json"))
-
-    /** Names of the archive store contract checks, in order (`fixtures/archive-store-contract.json`). */
-    fun archiveStoreContractCheckNames(): List<String> =
-        json.decodeFromString<NamedCases>(text("archive-store-contract.json")).cases.map { it.name }
-
-    fun archiveCaseFixture(): ArchiveCaseFixture = json.decodeFromString(text("archive-cases.json"))
-
-    /** The canonical archive of [version], kept forever (`fixtures/archive/v<version>/golden.medicabinet`). */
-    fun goldenArchive(version: Int = 1): ByteArray = File(directory, "archive/v$version/golden.medicabinet").readBytes()
-
-    fun goldenArchiveExists(version: Int): Boolean = File(directory, "archive/v$version/golden.medicabinet").exists()
 
     fun schemaV1(): SchemaSnapshot = json.decodeFromString(text("schema-v1.json"))
 

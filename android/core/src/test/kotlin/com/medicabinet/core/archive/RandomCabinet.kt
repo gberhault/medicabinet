@@ -45,7 +45,7 @@ object RandomCabinet {
             text(1..20, random),
             text(1..20, random)
         )
-        return Archive(instant(random), app, CabinetSnapshot(locations, boxes))
+        return Archive(instant(random), app, CabinetContents(locations, boxes))
     }
 
     private fun box(index: Int, locations: List<Location>, random: Random): ArchivedBox {

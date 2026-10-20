@@ -73,7 +73,7 @@ class CabinetTransfer(
 
     suspend fun readBackup(id: String): ByteArray = backupStore.read(id)
 
-    private fun backUp(current: CabinetSnapshot, reason: BackupReason, now: Instant): ArchiveBackupEntry = try {
+    private fun backUp(current: CabinetContents, reason: BackupReason, now: Instant): ArchiveBackupEntry = try {
         backupStore.write(ArchiveEncoder.encode(Archive(now, app, current), limits), reason, now)
     } catch (@Suppress("TooGenericExceptionCaught", "SwallowedException") error: Exception) {
         // Whatever went wrong (encoding, disk full), the import must not go on without its backup.

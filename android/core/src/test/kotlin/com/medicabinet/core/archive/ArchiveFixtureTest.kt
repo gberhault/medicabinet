@@ -1,7 +1,7 @@
 package com.medicabinet.core.archive
 
 import com.medicabinet.core.testing.ArchiveCase
-import com.medicabinet.core.testing.SharedFixtures
+import com.medicabinet.core.testing.ArchiveFixtureFiles
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -19,14 +19,14 @@ import org.junit.jupiter.api.TestFactory
 class ArchiveFixtureTest {
     @Test
     fun theSharedFixtureLoadsAndHasCases() {
-        val fixture = SharedFixtures.archiveCaseFixture()
+        val fixture = ArchiveFixtureFiles.archiveCaseFixture()
         assertEquals(1, fixture.formatVersion)
         assertTrue(fixture.cases.size >= 150, "expected at least 150 cases, found ${fixture.cases.size}")
     }
 
     @TestFactory
     fun caseMatchesTheSharedExpectation(): List<DynamicTest> =
-        SharedFixtures.archiveCaseFixture().cases.map { case -> dynamicTest(case.name) { check(case) } }
+        ArchiveFixtureFiles.archiveCaseFixture().cases.map { case -> dynamicTest(case.name) { check(case) } }
 
     private fun check(case: ArchiveCase) {
         val bytes = case.bytes()
@@ -59,14 +59,14 @@ class ArchiveFixtureTest {
      */
     @Test
     fun theEncoderReproducesTheGoldenArchiveByteForByte() {
-        val golden = SharedFixtures.goldenArchive()
+        val golden = ArchiveFixtureFiles.goldenArchive()
         assertContentEquals(golden, ArchiveEncoder.encode(ArchiveDecoder.decode(golden)))
     }
 
     @Test
     fun everyShippedFormatVersionKeepsAGoldenArchive() {
         for (version in 1..ArchiveFormat.currentVersion) {
-            val exists = SharedFixtures.goldenArchiveExists(version)
+            val exists = ArchiveFixtureFiles.goldenArchiveExists(version)
             assertTrue(exists, "missing fixtures/archive/v$version/golden.medicabinet")
         }
     }

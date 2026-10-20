@@ -1,6 +1,6 @@
 package com.medicabinet.core.archive
 
-import com.medicabinet.core.testing.SharedFixtures
+import com.medicabinet.core.testing.ArchiveFixtureFiles
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.DynamicTest
@@ -12,13 +12,13 @@ import org.junit.jupiter.api.TestFactory
 class CodePointsFixtureTest {
     @Test
     fun theSharedFixtureLoadsAndHasCases() {
-        val fixture = SharedFixtures.archiveCodePoints()
+        val fixture = ArchiveFixtureFiles.archiveCodePoints()
         assertEquals(1, fixture.formatVersion)
         assertTrue(fixture.cases.size >= 10, "expected at least 10 cases, found ${fixture.cases.size}")
     }
 
     @TestFactory
-    fun lengthIsCountedInCodePoints(): List<DynamicTest> = SharedFixtures.archiveCodePoints().cases.map { case ->
+    fun lengthIsCountedInCodePoints(): List<DynamicTest> = ArchiveFixtureFiles.archiveCodePoints().cases.map { case ->
         dynamicTest(case.name) { assertEquals(case.codePoints, codePointCount(case.text)) }
     }
 }

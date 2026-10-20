@@ -323,14 +323,14 @@ public struct ArchiveLimits: Sendable {               // §1.5, named defaults
 }
 
 public struct ArchivedBox: Hashable, Sendable { public var box: Box; public var deletedAt: Date? }
-public struct CabinetSnapshot: Hashable, Sendable {
+public struct CabinetContents: Hashable, Sendable {
     public var locations: [Location]; public var boxes: [ArchivedBox]
     public var summary: CabinetSummary { get }        // inCabinet, removed, deleted, unknownExpiry, locations
     public var needsBackup: Bool { get }              // false when no box and only the default location (B3)
 }
 public struct ArchiveApp: Hashable, Sendable { public var name, platform, version, build: String }
 public struct Archive: Hashable, Sendable {
-    public var exportedAt: Date; public var app: ArchiveApp; public var cabinet: CabinetSnapshot
+    public var exportedAt: Date; public var app: ArchiveApp; public var cabinet: CabinetContents
     public var sourceFormatVersion: Int
 }
 
@@ -354,12 +354,12 @@ public enum ArchiveDecoder { public static func decode(_ bytes: [UInt8], limits:
 /// The whole cabinet, for export and import. Implementations: fake, GRDB, SQL.
 public protocol CabinetArchiveStore: Sendable {
     /// Every location and every box (in the cabinet, removed, deleted), in one read transaction.
-    func snapshot() async throws -> CabinetSnapshot
+    func snapshot() async throws -> CabinetContents
     /// In one write transaction: read the current cabinet, call `beforeReplacing` with it
     /// (a throw rolls back and is rethrown), replace all rows with `snapshot`, recompute derived
     /// values. Ids, fields and dates are kept as given.
-    func replace(with snapshot: CabinetSnapshot,
-                 beforeReplacing: @Sendable (CabinetSnapshot) throws -> Void) async throws
+    func replace(with snapshot: CabinetContents,
+                 beforeReplacing: @Sendable (CabinetContents) throws -> Void) async throws
 }
 
 public enum BackupReason: String, Sendable { case beforeImport, beforeRestore }

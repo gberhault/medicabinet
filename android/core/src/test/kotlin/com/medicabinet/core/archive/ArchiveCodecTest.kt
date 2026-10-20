@@ -6,7 +6,7 @@ import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.Location
 import com.medicabinet.core.ProductRef
 import com.medicabinet.core.RemovalReason
-import com.medicabinet.core.testing.SharedFixtures
+import com.medicabinet.core.testing.ArchiveFixtureFiles
 import com.medicabinet.core.testing.SyntheticArchive
 import java.time.Instant
 import java.util.UUID
@@ -39,7 +39,7 @@ class ArchiveCodecTest {
     }
 
     private fun archive(locations: List<Location> = listOf(location()), boxes: List<ArchivedBox> = emptyList()) =
-        Archive(stamp, app, CabinetSnapshot(locations, boxes))
+        Archive(stamp, app, CabinetContents(locations, boxes))
 
     private fun assertRefused(
         kind: ArchiveErrorKind,
@@ -170,10 +170,10 @@ class ArchiveCodecTest {
 
     @Test
     fun theEncoderOrdersLocationsAndBoxesWhateverTheInputOrder() {
-        val golden = SharedFixtures.goldenArchive()
+        val golden = ArchiveFixtureFiles.goldenArchive()
         val decoded = ArchiveDecoder.decode(golden)
         val cabinet = decoded.cabinet
-        val reversed = decoded.copy(cabinet = CabinetSnapshot(cabinet.locations.reversed(), cabinet.boxes.reversed()))
+        val reversed = decoded.copy(cabinet = CabinetContents(cabinet.locations.reversed(), cabinet.boxes.reversed()))
         assertContentEquals(golden, ArchiveEncoder.encode(reversed))
         val shuffledBoxes = reversed.cabinet.boxes.shuffled(Random(7))
         val shuffled = reversed.copy(cabinet = reversed.cabinet.copy(boxes = shuffledBoxes))

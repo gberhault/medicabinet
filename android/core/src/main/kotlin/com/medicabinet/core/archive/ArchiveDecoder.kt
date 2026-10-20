@@ -27,7 +27,7 @@ object ArchiveDecoder {
         val archive = Archive(
             exportedAt = body.exportedAt,
             app = body.app,
-            cabinet = CabinetSnapshot(body.locations, body.boxes),
+            cabinet = CabinetContents(body.locations, body.boxes),
             sourceFormatVersion = version
         )
         ArchiveValidator.validate(archive, limits)

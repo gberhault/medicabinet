@@ -25,7 +25,7 @@ import MediCabinetCoreTestSupport
     }
 
     private func archive(locations: [Location]? = nil, boxes: [ArchivedBox] = []) -> Archive {
-        Archive(exportedAt: stamp, app: app, cabinet: CabinetSnapshot(locations: locations ?? [location()], boxes: boxes))
+        Archive(exportedAt: stamp, app: app, cabinet: CabinetContents(locations: locations ?? [location()], boxes: boxes))
     }
 
     private func encoding(_ archive: Archive, limits: ArchiveLimits = .default) throws -> [UInt8] {

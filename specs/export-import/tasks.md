@@ -15,7 +15,9 @@ independent of each other.
 
 ## 0. Prerequisite
 
-- [ ] **T0 — Rebase on `develop` after #12** `[shared]` (decision 1; §14) — **blocked by #12**
+- [ ] **T0 — Rebase on `develop` after #12** *(2026-10-20: rebased on `feature/22-expiry-tracking`, which carries
+  the merged bulk-scan work. Schema v2 is as assumed, but v3 added `location.deletedAt`; the format change that
+  follows is pending approval, see the epic comment. Rebase again on `develop` once #22 is merged.)* `[shared]` (decision 1; §14) — **blocked by #12**
   Rebase this branch on `develop` once the bulk-scan epic is merged. Check that schema v2
   is exactly what §2.2 assumes (`box.deletedAt`, unique live serial, `delete` /
   `undoDelete`), and that no other schema change landed (e.g. location tombstones from
@@ -40,7 +42,7 @@ independent of each other.
 - [x] **T3 — Kotlin twin of T2 in `:core`** `[android]` [#27] (same)
   The same tests (`@TestFactory` per code-point case, fuzz). No new dependency.
 - [x] **T4 — Archive model, validator, encoder, decoder, v1 reader (Swift)** `[ios]` [#27] (F1–F10, V1–V5; §2, §4)
-  `ArchiveFormat`, `ArchiveLimits`, `ArchivedBox`, `CabinetSnapshot` (`summary`,
+  `ArchiveFormat`, `ArchiveLimits`, `ArchivedBox`, `CabinetContents` (`summary`,
   `needsBackup`), `Archive`, `ArchiveError` / kinds, `ArchiveValidator`, `ArchiveEncoder`
   (validates its own output), `ArchiveDecoder`, `ArchiveV1Reader`, `ArchiveMigrations`.
   *Tests first:* `ArchiveFixtureTests` (one per case), the canonical byte-for-byte golden

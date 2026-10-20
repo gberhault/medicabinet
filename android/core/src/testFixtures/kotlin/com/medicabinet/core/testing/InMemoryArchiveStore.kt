@@ -8,26 +8,26 @@ import com.medicabinet.core.archive.ArchiveDecoder
 import com.medicabinet.core.archive.ArchiveException
 import com.medicabinet.core.archive.BackupReason
 import com.medicabinet.core.archive.CabinetArchiveStore
-import com.medicabinet.core.archive.CabinetSnapshot
+import com.medicabinet.core.archive.CabinetContents
 import java.time.Instant
 
 /**
  * In-memory fake of [CabinetArchiveStore]; also documents the expected behaviour (the contract in
  * [ArchiveStoreContract] runs against it and against every real store).
  */
-class InMemoryArchiveStore(initial: CabinetSnapshot = CabinetSnapshot(emptyList(), emptyList())) : CabinetArchiveStore {
+class InMemoryArchiveStore(initial: CabinetContents = CabinetContents(emptyList(), emptyList())) : CabinetArchiveStore {
     private var cabinet = initial
 
-    override suspend fun snapshot(): CabinetSnapshot = cabinet
+    override suspend fun snapshot(): CabinetContents = cabinet
 
-    override suspend fun replace(snapshot: CabinetSnapshot, beforeReplacing: (CabinetSnapshot) -> Unit) {
+    override suspend fun replace(snapshot: CabinetContents, beforeReplacing: (CabinetContents) -> Unit) {
         beforeReplacing(cabinet)
         requireHoldable(snapshot)
         cabinet = snapshot
     }
 
     /** The constraints a database enforces: unique ids, one default location, boxes in known locations. */
-    private fun requireHoldable(snapshot: CabinetSnapshot) {
+    private fun requireHoldable(snapshot: CabinetContents) {
         val known = snapshot.locations.map { it.id }.toSet()
         val boxIds = snapshot.boxes.map { it.box.id }.toSet()
         val problem = when {

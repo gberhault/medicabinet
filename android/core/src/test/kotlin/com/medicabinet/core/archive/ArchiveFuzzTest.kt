@@ -1,6 +1,6 @@
 package com.medicabinet.core.archive
 
-import com.medicabinet.core.testing.SharedFixtures
+import com.medicabinet.core.testing.ArchiveFixtureFiles
 import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -25,7 +25,7 @@ class ArchiveFuzzTest {
 
     @Test
     fun everyTruncationOfTheGoldenFileIsRefusedExceptTheWholeFile() {
-        val golden = SharedFixtures.goldenArchive()
+        val golden = ArchiveFixtureFiles.goldenArchive()
         // Without its final newline the file is still the same JSON document.
         for (length in 0 until golden.size - 1) {
             assertFalse(accepts(golden.copyOf(length)), "a $length-byte prefix was accepted")
@@ -36,7 +36,7 @@ class ArchiveFuzzTest {
 
     @Test
     fun everySingleByteMutationOfTheGoldenFileIsHandled() {
-        val golden = SharedFixtures.goldenArchive()
+        val golden = ArchiveFixtureFiles.goldenArchive()
         val structural = intArrayOf(0x00, 0x22, 0x5C, 0x7B, 0x7D, 0x2C, 0x3A, 0x30, 0x80, 0xFF)
         val random = Random(99)
         var accepted = 0

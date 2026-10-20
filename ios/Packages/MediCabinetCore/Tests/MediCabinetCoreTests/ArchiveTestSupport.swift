@@ -84,7 +84,7 @@ enum RandomCabinet {
             name: text(1...50, using: &random), platform: ArchiveApp.platforms.randomElement(using: &random) ?? "ios",
             version: text(1...20, using: &random), build: text(1...20, using: &random)
         )
-        return Archive(exportedAt: date(using: &random), app: app, cabinet: CabinetSnapshot(locations: locations, boxes: boxes))
+        return Archive(exportedAt: date(using: &random), app: app, cabinet: CabinetContents(locations: locations, boxes: boxes))
     }
 
     private static func box(_ index: Int, in locations: [Location], using random: inout SeededGenerator) -> ArchivedBox {

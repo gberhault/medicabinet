@@ -4,18 +4,18 @@ import MediCabinetCore
 /// In-memory fake of `CabinetArchiveStore`; also documents the expected behaviour (the contract in
 /// `ArchiveStoreContract` runs against it and against every real store).
 public actor InMemoryArchiveStore: CabinetArchiveStore {
-    private var cabinet: CabinetSnapshot
+    private var cabinet: CabinetContents
 
-    public init(_ cabinet: CabinetSnapshot = CabinetSnapshot(locations: [], boxes: [])) {
+    public init(_ cabinet: CabinetContents = CabinetContents(locations: [], boxes: [])) {
         self.cabinet = cabinet
     }
 
-    public func snapshot() async throws -> CabinetSnapshot {
+    public func snapshot() async throws -> CabinetContents {
         cabinet
     }
 
     public func replace(
-        with snapshot: CabinetSnapshot, beforeReplacing: @Sendable (CabinetSnapshot) throws -> Void
+        with snapshot: CabinetContents, beforeReplacing: @Sendable (CabinetContents) throws -> Void
     ) async throws {
         try beforeReplacing(cabinet)
         try Self.requireHoldable(snapshot)
@@ -23,7 +23,7 @@ public actor InMemoryArchiveStore: CabinetArchiveStore {
     }
 
     /// The constraints a database enforces: unique ids, one default location, boxes in known locations.
-    private static func requireHoldable(_ snapshot: CabinetSnapshot) throws {
+    private static func requireHoldable(_ snapshot: CabinetContents) throws {
         guard Set(snapshot.locations.map(\.id)).count == snapshot.locations.count,
               Set(snapshot.boxes.map(\.box.id)).count == snapshot.boxes.count
         else { throw RepositoryError.duplicate }
