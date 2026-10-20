@@ -36,6 +36,13 @@ struct TransferSection: View {
                 .fileImporter(isPresented: $picking, allowedContentTypes: [.medicabinetArchive, .json]) { result in
                     if case let .success(url) = result { importer.open(url) }
                 }
+                NavigationLink {
+                    BackupsView(transfer: transfer, revision: environment.revision, onRestore: { importer.restore($0) })
+                } label: {
+                    Label("transfer.backups.action", systemImage: "clock.arrow.circlepath")
+                        .frame(minHeight: 44)
+                }
+                .accessibilityIdentifier("transfer.backups")
             }
         } header: {
             Text("transfer.section.title")

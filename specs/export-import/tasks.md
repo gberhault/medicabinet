@@ -128,7 +128,7 @@ independent of each other.
   (the two happen in one transaction, so they cannot be told apart). A failure to read the phone's own
   cabinet while previewing shows `replaceFailed` ("The import failed. Your cabinet was not changed.").
   `transfer.import.wrongFileHint` is Android-only (iOS opens by extension; the picker also lists JSON).
-- [ ] **T15 — Automatic backups and restore** `[ios]` [#29] (B4, B5; §6, flow 7)
+- [x] **T15 — Automatic backups and restore** `[ios]` [#29] (B4, B5; §6, flow 7)
   `BackupsView` (newest first, reason, count, unreadable row, empty state) → restore through
   the import flow (`beforeRestore`). *Tests:* view-model; UI test: import then restore
   brings the first cabinet back.

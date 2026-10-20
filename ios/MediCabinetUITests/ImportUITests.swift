@@ -37,9 +37,17 @@ final class ImportUITests: XCTestCase {
     }
 
     private func openCabinet(_ app: XCUIApplication) {
+        openTab("Cabinet", in: app)
+    }
+
+    /// Once the import flow has slid away.
+    private func openTab(_ name: String, in app: XCUIApplication) {
+        let gone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"), object: app.otherElements["transfer.import.screen"])
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed, "the import flow closes")
         let bar = app.tabBars.firstMatch
         XCTAssertTrue(bar.waitForExistence(timeout: 10))
-        bar.buttons["Cabinet"].tap()
+        bar.buttons[name].tap()
     }
 
     /// A file only this test writes, in a folder the app can read.
@@ -107,5 +115,35 @@ final class ImportUITests: XCTestCase {
         XCTAssertFalse(app.buttons["transfer.import.retry"].exists, "a refused file cannot be retried")
         app.buttons["transfer.import.close"].tap()
         XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 5))
+    }
+    func testRestoringTheAutomaticBackupBringsTheFirstCabinetBack() {
+        let app = launch(opening: Self.golden, seed: seed)
+        let replace = app.buttons["transfer.import.replace"]
+        XCTAssertTrue(replace.waitForExistence(timeout: 15))
+        replace.tap()
+        app.buttons.matching(NSPredicate(format: "label == %@", "Replace")).firstMatch.tap()
+        XCTAssertTrue(app.buttons["transfer.import.done.close"].waitForExistence(timeout: 10))
+        app.buttons["transfer.import.done.close"].tap()
+
+        openTab("Settings", in: app)
+        let backups = app.buttons["transfer.backups"]
+        XCTAssertTrue(backups.waitForExistence(timeout: 5))
+        backups.tap()
+        XCTAssertTrue(app.staticTexts["Before an import"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["1 box"].exists, "the backup holds the seeded cabinet")
+        app.buttons["transfer.backups.restore"].firstMatch.tap()
+
+        let restore = app.buttons["transfer.import.replace"]
+        XCTAssertTrue(restore.waitForExistence(timeout: 15))
+        XCTAssertTrue(text(app, containing: "Restore the backup of").exists, "the preview says it is a restore")
+        restore.tap()
+        app.buttons.matching(NSPredicate(format: "label == %@", "Replace")).firstMatch.tap()
+        XCTAssertTrue(app.buttons["transfer.import.done.close"].waitForExistence(timeout: 10))
+        app.buttons["transfer.import.done.close"].tap()
+
+        XCTAssertTrue(app.staticTexts["Before a restore"].waitForExistence(timeout: 10), "the restore backed up the import")
+        openCabinet(app)
+        XCTAssertTrue(text(app, containing: "Aspirin Test").waitForExistence(timeout: 10))
+        XCTAssertFalse(text(app, containing: "DOLIPRANE").exists)
     }
 }
