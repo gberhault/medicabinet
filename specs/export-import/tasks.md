@@ -95,11 +95,15 @@ independent of each other.
   offer no transfer). The launch cleanup runs once bootstrap ends, so a file opened at launch is kept
   (T13 passes it in). Only the scan session needs the revision: every other screen observes the
   repositories, which follow the replace by themselves.
-- [ ] **T12 — Export** `[ios]` [#28] (E1–E9, X1, X4; §6, flow 1)
+- [x] **T12 — Export** `[ios]` [#28] (E1–E9, X1, X4; §6, flow 1)
   `TransferSection` in Settings, `ExportViewModel`, `ExportSummaryView` (counts, warning,
   empty cabinet), `ActivityView` with temp-file deletion, error + **Try again**. Strings
   (fr + en). *Tests:* view-model states (cancel exports nothing, failure → retry, temp
   deleted on completion); UI test: the warning is shown before the share sheet.
+  Done 2026-10-20: the share sheet is presented by UIKit (`SharePresenter`), because its completion is
+  the one reliable "share ended" signal, cancel included; "File saved" is shown for Save to Files only
+  (other apps confirm their own sharing) and reuses `transfer.import.done.close` as its Done button.
+  `transfer.export.saveToFile` / `.share` are Android-only (the iOS share sheet has both).
 - [ ] **T13 — Document type, open-with and coordinator** `[ios]` [#28, #29] (O1, O4, O5; §1.4, §6)
   `UTType+Archive`, `project.yml` Info.plist keys (`UTExportedTypeDeclarations`,
   `CFBundleDocumentTypes`, `LSSupportsOpeningDocumentsInPlace = NO`), localized type name;

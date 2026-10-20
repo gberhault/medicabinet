@@ -10,4 +10,6 @@ enum Log {
     static let persistence = Logger(subsystem: subsystem, category: "persistence")
     static let reference = Logger(subsystem: subsystem, category: "reference")
     static let reminders = Logger(subsystem: subsystem, category: "reminders")
+    /// Export, import and backups: the stage and the error kind only, never file contents.
+    static let archive = Logger(subsystem: subsystem, category: "archive")
 }

@@ -28,6 +28,9 @@ struct SettingsView: View {
                     Label("settings.locations", systemImage: "mappin.and.ellipse")
                 }
                 .accessibilityIdentifier("settings.locations")
+                if let environment, let transfer = environment.transfer {
+                    TransferSection(environment: environment, transfer: transfer)
+                }
                 if let environment {
                     ExpirySettingsSection(preferences: environment.preferences)
                 }

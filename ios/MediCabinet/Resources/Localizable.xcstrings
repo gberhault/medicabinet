@@ -4169,6 +4169,350 @@
         }
       }
     },
+    "transfer.export.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export the cabinet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporter l'armoire"
+          }
+        }
+      }
+    },
+    "transfer.export.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        }
+      }
+    },
+    "transfer.export.continue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer"
+          }
+        }
+      }
+    },
+    "transfer.export.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The file could not be created. Your cabinet was not changed."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le fichier n'a pas pu être créé. Votre armoire n'a pas été modifiée."
+          }
+        }
+      }
+    },
+    "transfer.export.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing the export…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préparation de l'export…"
+          }
+        }
+      }
+    },
+    "transfer.export.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer"
+          }
+        }
+      }
+    },
+    "transfer.export.saved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File saved"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichier enregistré"
+          }
+        }
+      }
+    },
+    "transfer.export.summary.boxes": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld box in the cabinet"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boxes in the cabinet"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîte dans l'armoire"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîtes dans l'armoire"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "transfer.export.summary.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The cabinet has no box. The file will hold the locations only."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'armoire ne contient aucune boîte. Le fichier contiendra seulement les lieux."
+          }
+        }
+      }
+    },
+    "transfer.export.summary.locations": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld location"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld locations"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld lieu"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld lieux"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "transfer.export.summary.removed": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld removed box (history)"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld removed boxes (history)"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîte retirée (historique)"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîtes retirées (historique)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "transfer.export.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export the cabinet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporter l'armoire"
+          }
+        }
+      }
+    },
+    "transfer.export.warning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file contains health data (your medicines). It is not encrypted: anyone who gets it can read it. Share it only with people you trust."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce fichier contient des données de santé (vos médicaments). Il n'est pas chiffré : toute personne qui l'obtient peut le lire. Ne le partagez qu'avec des personnes de confiance."
+          }
+        }
+      }
+    },
+    "transfer.export.writing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creating the file…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Création du fichier…"
+          }
+        }
+      }
+    },
+    "transfer.import.done.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminé"
+          }
+        }
+      }
+    },
+    "transfer.section.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A .medicabinet file holds the whole cabinet. Use it as a backup or to move to another phone, iPhone or Android."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un fichier .medicabinet contient toute l'armoire. Il sert de sauvegarde ou à passer sur un autre téléphone, iPhone ou Android."
+          }
+        }
+      }
+    },
+    "transfer.section.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup and transfer"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sauvegarde et transfert"
+          }
+        }
+      }
+    },
     "undo.action": {
       "localizations": {
         "en": {
