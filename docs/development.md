@@ -37,7 +37,7 @@ generated from `ios/project.yml` and not committed. Never commit keystores or `l
 ```bash
 bash scripts/local-ci.sh                 # everything: shared checks + iOS gate + Android gate (mandatory before a PR)
 bash scripts/local-ci.sh shared|ios|android     # one part
-bash scripts/ios-local-ci.sh             # iOS gate only
+bash scripts/ios-local-ci.sh             # iOS gate only (IOS_SIMULATOR_ID=<udid> pins the simulator)
 bash scripts/android-local-ci.sh         # Android gate only
 
 swift test --package-path ios/Packages/MediCabinetCore      # iOS core tests (fast, no simulator)

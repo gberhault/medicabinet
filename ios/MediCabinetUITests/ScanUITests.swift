@@ -251,6 +251,18 @@ final class ScanUITests: XCTestCase {
         XCTAssertEqual(app.staticTexts["summary.thrownAway"].label, "0 boxes thrown away")
     }
 
+    func testRemoveModeRemainsUsableAtTheLargestTextSizeInDarkMode() {
+        let app = launch(
+            access: "authorized", extra: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
+                                          "-AppleInterfaceStyle", "Dark"]
+        )
+        selectMode(app, "Remove")
+        XCTAssertTrue(app.buttons["scan.count"].waitForExistence(timeout: 15))
+        for id in ["scan.count", "scan.done", "scan.sound", "scan.removal.reason"] {
+            XCTAssertTrue(app.buttons[id].isHittable, "\(id) is not hittable at the largest text size")
+        }
+    }
+
     func testTheScannerRemainsUsableAtTheLargestTextSizeInDarkMode() {
         let app = launch(
             access: "authorized", extra: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
