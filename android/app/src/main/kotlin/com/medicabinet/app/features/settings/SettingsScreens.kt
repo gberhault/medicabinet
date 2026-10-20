@@ -41,18 +41,20 @@ fun SettingsScreen(
     onOpenAbout: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenLocations: () -> Unit = {},
+    expirySection: @Composable () -> Unit = {},
     extraRows: @Composable () -> Unit = {}
 ) {
     Scaffold(
         modifier = modifier,
         topBar = { TopAppBar(title = { Text(stringResource(R.string.settings_title)) }) }
     ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize()) {
+        Column(Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState())) {
             ListItem(
                 headlineContent = { Text(stringResource(R.string.settings_locations)) },
                 leadingContent = { Icon(Icons.Outlined.Place, contentDescription = null) },
                 modifier = Modifier.clickable(onClick = onOpenLocations).testTag("settings.locations")
             )
+            expirySection()
             ListItem(
                 headlineContent = { Text(stringResource(R.string.settings_about)) },
                 leadingContent = { Icon(Icons.Outlined.Info, contentDescription = null) },

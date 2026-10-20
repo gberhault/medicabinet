@@ -47,6 +47,7 @@ import com.medicabinet.app.features.scan.camera.debugRoutes
 import com.medicabinet.app.features.settings.AboutScreen
 import com.medicabinet.app.features.settings.AboutViewModel
 import com.medicabinet.app.features.settings.AppInfo
+import com.medicabinet.app.features.settings.ExpiryWindowSetting
 import com.medicabinet.app.features.settings.PackageAppInfo
 import com.medicabinet.app.features.settings.SettingsScreen
 import com.medicabinet.app.features.settings.locations.LocationsRoute
@@ -155,6 +156,7 @@ private fun MainNavHost(
                 SettingsScreen(
                     onOpenAbout = { navController.navigate(SETTINGS_ABOUT) },
                     onOpenLocations = { navController.navigate(SETTINGS_LOCATIONS) },
+                    expirySection = { ExpiryWindowSetting(environment.expiryPreferences) },
                     extraRows = { DebugSettingsRow { navController.navigate(DEBUG_ROUTE) } }
                 )
             }

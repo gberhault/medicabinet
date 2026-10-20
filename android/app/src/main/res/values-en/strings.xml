@@ -238,4 +238,7 @@
     <string name="expiry_status_expiringSoon">Expiring soon</string>
     <string name="expiry_status_ok">OK</string>
     <string name="expiry_status_unknown">Expiry unknown</string>
+    <string name="settings_expiryWindow_title">Expiring soon</string>
+    <string name="settings_expiryWindow_footer">Boxes expiring within this many days are shown as expiring soon.</string>
+    <string name="settings_expiryWindow_option">%1$d days</string>
 </resources>

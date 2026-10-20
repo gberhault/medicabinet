@@ -11,6 +11,7 @@ import com.medicabinet.core.cabinet.CabinetFilter
 import com.medicabinet.core.cabinet.CabinetRows
 import com.medicabinet.core.cabinet.CabinetSnapshot
 import com.medicabinet.core.expiry.CalendarDay
+import com.medicabinet.core.expiry.ExpiryWindow
 import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +46,9 @@ sealed interface CabinetUiState {
         val locations: List<Location>,
         val isCabinetEmpty: Boolean,
         /** The day the statuses were evaluated for. */
-        val today: CalendarDay
+        val today: CalendarDay,
+        /** The "expiring soon" window they were evaluated with: a new window is a new state. */
+        val window: ExpiryWindow
     ) : CabinetUiState
 
     data object Failed : CabinetUiState
@@ -65,7 +68,6 @@ class CabinetViewModel(
     private val environment: AppEnvironment,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
-    private val ticker = DayTicker(environment.clock, environment.zone)
     private val queryInput = MutableStateFlow("")
     private val locationFilter = MutableStateFlow<UUID?>(null)
     private val statusFilter = MutableStateFlow<ExpiryStatus?>(null)
@@ -121,7 +123,11 @@ class CabinetViewModel(
         val filters = combine(searchText(), locationFilter, statusFilter) { query, location, status ->
             CabinetFilter(query, location, status)
         }
-        val days = foreground.flatMapLatest { ticker.days() }
+        // Statuses depend on today and on the "expiring soon" window: either changing evaluates them again.
+        val days = combine(
+            foreground.flatMapLatest { environment.todaySource.days() },
+            environment.expiryPreferences.windowChanges()
+        ) { today, _ -> today }
         val boxes = environment.boxes.observeCabinet()
         val locations = environment.locations.observeAll()
         return combine(boxes, locations, filters, days, ::Source)
@@ -150,7 +156,8 @@ class CabinetViewModel(
             filter,
             source.locations,
             isCabinetEmpty = source.boxes.isEmpty(),
-            today = source.today
+            today = source.today,
+            window = environment.expiryWindow
         )
     }
 }

@@ -238,4 +238,7 @@
     <string name="expiry_status_expiringSoon">Bientôt périmé</string>
     <string name="expiry_status_ok">OK</string>
     <string name="expiry_status_unknown">Péremption inconnue</string>
+    <string name="settings_expiryWindow_title">Bientôt périmé</string>
+    <string name="settings_expiryWindow_footer">Les boîtes qui périment dans ce nombre de jours sont affichées comme bientôt périmées.</string>
+    <string name="settings_expiryWindow_option">%1$d jours</string>
 </resources>

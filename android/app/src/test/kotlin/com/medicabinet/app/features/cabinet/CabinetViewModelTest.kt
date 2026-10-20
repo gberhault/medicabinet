@@ -2,8 +2,10 @@ package com.medicabinet.app.features.cabinet
 
 import app.cash.turbine.test
 import com.medicabinet.core.CategoryID
+import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.ExpiryStatus
 import com.medicabinet.core.cabinet.ProductKey
+import com.medicabinet.core.expiry.ExpiryWindow
 import java.time.Duration
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -274,6 +276,23 @@ class CabinetViewModelTest {
             assertEquals(CabinetUiState.Loading, awaitItem())
             testScheduler.advanceTimeBy(1)
             assertIs<CabinetUiState.Loaded>(awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun aNewExpiryWindowEvaluatesTheStatusesAgain() = runTest {
+        kit.open()
+        // 45 days left on 2027-01-15: expiring soon in a 60-day window, fine in a 30-day one.
+        kit.box("Doliprane", CabinetTestKit.DOLIPRANE, ExpiryDate.of(2027, 3, 1))
+        model().state.test {
+            val first = loaded()
+            assertEquals(ExpiryStatus.EXPIRING_SOON, first.snapshot.sections.single().rows.single().status)
+            assertEquals(ExpiryWindow.DAYS_60, first.window)
+            kit.environment.expiryPreferences.window = ExpiryWindow.DAYS_30
+            val second = loaded()
+            assertEquals(ExpiryStatus.OK, second.snapshot.sections.single().rows.single().status)
+            assertEquals(ExpiryWindow.DAYS_30, second.window)
             cancelAndIgnoreRemainingEvents()
         }
     }

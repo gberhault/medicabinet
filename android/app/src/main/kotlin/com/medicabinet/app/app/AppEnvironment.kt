@@ -17,9 +17,9 @@ import java.time.ZoneId
  * Everything the UI layer needs, built once at launch. Screens see repository interfaces only. [reference] is the
  * bundled BDPM data; it is opened lazily, never during launch.
  *
- * [zone] turns the [clock]'s instant into "today" (the device time zone). [expiryStatus] is the core expiry rule bound
- * to the "expiring soon" window (the named default until the setting exists); [categoryOrder] is the taxonomy's order
- * of the Cabinet sections.
+ * [zone] turns the [clock]'s instant into "today" (the device time zone); [todaySource] says when "today" changes.
+ * [expiryPreferences] holds the "expiring soon" window and the reminder choices. [categoryOrder] is the taxonomy's
+ * order of the Cabinet sections.
  */
 class AppEnvironment(
     val locations: LocationRepository,
@@ -27,11 +27,21 @@ class AppEnvironment(
     val clock: Clock,
     val reference: ReferenceDataSource,
     val zone: ZoneId = ZoneId.systemDefault(),
+    val categoryOrder: List<CategoryID> = Taxonomy.ordered,
+    val expiryPreferences: ExpiryPreferences = InMemoryExpiryPreferences(),
+    val todaySource: TodaySource = DayTicker(clock, zone)
+) {
+    /** The "expiring soon" window right now (the user's setting). */
+    val expiryWindow: ExpiryWindow get() = expiryPreferences.window
+
+    /**
+     * The core expiry rule bound to the current window. It reads the setting at call time; the screens that show
+     * statuses also follow `expiryPreferences.windowChanges()`, so they evaluate again when the setting changes.
+     */
     val expiryStatus: (ExpiryDate?, CalendarDay) -> ExpiryStatus = { expiry, today ->
-        ExpiryRule.assess(expiry, today, ExpiryWindow.DEFAULT).status
-    },
-    val categoryOrder: List<CategoryID> = Taxonomy.ordered
-)
+        ExpiryRule.assess(expiry, today, expiryWindow).status
+    }
+}
 
 enum class BootstrapFailure {
     /** The database could not be opened, read or written (e.g. no disk space, unreadable file). */
