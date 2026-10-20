@@ -1,6 +1,8 @@
 package com.medicabinet.app.app
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -78,6 +80,6 @@ class RootScreenTest {
         val environment = AppEnvironment(store, store, com.medicabinet.core.SystemClock, reference)
         val viewModel = BootstrapViewModel { BootstrapState.Ready(environment) }
         compose.setContent { MediCabinetTheme { RootScreen(viewModel) } }
-        compose.onNodeWithText("Cabinet").assertIsDisplayed()
+        compose.onNode(hasText("Cabinet") and isSelectable()).assertIsDisplayed()
     }
 }

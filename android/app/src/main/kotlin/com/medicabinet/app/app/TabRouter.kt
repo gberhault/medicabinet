@@ -10,7 +10,12 @@ enum class AppTab(val route: String) {
     SCAN("scan"),
     CABINET("cabinet"),
     EXPIRING("expiring"),
-    SETTINGS("settings")
+    SETTINGS("settings");
+
+    companion object {
+        /** The tab the app opens on: the cabinet, not the camera (which only starts once the Scan tab is shown). */
+        val LAUNCH = CABINET
+    }
 }
 
 /**

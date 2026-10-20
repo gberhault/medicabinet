@@ -5,6 +5,12 @@ import kotlin.test.assertNull
 import org.junit.Test
 
 class TabRouterTest {
+    // Issue #53: the app opens on the cabinet; the camera only starts once the Scan tab is shown.
+    @Test
+    fun theLaunchTabIsTheCabinet() {
+        assertEquals(AppTab.CABINET, AppTab.LAUNCH)
+    }
+
     @Test
     fun aRequestIsKeptUntilTheMainScreenConsumesIt() {
         val router = TabRouter()

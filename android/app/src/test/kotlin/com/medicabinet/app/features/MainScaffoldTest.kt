@@ -4,6 +4,8 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -45,17 +47,30 @@ class MainScaffoldTest {
         MediCabinetTheme(darkTheme = dark) { MainScaffold(testEnvironment(), scanServices = testScanServices()) }
     }
 
+    /** A bottom-bar item (the Cabinet screen has a title with the same word). */
+    private fun tab(name: String) = compose.onNode(hasText(name) and isSelectable())
+
     @Test
     fun fourDestinationsAreShown() {
         show()
-        listOf("Scan", "Cabinet", "Expiring", "Settings").forEach { compose.onNodeWithText(it).assertIsDisplayed() }
+        listOf("Scan", "Cabinet", "Expiring", "Settings").forEach { tab(it).assertIsDisplayed() }
+    }
+
+    // Issue #53: the app opens on the Cabinet, and the camera screen is not even composed until Scan is opened.
+    @Test
+    fun theCabinetIsTheStartDestinationAndTheScannerWaitsForItsTab() {
+        show()
+        waitForText("The cabinet is empty")
+        tab("Cabinet").assertIsSelected()
+        assertEquals(0, compose.onAllNodesWithTag("scan.permission.allow").fetchSemanticsNodes().size)
+        compose.onNodeWithText("Scan").performClick()
+        compose.onNodeWithText("Allow the camera").assertIsDisplayed()
+        tab("Scan").assertIsSelected()
     }
 
     @Test
-    fun scanIsTheStartDestinationTheCabinetShowsItsEmptyStateAndUnbuiltFeaturesExplainThemselves() {
+    fun theTabsExplainThemselvesWhenThereIsNothingToShow() {
         show()
-        compose.onNodeWithText("Allow the camera").assertIsDisplayed()
-        compose.onNodeWithText("Cabinet").performClick()
         waitForText("The cabinet is empty")
         compose.onNodeWithText("Expiring").performClick()
         waitForText("All clear")
@@ -74,7 +89,7 @@ class MainScaffoldTest {
         compose.setContent {
             MediCabinetTheme { MainScaffold(kit.environment, scanServices = testScanServices()) }
         }
-        // Still on the Scan tab: the badge is live, and says two boxes (the unknown one is not counted).
+        // Still on the start tab (Cabinet): the badge is live, and says two boxes (the unknown one is not counted).
         waitForTabDescription("Expiring, 2 boxes need attention", present = true)
         compose.onNodeWithText("2", useUnmergedTree = true).assertIsDisplayed()
         runBlocking {
@@ -147,9 +162,21 @@ class MainScaffoldTest {
         compose.setContent {
             MediCabinetTheme { MainScaffold(testEnvironment(), scanServices = testScanServices(), tabRouter = router) }
         }
-        compose.onNodeWithText("Allow the camera").assertIsDisplayed()
+        waitForText("The cabinet is empty")
         router.select(AppTab.EXPIRING)
         waitForText("All clear")
+        assertNull(router.requested.value)
+    }
+
+    @Test
+    fun aTabRequestMadeBeforeTheScreenExistsWinsOverTheStartTab() {
+        val router = TabRouter()
+        router.select(AppTab.EXPIRING)
+        compose.setContent {
+            MediCabinetTheme { MainScaffold(testEnvironment(), scanServices = testScanServices(), tabRouter = router) }
+        }
+        waitForText("All clear")
+        tab("Expiring").assertIsSelected()
         assertNull(router.requested.value)
     }
 
@@ -167,9 +194,8 @@ class MainScaffoldTest {
         RuntimeEnvironment.setFontScale(2f)
         show(dark = true)
         listOf("Scan", "Cabinet", "Expiring", "Settings").forEach {
-            compose.onNodeWithText(it).assertIsDisplayed().assertHasClickAction()
+            tab(it).assertIsDisplayed().assertHasClickAction()
         }
-        compose.onNodeWithText("Cabinet").performClick()
         waitForText("The cabinet is empty")
     }
 
@@ -197,8 +223,9 @@ class MainScaffoldFrenchTest {
     fun theSameDestinationsAreShownInFrench() {
         compose.setContent { MediCabinetTheme { MainScaffold(testEnvironment(), scanServices = testScanServices()) } }
         listOf("Scanner", "Armoire", "Péremptions", "Réglages").forEach {
-            compose.onNodeWithText(it).assertIsDisplayed()
+            compose.onNode(hasText(it) and isSelectable()).assertIsDisplayed()
         }
+        compose.onNodeWithText("Scanner").performClick()
         compose.onNodeWithTag("scan.permission.allow").assertIsDisplayed()
     }
 }
