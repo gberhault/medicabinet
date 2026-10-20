@@ -545,6 +545,70 @@
         }
       }
     },
+    "box.leaflet.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens in the browser"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre dans le navigateur"
+          }
+        }
+      }
+    },
+    "box.leaflet.note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page of the French public medicines database, opened in the browser."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page de la base de données publique des médicaments, ouverte dans le navigateur."
+          }
+        }
+      }
+    },
+    "box.leaflet.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Official page and leaflet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fiche officielle et notice"
+          }
+        }
+      }
+    },
+    "box.leaflet.openFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The page could not be opened."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La page n'a pas pu être ouverte."
+          }
+        }
+      }
+    },
     "box.location": {
       "localizations": {
         "en": {

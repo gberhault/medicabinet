@@ -197,6 +197,10 @@
     <string name="box_edit_title">Edit box</string>
     <string name="box_error">Can\'t save the change.</string>
     <string name="box_expiry">Expiry</string>
+    <string name="box_leaflet_hint">Opens in the browser</string>
+    <string name="box_leaflet_note">Page of the French public medicines database, opened in the browser.</string>
+    <string name="box_leaflet_open">Official page and leaflet</string>
+    <string name="box_leaflet_openFailed">The page could not be opened.</string>
     <string name="box_location">Location</string>
     <string name="box_lot">Lot</string>
     <string name="box_noCode">No code</string>

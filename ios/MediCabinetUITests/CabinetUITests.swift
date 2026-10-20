@@ -248,3 +248,74 @@ private extension XCUIElement {
         if !text.isEmpty { typeText(text) }
     }
 }
+
+/// The official-page link of box detail (#56). The UI tests run on the real bundled reference database: a real
+/// Doliprane code is known, a parapharmacy code and a box without a code are not.
+final class BoxLeafletUITests: XCTestCase {
+    private static let seed = """
+    [{"name":"Doliprane 1000","gtin":"03400935955838","category":"pain-fever","expiryInDays":300},
+     {"name":"Arnica cream","gtin":"03401900000003","expiryInDays":300},
+     {"name":"Thermometer","category":"first-aid"}]
+    """
+
+    override func setUp() {
+        continueAfterFailure = false
+    }
+
+    @MainActor
+    private func openDetail(_ name: String, extra: [String] = []) -> XCUIApplication {
+        let app = CabinetUI.launch(extra: extra, seed: Self.seed)
+        CabinetUI.row(app, name).tap()
+        XCTAssertTrue(app.staticTexts["box.name"].waitForExistence(timeout: 10))
+        return app
+    }
+
+    /// The list is lazy: the link sits below the information and may need a scroll to exist on screen.
+    /// The link carries the link trait, so XCUITest reports it as a link, not a button.
+    @MainActor
+    private func leafletLink(_ app: XCUIApplication) -> XCUIElement {
+        app.descendants(matching: .any).matching(identifier: "box.leaflet").firstMatch
+    }
+
+    @MainActor
+    private func reveal(_ link: XCUIElement, in app: XCUIApplication) {
+        _ = link.waitForExistence(timeout: 10)
+        for _ in 0..<8 where !(link.exists && link.isHittable) { app.swipeUp() }
+    }
+
+    @MainActor
+    func testAKnownMedicineOffersItsOfficialPageBelowTheInformation() {
+        let app = openDetail("Doliprane")
+        let link = leafletLink(app)
+        reveal(link, in: app)
+        XCTAssertTrue(link.exists, "the link appears once the code has been looked up")
+        XCTAssertEqual(link.elementType, .link, "read by VoiceOver as a link")
+        XCTAssertEqual(link.label, "Official page and leaflet")
+        XCTAssertGreaterThanOrEqual(link.frame.height, 44 - 1)
+        XCTAssertTrue(link.isHittable)
+        XCTAssertLessThan(link.frame.maxY, app.buttons["box.remove.usedUp"].frame.minY, "above the take-out actions")
+        XCTAssertTrue(app.staticTexts["Page of the French public medicines database, opened in the browser."].exists)
+    }
+
+    @MainActor
+    func testAParapharmacyBoxAndABoxWithoutACodeOfferNoLink() {
+        for name in ["Arnica cream", "Thermometer"] {
+            let app = openDetail(name)
+            XCTAssertTrue(app.buttons["box.remove.usedUp"].exists)
+            Thread.sleep(forTimeInterval: 1)
+            XCTAssertFalse(leafletLink(app).exists, "\(name) has no official page")
+            app.terminate()
+        }
+    }
+
+    @MainActor
+    func testTheLinkStaysReachableAtTheLargestTextSize() {
+        let app = openDetail("Doliprane", extra: [
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"
+        ])
+        let link = leafletLink(app)
+        reveal(link, in: app)
+        XCTAssertTrue(link.isHittable)
+        XCTAssertLessThanOrEqual(link.frame.maxX, app.frame.maxX)
+    }
+}

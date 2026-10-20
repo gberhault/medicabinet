@@ -197,6 +197,10 @@
     <string name="box_edit_title">Modifier la boîte</string>
     <string name="box_error">Impossible d\'enregistrer la modification.</string>
     <string name="box_expiry">Péremption</string>
+    <string name="box_leaflet_hint">Ouvre dans le navigateur</string>
+    <string name="box_leaflet_note">Page de la base de données publique des médicaments, ouverte dans le navigateur.</string>
+    <string name="box_leaflet_open">Fiche officielle et notice</string>
+    <string name="box_leaflet_openFailed">La page n\'a pas pu être ouverte.</string>
     <string name="box_location">Lieu</string>
     <string name="box_lot">Lot</string>
     <string name="box_noCode">Pas de code</string>
