@@ -41,3 +41,7 @@ android/captures/
 *.keystore
 .idea/
 android/gradle/gradle-daemon-jvm.properties
+
+# Python bytecode (the build scripts and their tests run under python3)
+__pycache__/
+*.pyc
