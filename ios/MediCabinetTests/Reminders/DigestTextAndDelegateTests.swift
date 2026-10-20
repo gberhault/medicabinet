@@ -88,7 +88,7 @@ private final class Taps {
     @Test func aTapRoutesToTheExpiringTabThroughTheRouter() async {
         let router = TabRouter()
         let delegate = ReminderNotificationDelegate(openExpiring: { router.select(.expiring) })
-        #expect(router.selection == .scan)
+        #expect(router.selection == .cabinet)
         await delegate.handleTap(on: NotificationIDs.digestPrefix + "2027-04")
         #expect(router.selection == .expiring)
     }
