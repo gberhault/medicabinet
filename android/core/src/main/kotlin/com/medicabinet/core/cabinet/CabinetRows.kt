@@ -104,6 +104,8 @@ object CabinetRows {
 
     private class Entry(val row: ProductRow, val firstBoxId: String)
 
+    private class NamedRow(val row: ProductRow, val key: String, val firstBoxId: String)
+
     private data class CategoryRank(val bucket: Int, val index: Int, val key: String) : Comparable<CategoryRank> {
         override fun compareTo(other: CategoryRank): Int = when {
             bucket != other.bucket -> bucket.compareTo(other.bucket)
@@ -126,9 +128,8 @@ object CabinetRows {
         }
         val mostUrgent = ordered.map { it.second }.minByOrNull { ExpiryUrgency.rank(it) } ?: ExpiryStatus.UNKNOWN
         val earliest = ordered.mapNotNull { it.first.expiry }.minOrNull()
-        val row = ProductRow(
-            id, newest.product.name, newest.product.name, ordered.map { it.first }, mostUrgent, earliest
-        )
+        val name = newest.product.name
+        val row = ProductRow(id, name, name, ordered.map { it.first }, mostUrgent, earliest)
         return Entry(row, BoxOrdering.idKey(ordered.first().first))
     }
 
@@ -140,17 +141,15 @@ object CabinetRows {
     private fun orderedRows(entries: List<Entry>): List<ProductRow> {
         val shortNames = entries.map { ShortName.of(it.row.name) }
         val sharing = shortNames.groupingBy { TextNormalizer.normalize(it) }.eachCount()
-        return entries.zip(shortNames)
-            .map { (entry, short) ->
-                val shared = (sharing[TextNormalizer.normalize(short)] ?: 0) > 1
-                val displayName = if (shared) entry.row.name else short
-                Triple(entry.row.copy(displayName = displayName), TextNormalizer.normalize(displayName), entry.firstBoxId)
-            }
-            .sortedWith { left, right ->
-                val byName = TextNormalizer.compare(left.second, right.second)
-                if (byName != 0) byName else TextNormalizer.compare(left.third, right.third)
-            }
-            .map { it.first }
+        val named = entries.zip(shortNames).map { (entry, short) ->
+            val shared = (sharing[TextNormalizer.normalize(short)] ?: 0) > 1
+            val displayName = if (shared) entry.row.name else short
+            NamedRow(entry.row.copy(displayName = displayName), TextNormalizer.normalize(displayName), entry.firstBoxId)
+        }
+        return named.sortedWith { left, right ->
+            val byName = TextNormalizer.compare(left.key, right.key)
+            if (byName != 0) byName else TextNormalizer.compare(left.firstBoxId, right.firstBoxId)
+        }.map { it.row }
     }
 
     private fun categoryRank(order: List<CategoryID>): (CategoryID) -> CategoryRank {
