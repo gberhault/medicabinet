@@ -26,6 +26,22 @@ extension Location {
     }
 }
 
+extension NamedProduct {
+    func with(createdAt: Date) -> NamedProduct {
+        NamedProduct(
+            id: id, gtin: gtin, name: name, category: category, categoryOverridden: categoryOverridden, createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+
+    func with(gtin: String) -> NamedProduct {
+        NamedProduct(
+            id: id, gtin: gtin, name: name, category: category, categoryOverridden: categoryOverridden, createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+}
+
 extension Box {
     func with(createdAt: Date) -> Box {
         Box(
@@ -87,7 +103,23 @@ enum RandomCabinet {
             name: text(1...50, using: &random), platform: ArchiveApp.platforms.randomElement(using: &random) ?? "ios",
             version: text(1...20, using: &random), build: text(1...20, using: &random)
         )
-        return Archive(exportedAt: date(using: &random), app: app, cabinet: CabinetContents(locations: locations, boxes: boxes))
+        let cabinet = CabinetContents(locations: locations, boxes: boxes, namedProducts: namedProducts(using: &random))
+        return Archive(exportedAt: date(using: &random), app: app, cabinet: cabinet)
+    }
+
+    /// Named products with a few repeated GTINs: at most one live product per GTIN, any number of forgotten ones.
+    private static func namedProducts(using random: inout SeededGenerator) -> [ArchivedNamedProduct] {
+        var liveGTINs = Set<String>()
+        return (0..<Int.random(in: 0...12, using: &random)).map { _ in
+            let gtin = String(format: "%014d", Int.random(in: 0..<6, using: &random))
+            let isForgotten = !liveGTINs.insert(gtin).inserted || Bool.random(using: &random)
+            let product = NamedProduct(
+                id: id(using: &random), gtin: gtin, name: text(1...200, using: &random),
+                category: CategoryID(rawValue: text(1...100, using: &random)), categoryOverridden: Bool.random(using: &random),
+                createdAt: date(using: &random), updatedAt: date(using: &random)
+            )
+            return ArchivedNamedProduct(product: product, deletedAt: isForgotten ? date(using: &random) : nil)
+        }
     }
 
     private static func box(_ index: Int, in locations: [ArchivedLocation], using random: inout SeededGenerator) -> ArchivedBox {

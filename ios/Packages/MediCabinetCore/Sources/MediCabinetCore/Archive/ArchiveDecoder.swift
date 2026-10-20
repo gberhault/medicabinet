@@ -5,7 +5,7 @@ import Foundation
 public enum ArchiveDecoder {
     /// One reader per `formatVersion`, index 0 being version 1. A reader is never edited once shipped (F9);
     /// a new version appends its reader, and migrates what it reads into the current model there.
-    static let readers: [any ArchiveVersionReader.Type] = [ArchiveV1Reader.self]
+    static let readers: [any ArchiveVersionReader.Type] = [ArchiveV1Reader.self, ArchiveV2Reader.self]
 
     public static func decode(_ bytes: [UInt8], limits: ArchiveLimits = .default) throws(ArchiveError) -> Archive {
         guard bytes.count <= limits.maxFileBytes else { throw ArchiveError(.tooLarge) }
@@ -15,7 +15,11 @@ public enum ArchiveDecoder {
         try reader.finish()
         let archive = Archive(
             exportedAt: body.exportedAt, app: body.app,
-            cabinet: CabinetContents(locations: body.locations, boxes: body.boxes), sourceFormatVersion: version
+            cabinet: CabinetContents(
+                locations: body.locations, boxes: body.boxes, namedProducts: body.namedProducts,
+                namedProductsNeedFill: body.namedProductsNeedFill
+            ),
+            sourceFormatVersion: version
         )
         try ArchiveValidator.validate(archive, limits: limits)
         return archive

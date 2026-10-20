@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "description": "Archive decode cases for both cores. A case has `file` (path under fixtures/), `content` (inline text), `contentBase64` (bytes) or `generate` ({fileBytes: n} = n spaces; {locations, boxes} = a synthetic valid archive). `expect` is either {summary, needsBackup} or {error: {kind, path}}; path is null when the error has no field (syntax, size, version). Paths hold keys and indexes only. unknownExpiry counts boxes in the cabinet (not removed, not deleted) without an expiry.",
+  "description": "Archive decode cases for both cores. A case has `file` (path under fixtures/), `content` (inline text), `contentBase64` (bytes) or `generate` ({fileBytes: n} = n spaces; {locations, boxes} = a synthetic valid formatVersion 1 archive; {locations, boxes, namedProducts} = a synthetic valid formatVersion 2 archive, see fixtures/README.md). `expect` is either {summary, needsBackup} or {error: {kind, path}}; path is null when the error has no field (syntax, size, version). Paths hold keys and indexes only. unknownExpiry counts boxes in the cabinet (not removed, not deleted) without an expiry. namedProducts counts the named products that are not forgotten (deletedAt null); namedProductsNeedFill is true exactly when the file is formatVersion 1 (its named products are filled from its boxes after the import). needsBackup is true when the cabinet holds anything that an import would destroy: more than one location, any box, or any named product, forgotten ones included.",
   "cases": [
     {
       "name": "golden file",
@@ -20,7 +20,9 @@
           "inCabinet": 9,
           "removed": 2,
           "deleted": 1,
-          "unknownExpiry": 2
+          "unknownExpiry": 2,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -43,7 +45,9 @@
           "inCabinet": 0,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": false
       }
@@ -66,7 +70,9 @@
           "inCabinet": 0,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -89,7 +95,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -112,7 +120,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -135,7 +145,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -158,7 +170,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -181,7 +195,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -204,7 +220,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -227,7 +245,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -250,7 +270,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -273,7 +295,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -296,7 +320,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -319,7 +345,9 @@
           "inCabinet": 2,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -342,7 +370,9 @@
           "inCabinet": 2,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -365,7 +395,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -388,7 +420,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 1,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -411,7 +445,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -434,7 +470,9 @@
           "inCabinet": 2,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -457,7 +495,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -480,7 +520,9 @@
           "inCabinet": 1,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -503,7 +545,9 @@
           "inCabinet": 1,
           "removed": 1,
           "deleted": 1,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": true
       }
@@ -526,7 +570,9 @@
           "inCabinet": 0,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": false
       }
@@ -549,7 +595,9 @@
           "inCabinet": 0,
           "removed": 0,
           "deleted": 0,
-          "unknownExpiry": 0
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": true
         },
         "needsBackup": false
       }
@@ -1078,7 +1126,7 @@
     },
     {
       "name": "a newer version",
-      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-19T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.3.0\",\"build\":\"3\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03400936404564\",\"productName\":\"Produit 1\",\"category\":\"uncategorized\",\"categoryOverridden\":false,\"locationId\":\"10000001-0000-4000-8000-000000000001\",\"expiry\":{\"year\":2027,\"month\":3,\"day\":15},\"lot\":null,\"serial\":null,\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":3,\"exportedAt\":\"2026-10-19T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.3.0\",\"build\":\"3\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03400936404564\",\"productName\":\"Produit 1\",\"category\":\"uncategorized\",\"categoryOverridden\":false,\"locationId\":\"10000001-0000-4000-8000-000000000001\",\"expiry\":{\"year\":2027,\"month\":3,\"day\":15},\"lot\":null,\"serial\":null,\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
       "expect": {
         "error": {
           "kind": "newerVersion",
@@ -1098,7 +1146,7 @@
     },
     {
       "name": "a newer version is refused before its body is read",
-      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"somethingNew\":[1,2,{\"x\":null}]}",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":3,\"somethingNew\":[1,2,{\"x\":null}]}",
       "expect": {
         "error": {
           "kind": "newerVersion",
@@ -2249,6 +2297,820 @@
         "error": {
           "kind": "duplicateSerial",
           "path": "boxes[2].serial"
+        }
+      }
+    },
+    {
+      "name": "golden file version 2",
+      "file": "archive/v2/golden.medicabinet",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 3,
+          "inCabinet": 10,
+          "removed": 2,
+          "deleted": 1,
+          "unknownExpiry": 2,
+          "namedProducts": 2,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "version 2 with no named product and only the default location",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 0,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": false
+      }
+    },
+    {
+      "name": "a live named product in a default-only cabinet needs a backup",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 0,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 1,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "a forgotten named product alone needs a backup and is not counted",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":\"2026-10-03T08:00:00.000Z\"}]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 0,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "a live and a forgotten named product with the same gtin",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":\"2026-10-03T08:00:00.000Z\"},{\"id\":\"C0000002-0000-4000-8000-000000000002\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:02.000Z\",\"updatedAt\":\"2026-10-02T10:00:02.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 0,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 1,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "a forgotten named product listed after the live one with the same gtin",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000002-0000-4000-8000-000000000002\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:02.000Z\",\"updatedAt\":\"2026-10-02T10:00:02.000Z\",\"deletedAt\":null},{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":\"2026-10-03T08:00:00.000Z\"}]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 0,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 1,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "several forgotten named products with the same gtin",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":\"2026-10-03T08:00:00.000Z\"},{\"id\":\"C0000002-0000-4000-8000-000000000002\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:02.000Z\",\"updatedAt\":\"2026-10-02T10:00:02.000Z\",\"deletedAt\":\"2026-10-04T08:00:00.000Z\"},{\"id\":\"C0000003-0000-4000-8000-000000000003\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:03.000Z\",\"updatedAt\":\"2026-10-02T10:00:03.000Z\",\"deletedAt\":\"2026-10-05T08:00:00.000Z\"}]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 0,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 0,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "named products need not be in canonical order",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000003-0000-4000-8000-000000000003\",\"gtin\":\"03401234567892\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:03.000Z\",\"updatedAt\":\"2026-10-02T10:00:03.000Z\",\"deletedAt\":null},{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null},{\"id\":\"C0000002-0000-4000-8000-000000000002\",\"gtin\":\"03401234567891\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:02.000Z\",\"updatedAt\":\"2026-10-02T10:00:02.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 0,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 3,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "a named product may share an id with a box and a location",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03400936404564\",\"productName\":\"Produit 1\",\"category\":\"uncategorized\",\"categoryOverridden\":false,\"locationId\":\"10000001-0000-4000-8000-000000000001\",\"expiry\":{\"year\":2027,\"month\":3,\"day\":15},\"lot\":null,\"serial\":null,\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}],\"namedProducts\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null},{\"id\":\"10000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567891\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:02.000Z\",\"updatedAt\":\"2026-10-02T10:00:02.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 1,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 2,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "a lower-case named product uuid is accepted",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"c0000001-0000-4000-8000-00000000000a\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 0,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 1,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "a named product category this app does not know is kept",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"future-category-x\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 0,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 1,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "a named product name of exactly 200 code points",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 0,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 1,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "a named product category of exactly 100 code points",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 0,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 1,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "a named product with dates at the bounds of the date form",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"0000-01-01T00:00:00.000Z\",\"updatedAt\":\"9999-12-31T23:59:59.999Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "summary": {
+          "formatVersion": 2,
+          "sourceFormatVersion": 2,
+          "exportedAt": "2026-10-21T08:15:30.123Z",
+          "app": {
+            "name": "MediCabinet",
+            "platform": "ios",
+            "version": "0.7.0",
+            "build": "10"
+          },
+          "locations": 1,
+          "inCabinet": 0,
+          "removed": 0,
+          "deleted": 0,
+          "unknownExpiry": 0,
+          "namedProducts": 1,
+          "namedProductsNeedFill": false
+        },
+        "needsBackup": true
+      }
+    },
+    {
+      "name": "a missing named products list",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts"
+        }
+      }
+    },
+    {
+      "name": "a version 2 header with a version 1 body",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[{\"id\":\"B0000001-0000-4000-8000-000000000001\",\"gtin\":\"03400936404564\",\"productName\":\"Produit 1\",\"category\":\"uncategorized\",\"categoryOverridden\":false,\"locationId\":\"10000001-0000-4000-8000-000000000001\",\"expiry\":{\"year\":2027,\"month\":3,\"day\":15},\"lot\":null,\"serial\":null,\"isOpened\":false,\"removal\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts"
+        }
+      }
+    },
+    {
+      "name": "a version 1 file with a named products list",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":1,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts"
+        }
+      }
+    },
+    {
+      "name": "a version 1 file with an empty named products list",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":1,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts"
+        }
+      }
+    },
+    {
+      "name": "named products is an object",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":{}}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts"
+        }
+      }
+    },
+    {
+      "name": "named products is a string",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":\"none\"}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts"
+        }
+      }
+    },
+    {
+      "name": "a named product that is not an object",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[1]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0]"
+        }
+      }
+    },
+    {
+      "name": "an unknown named product key",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null,\"note\":\"x\"}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].note"
+        }
+      }
+    },
+    {
+      "name": "a duplicate named product key",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null,\"name\":\"y\"}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].name"
+        }
+      }
+    },
+    {
+      "name": "a named product without id",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].id"
+        }
+      }
+    },
+    {
+      "name": "a named product without gtin",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].gtin"
+        }
+      }
+    },
+    {
+      "name": "a named product without name",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].name"
+        }
+      }
+    },
+    {
+      "name": "a named product without category",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].category"
+        }
+      }
+    },
+    {
+      "name": "a named product without categoryOverridden",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].categoryOverridden"
+        }
+      }
+    },
+    {
+      "name": "a named product without createdAt",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].createdAt"
+        }
+      }
+    },
+    {
+      "name": "a named product without updatedAt",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].updatedAt"
+        }
+      }
+    },
+    {
+      "name": "a named product without deletedAt",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\"}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].deletedAt"
+        }
+      }
+    },
+    {
+      "name": "a named product written with the box key productName",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"productName\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].productName"
+        }
+      }
+    },
+    {
+      "name": "a named product id that is not a uuid",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"not-a-uuid\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].id"
+        }
+      }
+    },
+    {
+      "name": "a named product gtin that is null",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":null,\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].gtin"
+        }
+      }
+    },
+    {
+      "name": "a named product gtin that is a number",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":3401234567890,\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].gtin"
+        }
+      }
+    },
+    {
+      "name": "a named product gtin of 13 digits",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"3401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].gtin"
+        }
+      }
+    },
+    {
+      "name": "a named product gtin of 15 digits",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"034012345678901\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].gtin"
+        }
+      }
+    },
+    {
+      "name": "a named product gtin with letters",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"0340123456789A\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].gtin"
+        }
+      }
+    },
+    {
+      "name": "a named product gtin with non ASCII digits",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"٠٣٤٠١٢٣٤٥٦٧٨٩٠\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].gtin"
+        }
+      }
+    },
+    {
+      "name": "an empty named product gtin",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].gtin"
+        }
+      }
+    },
+    {
+      "name": "a named product name that is null",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":null,\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].name"
+        }
+      }
+    },
+    {
+      "name": "a named product name that is a number",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":7,\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].name"
+        }
+      }
+    },
+    {
+      "name": "an empty named product name",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].name"
+        }
+      }
+    },
+    {
+      "name": "a named product name of 201 code points",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].name"
+        }
+      }
+    },
+    {
+      "name": "a named product name of 201 code points made of combining marks",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"é́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].name"
+        }
+      }
+    },
+    {
+      "name": "a named product name over the string byte limit",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].name"
+        }
+      }
+    },
+    {
+      "name": "an empty named product category",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].category"
+        }
+      }
+    },
+    {
+      "name": "a named product category of 101 code points",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].category"
+        }
+      }
+    },
+    {
+      "name": "a named product categoryOverridden that is a string",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":\"true\",\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].categoryOverridden"
+        }
+      }
+    },
+    {
+      "name": "a named product categoryOverridden that is null",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":null,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].categoryOverridden"
+        }
+      }
+    },
+    {
+      "name": "a named product createdAt that is not a date",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"yesterday\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].createdAt"
+        }
+      }
+    },
+    {
+      "name": "a named product updatedAt that is not a date",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].updatedAt"
+        }
+      }
+    },
+    {
+      "name": "a named product deletedAt that is not a date",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":\"never\"}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[0].deletedAt"
+        }
+      }
+    },
+    {
+      "name": "a named product deletedAt that is a number",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":0}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidStructure",
+          "path": "namedProducts[0].deletedAt"
+        }
+      }
+    },
+    {
+      "name": "two named products with the same id",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null},{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567891\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:02.000Z\",\"updatedAt\":\"2026-10-02T10:00:02.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "duplicateId",
+          "path": "namedProducts[1].id"
+        }
+      }
+    },
+    {
+      "name": "two named products whose ids differ only in case",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C000000A-0000-4000-8000-00000000000A\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null},{\"id\":\"c000000a-0000-4000-8000-00000000000a\",\"gtin\":\"03401234567891\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:02.000Z\",\"updatedAt\":\"2026-10-02T10:00:02.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "duplicateId",
+          "path": "namedProducts[1].id"
+        }
+      }
+    },
+    {
+      "name": "two live named products with the same gtin",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null},{\"id\":\"C0000002-0000-4000-8000-000000000002\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:02.000Z\",\"updatedAt\":\"2026-10-02T10:00:02.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "duplicateNamedProduct",
+          "path": "namedProducts[1].gtin"
+        }
+      }
+    },
+    {
+      "name": "the third named product repeats the live gtin of the first",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null},{\"id\":\"C0000002-0000-4000-8000-000000000002\",\"gtin\":\"03401234567891\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:02.000Z\",\"updatedAt\":\"2026-10-02T10:00:02.000Z\",\"deletedAt\":null},{\"id\":\"C0000003-0000-4000-8000-000000000003\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:03.000Z\",\"updatedAt\":\"2026-10-02T10:00:03.000Z\",\"deletedAt\":\"2026-10-03T08:00:00.000Z\"},{\"id\":\"C0000004-0000-4000-8000-000000000004\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:04.000Z\",\"updatedAt\":\"2026-10-02T10:00:04.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "duplicateNamedProduct",
+          "path": "namedProducts[3].gtin"
+        }
+      }
+    },
+    {
+      "name": "a bad gtin is reported before a duplicate gtin further on",
+      "content": "{\"archive\":\"medicabinet\",\"formatVersion\":2,\"exportedAt\":\"2026-10-21T08:15:30.123Z\",\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.7.0\",\"build\":\"10\"},\"locations\":[{\"id\":\"10000001-0000-4000-8000-000000000001\",\"name\":\"Salle de bain\",\"isDefault\":true,\"sortOrder\":0,\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}],\"boxes\":[],\"namedProducts\":[{\"id\":\"C0000001-0000-4000-8000-000000000001\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:01.000Z\",\"updatedAt\":\"2026-10-02T10:00:01.000Z\",\"deletedAt\":null},{\"id\":\"C0000002-0000-4000-8000-000000000002\",\"gtin\":\"03401234567890\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:02.000Z\",\"updatedAt\":\"2026-10-02T10:00:02.000Z\",\"deletedAt\":null},{\"id\":\"C0000003-0000-4000-8000-000000000003\",\"gtin\":\"123\",\"name\":\"Crème solaire\",\"category\":\"skin-wound\",\"categoryOverridden\":true,\"createdAt\":\"2026-10-02T10:00:03.000Z\",\"updatedAt\":\"2026-10-02T10:00:03.000Z\",\"deletedAt\":null}]}",
+      "expect": {
+        "error": {
+          "kind": "invalidValue",
+          "path": "namedProducts[2].gtin"
+        }
+      }
+    },
+    {
+      "name": "more named products than the limit",
+      "generate": {
+        "locations": 1,
+        "boxes": 0,
+        "namedProducts": 20001
+      },
+      "expect": {
+        "error": {
+          "kind": "tooManyItems",
+          "path": "namedProducts"
         }
       }
     }

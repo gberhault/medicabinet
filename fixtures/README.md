@@ -33,9 +33,9 @@ Every file is JSON with:
 | `expiry-status.json` | `ExpiryRule` (status + days left from an expiry, today and the window) and how an instant + time zone becomes today (`todayCases`) |
 | `expiring-overview.json` | the Expiring view: sections, order, tie-breaks by folded name, badge count |
 | `expiry-digest.json` | the monthly reminder: counts per digest day (`cases`) and the next / due digest days (`scheduleCases`) |
-| `archive-cases.json` | `ArchiveDecoder`: golden file summary, every error kind with its field path, hostile files (inline, base64 or generated), limits |
+| `archive-cases.json` | `ArchiveDecoder`: golden file summaries (v1 and v2), every error kind with its field path, hostile files (inline, base64 or generated), limits; see "Archive fixtures" below |
 | `archive-code-points.json` | the code-point length used by every archive length limit |
-| `archive/v<N>/golden.medicabinet` | the canonical archive of `formatVersion` N, kept forever: every later version must import it, and the canonical encoder must reproduce it **byte for byte** |
+| `archive/v<N>/golden.medicabinet` | the canonical archive of `formatVersion` N, kept forever: every later version must import it. The encoder writes the **current** version only, so it must reproduce the golden file of the current version (v2) **byte for byte**; the older golden files (v1) are only decoded and never rewritten |
 | `schema-v1.sql` | the exact v1 DDL both platforms run (each platform's test compares its own copy, ignoring whitespace and `--` comments) |
 | `schema-v2.sql` | the exact v2 migration step (box tombstone, unique serial among non-deleted boxes), run after v1 on both platforms |
 | `schema-v2.json` | the tables, columns and indexes of a database migrated to v2 (`schema-v1.json` is the v1-only state) |
@@ -77,10 +77,50 @@ These strings are identical on both platforms (storage values, error kinds, expo
 | Removal decisions | `remove`, `choose`, `alreadyRemoved`, `notInCabinet` |
 | Expiring-soon window choices (days) | `30`, `60`, `90`; default `60` |
 | Digest day and time | the `1`st of the month at `09:00` local (540 minutes) |
-| Archive error kinds | `tooLarge`, `notJSON`, `notArchive`, `unsupportedVersion`, `newerVersion`, `invalidStructure`, `invalidValue`, `tooManyItems`, `duplicateId`, `unknownLocation`, `defaultLocation`, `duplicateSerial` |
+| Archive error kinds | `tooLarge`, `notJSON`, `notArchive`, `unsupportedVersion`, `newerVersion`, `invalidStructure`, `invalidValue`, `tooManyItems`, `duplicateId`, `unknownLocation`, `defaultLocation`, `duplicateSerial`, `duplicateNamedProduct` |
 | Archive platforms | `ios`, `android` |
 | Archive file | extension `medicabinet`, MIME `application/vnd.medicabinet+json`, iOS UTType `com.medicabinet.archive` |
 | Archive error path | field keys joined by `.` and list indexes as `[n]`, e.g. `boxes[12].expiry`; keys and indexes only, never a value; `null` when no field is involved |
+
+## Archive fixtures (`archive-cases.json`, `archive/v<N>/`)
+
+- **Case input**: `file` (path under `fixtures/`), `content` (inline text), `contentBase64` or `generate`. `generate` is
+  `{fileBytes: n}` (n spaces) or `{locations, boxes}` (a synthetic valid **formatVersion 1** archive), or
+  `{locations, boxes, namedProducts}` (a synthetic valid **formatVersion 2** archive, `namedProducts` possibly 0).
+  Synthetic archives: location `i` has id `1<%07X i>-0000-4000-8000-<%012X i>`, name `Location i`, `isDefault` only for
+  `i = 0`, `sortOrder` i; every box has id `B<%07X i>-…` (same pattern), gtin `03400936404564`, name `Box i`,
+  serial `SN<i>`, location 0, expiry 2027-03-15; named product `i` has id `C<%07X i>-…`, gtin `%014d` of i,
+  name `Named i`, category `uncategorized`, `categoryOverridden` false, not forgotten. Dates are all
+  `2026-10-02T10:00:00.000Z` (boxes, products) or `2026-10-01T09:00:00.000Z` (locations).
+- **Expectation** (`expect`): `{summary, needsBackup}` or `{error: {kind, path}}`. `summary` holds `formatVersion`
+  (the version of the file), `sourceFormatVersion` (the same: the decoded archive remembers the version it came from),
+  `exportedAt`, `app`, then the counts of the decoded cabinet: `locations` (not deleted), `inCabinet`, `removed`,
+  `deleted`, `unknownExpiry`, **`namedProducts`** (named products that are not forgotten, i.e. `deletedAt` is null) and
+  **`namedProductsNeedFill`** (true exactly for a formatVersion 1 file, which has no named products: after the import
+  the app fills them from the imported boxes; false for version 2, whatever the list holds). `needsBackup` is true when
+  an import would destroy something: more than one location (deleted ones not counted), any box (removed and deleted
+  ones included), or **any named product, forgotten ones included** (so a cabinet holding only a forgotten product
+  has `namedProducts` 0 and `needsBackup` true).
+- **v1 cases** keep their input files and codes. They only gain `namedProducts: 0` and `namedProductsNeedFill: true`
+  in their summary. The two "newer version" cases were written with `formatVersion` 2, which is no longer newer:
+  they now use 3, to stay a version this app cannot read.
+- **v2 cases** (the case names starting with "version 2", "golden file version 2", and every "named product" /
+  "named products" case): the golden file; accepted shapes (live plus forgotten product with one gtin in either order,
+  several forgotten ones with one gtin, any order of the list, ids shared with a box or a location, lower-case uuid,
+  name of 200 code points, category of 100 code points); refusals: a missing / non-array `namedProducts`
+  (`invalidStructure` at `namedProducts`), the same member inside a version 1 file (an unknown key there),
+  a missing / unknown / repeated product key (`invalidStructure` at `namedProducts[i].<key>`), a bad uuid, date, gtin,
+  name or category (`invalidValue`; a JSON `null` or a wrong JSON type is `invalidStructure`), a repeated id
+  (`duplicateId` at `namedProducts[i].id`, ids compared ignoring case), two live products with one gtin
+  (`duplicateNamedProduct` at `namedProducts[i].gtin`, `i` being the **second** live one), and more than
+  `maxNamedProducts` = 20 000 (`tooManyItems` at `namedProducts`, via `generate`).
+- **Check order for a product**: per product in list order: gtin, name, category, createdAt, updatedAt, deletedAt (each
+  `invalidValue`); then, over the whole file after the boxes' rules: unique ids, then one live product per gtin.
+  A field fault anywhere wins over a row-to-row rule.
+- **Golden files**: `archive/v1/golden.medicabinet` is never edited. `archive/v2/golden.medicabinet` is v1's cabinet plus
+  one more box and three named products (a forgotten "Test" and a live "Produit 2" sharing a gtin, and a live
+  "Crème solaire SPF 50" with a category the user chose). The decoder reads both; the encoder reproduces the v2 file
+  byte for byte, including the ordering of `namedProducts` by `createdAt` then upper-case id.
 
 ## Adding a fixture
 

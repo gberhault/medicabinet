@@ -15,6 +15,7 @@ public struct ArchiveLimits: Sendable {
     public var maxFileBytes = 32 * 1024 * 1024
     public var maxBoxes = 20_000
     public var maxLocations = 200
+    public var maxNamedProducts = 20_000
     /// A decoded string: longer than any field allows (200 code points of 4 bytes).
     public var maxStringBytes = 4_096
 
@@ -47,6 +48,18 @@ public struct ArchivedBox: Hashable, Sendable {
     }
 }
 
+/// A named product as the archive carries it (`formatVersion` 2): one the user forgot keeps its row, with `deletedAt`,
+/// so a later sync can tell "forgotten" from "never existed".
+public struct ArchivedNamedProduct: Hashable, Sendable {
+    public var product: NamedProduct
+    public var deletedAt: Date?
+
+    public init(product: NamedProduct, deletedAt: Date? = nil) {
+        self.product = product
+        self.deletedAt = deletedAt
+    }
+}
+
 /// What a cabinet holds, in numbers (the import preview).
 public struct CabinetSummary: Hashable, Sendable {
     /// Locations that are not deleted.
@@ -59,30 +72,45 @@ public struct CabinetSummary: Hashable, Sendable {
     public var deleted: Int
     /// Boxes in the cabinet with no expiry date.
     public var unknownExpiry: Int
+    /// Products the household named and has not forgotten.
+    public var namedProducts: Int
 
-    public init(locations: Int, inCabinet: Int, removed: Int, deleted: Int, unknownExpiry: Int) {
+    public init(locations: Int, inCabinet: Int, removed: Int, deleted: Int, unknownExpiry: Int, namedProducts: Int = 0) {
         self.locations = locations
         self.inCabinet = inCabinet
         self.removed = removed
         self.deleted = deleted
         self.unknownExpiry = unknownExpiry
+        self.namedProducts = namedProducts
     }
 
-    /// False when there is nothing to lose: no box of any kind and no location besides (at most) the default one.
-    /// Deleted locations are not counted, like everywhere the user sees them.
+    /// False when there is nothing to lose: no box of any kind, no named product and no location besides (at most) the
+    /// default one. Deleted locations are not counted, like everywhere the user sees them. Forgotten named products are
+    /// not in a summary: `CabinetContents.needsBackup` also counts them.
     public var needsBackup: Bool {
-        locations > 1 || inCabinet + removed + deleted > 0
+        locations > 1 || inCabinet + removed + deleted + namedProducts > 0
     }
 }
 
-/// The whole cabinet data: every location and every box, removed and deleted ones included.
+/// The whole cabinet data: every location, every box and every named product, removed, deleted and forgotten ones
+/// included.
 public struct CabinetContents: Hashable, Sendable {
     public var locations: [ArchivedLocation]
     public var boxes: [ArchivedBox]
+    public var namedProducts: [ArchivedNamedProduct]
+    /// True when the named products still have to be filled from the boxes: the archive was a version 1 file, which has
+    /// none (`NamedProductBackfillRunner` does it after the import). Never part of a file: the decoder sets it, a store
+    /// snapshot is always false, and `replace` turns it into the backfill marker.
+    public var namedProductsNeedFill: Bool
 
-    public init(locations: [ArchivedLocation], boxes: [ArchivedBox]) {
+    public init(
+        locations: [ArchivedLocation], boxes: [ArchivedBox], namedProducts: [ArchivedNamedProduct] = [],
+        namedProductsNeedFill: Bool = false
+    ) {
         self.locations = locations
         self.boxes = boxes
+        self.namedProducts = namedProducts
+        self.namedProductsNeedFill = namedProductsNeedFill
     }
 
     public var summary: CabinetSummary {
@@ -93,12 +121,14 @@ public struct CabinetContents: Hashable, Sendable {
             inCabinet: inCabinet.count,
             removed: live.count - inCabinet.count,
             deleted: boxes.count - live.count,
-            unknownExpiry: inCabinet.filter { $0.box.expiry == nil }.count
+            unknownExpiry: inCabinet.filter { $0.box.expiry == nil }.count,
+            namedProducts: namedProducts.filter { $0.deletedAt == nil }.count
         )
     }
 
+    /// A forgotten named product still counts: it is the household's data too.
     public var needsBackup: Bool {
-        summary.needsBackup
+        summary.needsBackup || !namedProducts.isEmpty
     }
 }
 

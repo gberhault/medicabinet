@@ -40,7 +40,7 @@ enum ImportFailure: Equatable {
         case .notJSON, .notArchive: .notArchive
         case .newerVersion: .newerVersion
         case .unsupportedVersion, .invalidStructure, .invalidValue, .duplicateId, .unknownLocation, .defaultLocation,
-             .duplicateSerial: .damaged
+             .duplicateSerial, .duplicateNamedProduct: .damaged
         }
     }
 }

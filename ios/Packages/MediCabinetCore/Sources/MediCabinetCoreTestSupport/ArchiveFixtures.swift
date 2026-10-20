@@ -5,9 +5,10 @@ public struct ArchiveCase: Decodable, Sendable, CustomStringConvertible {
     public struct Generate: Decodable, Sendable {
         /// The file is this many spaces (a size-limit case).
         public let fileBytes: Int?
-        /// A synthetic valid archive with these counts.
+        /// A synthetic valid archive with these counts: formatVersion 1, or formatVersion 2 when `namedProducts` is set.
         public let locations: Int?
         public let boxes: Int?
+        public let namedProducts: Int?
     }
 
     public struct ExpectedError: Decodable, Sendable {
@@ -41,7 +42,9 @@ public struct ArchiveCase: Decodable, Sendable, CustomStringConvertible {
 
     private static func generated(_ spec: Generate) -> [UInt8] {
         if let size = spec.fileBytes { return [UInt8](repeating: 0x20, count: size) }
-        return Array(SyntheticArchive.json(locations: spec.locations ?? 1, boxes: spec.boxes ?? 0).utf8)
+        return Array(SyntheticArchive.json(
+            locations: spec.locations ?? 1, boxes: spec.boxes ?? 0, namedProducts: spec.namedProducts
+        ).utf8)
     }
 }
 
@@ -62,6 +65,8 @@ public struct ArchiveCaseSummary: Decodable, Sendable {
     public let removed: Int
     public let deleted: Int
     public let unknownExpiry: Int
+    public let namedProducts: Int
+    public let namedProductsNeedFill: Bool
 }
 
 public struct ArchiveCaseFixture: Decodable, Sendable {
@@ -71,19 +76,30 @@ public struct ArchiveCaseFixture: Decodable, Sendable {
 }
 
 /// A valid archive of a given size, written as plain text (one location is the default; every box is
-/// in it). For limit and performance tests.
+/// in it). For limit and performance tests. Without `namedProducts` it is a version 1 file; with it (even 0), a
+/// version 2 file with that many live named products.
 public enum SyntheticArchive {
-    public static func json(locations: Int, boxes: Int) -> String {
-        var text = "{\"archive\":\"medicabinet\",\"formatVersion\":1,\"exportedAt\":\"2026-10-19T08:15:30.123Z\","
+    public static func json(locations: Int, boxes: Int, namedProducts: Int? = nil) -> String {
+        var text = "{\"archive\":\"medicabinet\",\"formatVersion\":\(namedProducts == nil ? 1 : 2),"
+        text += "\"exportedAt\":\"2026-10-19T08:15:30.123Z\","
         text += "\"app\":{\"name\":\"MediCabinet\",\"platform\":\"ios\",\"version\":\"0.3.0\",\"build\":\"3\"},\"locations\":["
         text += (0..<locations).map { location($0) }.joined(separator: ",")
         text += "],\"boxes\":["
         text += (0..<boxes).map { box($0) }.joined(separator: ",")
+        guard let namedProducts else { return text + "]}" }
+        text += "],\"namedProducts\":["
+        text += (0..<namedProducts).map { namedProduct($0) }.joined(separator: ",")
         return text + "]}"
     }
 
     public static func uuid(_ prefix: String, _ index: Int) -> String {
         prefix + String(format: "%07X", index) + "-0000-4000-8000-" + String(format: "%012X", index)
+    }
+
+    private static func namedProduct(_ index: Int) -> String {
+        "{\"id\":\"\(uuid("C", index))\",\"gtin\":\"\(String(format: "%014d", index))\",\"name\":\"Named \(index)\","
+            + "\"category\":\"uncategorized\",\"categoryOverridden\":false,\"createdAt\":\"2026-10-02T10:00:00.000Z\","
+            + "\"updatedAt\":\"2026-10-02T10:00:00.000Z\",\"deletedAt\":null}"
     }
 
     private static func location(_ index: Int) -> String {
@@ -111,8 +127,9 @@ extension SharedFixtures {
         (try? archiveCaseFixture().cases) ?? []
     }
 
-    /// The canonical archive of `formatVersion` 1, kept forever (`fixtures/archive/v1/golden.medicabinet`).
-    public static func goldenArchive(version: Int = 1) throws -> [UInt8] {
+    /// The canonical archive of a `formatVersion`, kept forever (`fixtures/archive/v<N>/golden.medicabinet`); the current
+    /// version by default (the one the encoder writes).
+    public static func goldenArchive(version: Int = 2) throws -> [UInt8] {
         [UInt8](try data("archive/v\(version)/golden.medicabinet"))
     }
 

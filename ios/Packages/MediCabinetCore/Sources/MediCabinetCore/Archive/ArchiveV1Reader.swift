@@ -6,6 +6,10 @@ struct ArchiveBody {
     var app = ArchiveApp(name: "", platform: "", version: "", build: "")
     var locations: [ArchivedLocation] = []
     var boxes: [ArchivedBox] = []
+    /// Empty for version 1, which has none.
+    var namedProducts: [ArchivedNamedProduct] = []
+    /// A version 1 file has no named products: the app fills them from the boxes after the import (named products).
+    var namedProductsNeedFill = false
 }
 
 /// Reads the members of one `formatVersion` after `archive` and `formatVersion`, into the current model.
@@ -19,7 +23,15 @@ enum ArchiveV1Reader: ArchiveVersionReader {
     typealias Reading = ArchiveObjectReading
 
     static func read(_ reader: inout JSONReader, limits: ArchiveLimits) throws(ArchiveError) -> ArchiveBody {
-        let fields: [ObjectField<ArchiveBody>] = [
+        var body = ArchiveBody()
+        try Reading.readObject(&reader, path: "", into: &body, fields: fields(limits: limits), opened: true)
+        body.namedProductsNeedFill = true
+        return body
+    }
+
+    /// The members of version 1, which version 2 keeps unchanged (it adds `namedProducts` to them).
+    static func fields(limits: ArchiveLimits) -> [ObjectField<ArchiveBody>] {
+        [
             ObjectField(key: "exportedAt") { body, reader, field in body.exportedAt = try Reading.readDate(&reader, field) },
             ObjectField(key: "app") { body, reader, field in
                 try Reading.readObject(&reader, path: field.text, into: &body.app, fields: appFields)
@@ -37,9 +49,6 @@ enum ArchiveV1Reader: ArchiveVersionReader {
                 }
             }
         ]
-        var body = ArchiveBody()
-        try Reading.readObject(&reader, path: "", into: &body, fields: fields, opened: true)
-        return body
     }
 
     // MARK: Objects

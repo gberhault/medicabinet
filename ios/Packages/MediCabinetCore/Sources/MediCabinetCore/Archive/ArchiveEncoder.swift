@@ -1,8 +1,8 @@
 import Foundation
 
 /// Writes an archive in canonical form (design §2.3). The model is validated first, so the app never
-/// produces a file it would refuse to import; locations are ordered by `sortOrder` then id, boxes by
-/// `createdAt` then id, so one cabinet always gives the same bytes on both platforms.
+/// produces a file it would refuse to import; locations are ordered by `sortOrder` then id, boxes and named products by
+/// `createdAt` then id, so one cabinet always gives the same bytes on both platforms. Always writes version 2.
 public enum ArchiveEncoder {
     public static func encode(_ archive: Archive, limits: ArchiveLimits = .default) throws(ArchiveError) -> [UInt8] {
         try ArchiveValidator.validate(archive, limits: limits)
@@ -23,6 +23,10 @@ public enum ArchiveEncoder {
         writer.beginArray()
         for archived in archive.cabinet.boxes.sorted(by: Self.isOrdered) { write(archived, to: &writer) }
         writer.endArray()
+        writer.key("namedProducts")
+        writer.beginArray()
+        for archived in archive.cabinet.namedProducts.sorted(by: Self.isOrdered) { write(archived, to: &writer) }
+        writer.endArray()
         writer.endObject()
         let bytes = writer.finish()
         guard bytes.count <= limits.maxFileBytes else { throw ArchiveError(.tooLarge) }
@@ -38,6 +42,12 @@ public enum ArchiveEncoder {
         let left = ArchiveDates.milliseconds(of: lhs.box.createdAt)
         let right = ArchiveDates.milliseconds(of: rhs.box.createdAt)
         return left != right ? left < right : lhs.box.id.uuidString < rhs.box.id.uuidString
+    }
+
+    private static func isOrdered(_ lhs: ArchivedNamedProduct, _ rhs: ArchivedNamedProduct) -> Bool {
+        let left = ArchiveDates.milliseconds(of: lhs.product.createdAt)
+        let right = ArchiveDates.milliseconds(of: rhs.product.createdAt)
+        return left != right ? left < right : lhs.product.id.uuidString < rhs.product.id.uuidString
     }
 
     private static func write(_ app: ArchiveApp, to writer: inout CanonicalJSONWriter) {
@@ -103,6 +113,28 @@ public enum ArchiveEncoder {
         writer.string(ArchiveDates.format(box.createdAt))
         writer.key("updatedAt")
         writer.string(ArchiveDates.format(box.updatedAt))
+        writer.key("deletedAt")
+        write(archived.deletedAt, to: &writer)
+        writer.endObject()
+    }
+
+    private static func write(_ archived: ArchivedNamedProduct, to writer: inout CanonicalJSONWriter) {
+        let product = archived.product
+        writer.beginObject()
+        writer.key("id")
+        writer.string(product.id.uuidString)
+        writer.key("gtin")
+        writer.string(product.gtin)
+        writer.key("name")
+        writer.string(product.name)
+        writer.key("category")
+        writer.string(product.category.rawValue)
+        writer.key("categoryOverridden")
+        writer.bool(product.categoryOverridden)
+        writer.key("createdAt")
+        writer.string(ArchiveDates.format(product.createdAt))
+        writer.key("updatedAt")
+        writer.string(ArchiveDates.format(product.updatedAt))
         writer.key("deletedAt")
         write(archived.deletedAt, to: &writer)
         writer.endObject()
