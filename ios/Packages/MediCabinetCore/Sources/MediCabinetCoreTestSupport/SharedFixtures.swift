@@ -25,6 +25,38 @@ public struct ExpiryDateFixture: Decodable, Sendable {
     public let cases: [ExpiryDateCase]
 }
 
+/// One case of `fixtures/categories.json`: a category in display order.
+public struct CategoryCase: Decodable, Sendable, CustomStringConvertible {
+    public let name: String
+    public let assignedByBuild: Bool
+    public let userSelectable: Bool
+
+    public var description: String { name }
+}
+
+/// One case of `fixtures/reference-lookup.json`: a GTIN, the CIP13 it converts to and the sample database's answer.
+public struct ReferenceLookupCase: Decodable, Sendable, CustomStringConvertible {
+    public struct Product: Decodable, Sendable, Equatable {
+        public let name: String
+        public let category: String
+    }
+
+    public struct Expect: Decodable, Sendable {
+        public let cip13: String?
+        public let product: Product?
+    }
+
+    public let name: String
+    public let gtin: String
+    public let expect: Expect
+
+    public var description: String { name }
+}
+
+private struct CasesFile<Case: Decodable>: Decodable {
+    let cases: [Case]
+}
+
 /// A fixture file that is only a list of named cases.
 private struct NamedCases: Decodable {
     let cases: [NamedCase]
@@ -64,5 +96,23 @@ public enum SharedFixtures {
     /// fixture-driven suite also has a test asserting the file loads (which fails loudly).
     public static func expiryDateCases() -> [ExpiryDateCase] {
         (try? expiryDates().cases) ?? []
+    }
+
+    /// The taxonomy in display order (`fixtures/categories.json`).
+    public static func categories() throws -> [CategoryCase] {
+        try JSONDecoder().decode(CasesFile<CategoryCase>.self, from: data("categories.json")).cases
+    }
+
+    public static func referenceLookup() throws -> [ReferenceLookupCase] {
+        try JSONDecoder().decode(CasesFile<ReferenceLookupCase>.self, from: data("reference-lookup.json")).cases
+    }
+
+    public static func referenceLookupCases() -> [ReferenceLookupCase] {
+        (try? referenceLookup()) ?? []
+    }
+
+    /// The sample reference database the lookup cases are answered from (`fixtures/reference-sample.sqlite`).
+    public static var referenceSampleURL: URL {
+        directory.appendingPathComponent("reference-sample.sqlite")
     }
 }

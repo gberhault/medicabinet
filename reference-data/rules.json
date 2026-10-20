@@ -1,0 +1,107 @@
+{
+  "formatVersion": 1,
+  "rulesVersion": 1,
+  "description": "Ordered classification rules of the reference-data build (specs/reference-data/design.md §4.4). The first rule whose conditions all hold gives the category; no match gives uncategorized. Values are compared without accents, in upper case; substance tokens match at the start of a word. The order encodes the priorities the golden list checks: route-specific rules before substances, cough and decongestant substances before painkillers and antihistamines, topical anti-inflammatories before skin, long-term or specialist ATC families before painkillers. Categories describe a body area or kind of product, never an indication.",
+  "rules": [
+    { "name": "homeopathy", "when": { "procedureAny": ["HOMEO"] }, "category": "other" },
+    {
+      "name": "homeopathic-substance",
+      "when": { "substancesAny": ["pour préparations homéopathiques"] },
+      "category": "other"
+    },
+    { "name": "herbal", "when": { "procedureAny": ["PHYTO"] }, "category": "other" },
+    {
+      "name": "parenteral-only",
+      "when": {
+        "routesOnly": [
+          "intraveineuse", "intramusculaire", "sous-cutanée", "intradermique", "péridurale", "intrathécale",
+          "intraartérielle", "intrapéritonéale", "intravésicale", "intravitréenne", "intracérébroventriculaire",
+          "intralésionnelle", "périarticulaire", "intraarticulaire", "infiltration", "périneurale", "hémodialyse",
+          "hémofiltration", "intra-utérine", "intracoronaire", "intracaverneuse", "sous-conjonctivale",
+          "intracamérulaire", "épilésionnelle", "endotrachéobronchique", "endosinusale", "voie extracorporelle autre"
+        ]
+      },
+      "category": "other"
+    },
+    { "name": "eye", "when": { "routesAny": ["ophtalmique"] }, "category": "eyes" },
+    { "name": "ear-nose", "when": { "routesAny": ["auriculaire", "nasale"] }, "category": "cold-ent" },
+    { "name": "gum-teeth", "when": { "routesAny": ["gingivale", "dentaire"] }, "category": "mouth-teeth" },
+    {
+      "name": "throat-lozenge",
+      "when": { "routesAny": ["voie buccale autre"], "formAny": ["pastille", "comprimé à sucer", "gomme"] },
+      "category": "cold-ent"
+    },
+    { "name": "mouth", "when": { "routesAny": ["voie buccale autre"] }, "category": "mouth-teeth" },
+    {
+      "name": "long-term-or-specialist",
+      "when": { "atcAny": ["A10", "B01", "C", "G03", "H", "J01", "J02", "J04", "J05", "L", "N03", "N05", "N06"] },
+      "category": "other"
+    },
+    {
+      "name": "topical-muscle",
+      "when": {
+        "routesAny": ["cutanée", "transdermique"],
+        "substancesAny": ["diclofénac", "kétoprofène", "ibuprofène", "piroxicam", "niflumique", "salicylate de méthyle"]
+      },
+      "category": "muscles-joints"
+    },
+    { "name": "skin", "when": { "routesAny": ["cutanée"] }, "category": "skin-wound" },
+    {
+      "name": "cold",
+      "when": {
+        "substancesAny": [
+          "pseudoéphédrine", "carbocistéine", "acétylcystéine", "ambroxol", "oxomémazine", "pholcodine",
+          "dextrométhorphane", "hélicidine", "guaifénésine"
+        ]
+      },
+      "category": "cold-ent"
+    },
+    {
+      "name": "pain",
+      "when": { "substancesAny": ["paracétamol", "ibuprofène", "acétylsalicyl", "kétoprofène", "diclofénac", "naproxène"] },
+      "category": "pain-fever"
+    },
+    { "name": "muscle", "when": { "substancesAny": ["thiocolchicoside", "méthocarbamol"] }, "category": "muscles-joints" },
+    {
+      "name": "allergy",
+      "when": {
+        "substancesAny": [
+          "cétirizine", "lévocétirizine", "loratadine", "desloratadine", "fexofénadine", "bilastine", "ébastine",
+          "dexchlorphéniramine", "méquitazine", "rupatadine"
+        ]
+      },
+      "category": "allergy"
+    },
+    {
+      "name": "digestion",
+      "when": {
+        "substancesAny": [
+          "diosmectite", "lopéramide", "racécadotril", "alginate", "phloroglucinol", "macrogol", "lactulose",
+          "siméticone", "aluminium", "oméprazole", "ésoméprazole", "pantoprazole", "lansoprazole", "rabéprazole",
+          "trimébutine", "dompéridone", "bisacodyl", "glycérol", "docusate", "séné", "nifuroxazide", "famotidine",
+          "charbon", "mébévérine", "tiémonium"
+        ]
+      },
+      "category": "digestion"
+    },
+    { "name": "fluoride-only", "when": { "substancesOnly": ["fluorure"] }, "category": "mouth-teeth" },
+    {
+      "name": "vitamins-minerals",
+      "when": {
+        "substancesAny": [
+          "cholécalciférol", "ascorbi", "ferreux", "magnésium", "folique", "calcium", "zinc", "vitamine",
+          "rétinol", "tocophérol", "cobalamine", "pyridoxine", "thiamine"
+        ]
+      },
+      "category": "vitamins-minerals"
+    },
+    { "name": "atc-cold", "when": { "atcAny": ["R01", "R02", "R05"] }, "category": "cold-ent" },
+    { "name": "atc-allergy", "when": { "atcAny": ["R06"] }, "category": "allergy" },
+    { "name": "atc-digestion", "when": { "atcAny": ["A02", "A03", "A06", "A07", "A09"] }, "category": "digestion" },
+    { "name": "atc-pain", "when": { "atcAny": ["M01", "N02"] }, "category": "pain-fever" },
+    { "name": "atc-muscle", "when": { "atcAny": ["M02", "M03"] }, "category": "muscles-joints" },
+    { "name": "atc-skin", "when": { "atcAny": ["D"] }, "category": "skin-wound" },
+    { "name": "atc-vitamins", "when": { "atcAny": ["A11", "A12", "B03"] }, "category": "vitamins-minerals" },
+    { "name": "atc-mouth", "when": { "atcAny": ["A01"] }, "category": "mouth-teeth" }
+  ]
+}

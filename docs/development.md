@@ -47,6 +47,8 @@ swift test --package-path ios/Packages/MediCabinetCore      # iOS core tests (fa
 bash scripts/check-version.sh ios|android                   # version == top changelog entry
 python3 -I scripts/check-fixtures.py                        # shared fixtures valid
 python3 -I scripts/check-string-parity.py                   # iOS and Android wording identical
+python3 -I scripts/tests/test-build-reference-db.py         # the BDPM reference build script's own tests
+python3 -I scripts/build-reference-db.py verify --apps ios,android   # the committed reference bundle (see reference-data.md)
 ```
 
 A PR must pass the gate of every product it touches. Each gate stops at the first failure and names the step.

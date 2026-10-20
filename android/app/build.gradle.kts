@@ -13,8 +13,8 @@ android {
         applicationId = "com.medicabinet.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -32,6 +32,10 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    sourceSets {
+        // The BDPM reference database and its manifest, bundled once for both apps from reference-data/bundle.
+        getByName("main").assets.directories.add("../../reference-data/bundle")
     }
     testOptions {
         unitTests {

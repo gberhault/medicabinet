@@ -1,0 +1,296 @@
+{
+  "formatVersion": 1,
+  "description": "Golden list of the reference-data build (specs/reference-data/design.md §5): real household products (one CIP13 each, picked from the 2026-10-19 BDPM snapshot) with the category the product owner expects. `build` refuses a database that breaks a case and `verify` re-checks the committed one. Notes in a name say which priority the case protects.",
+  "cases": [
+    {
+      "name": "DOLIPRANE 1000 mg comprimé",
+      "cip13": "3400935955838",
+      "expect": "pain-fever"
+    },
+    {
+      "name": "EFFERALGAN 1000 mg effervescent",
+      "cip13": "3400935291783",
+      "expect": "pain-fever"
+    },
+    {
+      "name": "ADVIL 200 mg comprimé enrobé",
+      "cip13": "3400932959358",
+      "expect": "pain-fever"
+    },
+    {
+      "name": "ASPIRINE UPSA 500 mg effervescent",
+      "cip13": "3400933515102",
+      "expect": "pain-fever"
+    },
+    {
+      "name": "VOLTARENE 50 mg comprimé (diclofénac oral)",
+      "cip13": "3400932351176",
+      "expect": "pain-fever"
+    },
+    {
+      "name": "KETUM 100 mg comprimé",
+      "cip13": "3400933927912",
+      "expect": "pain-fever"
+    },
+    {
+      "name": "HUMEX 5 % adultes expectorant",
+      "cip13": "3400939393216",
+      "expect": "cold-ent"
+    },
+    {
+      "name": "TOPLEXIL sirop (antihistaminique de la toux, pas allergie)",
+      "cip13": "3400935957849",
+      "expect": "cold-ent"
+    },
+    {
+      "name": "DOLIRHUME paracétamol + pseudoéphédrine (pas douleur)",
+      "cip13": "3400934125591",
+      "expect": "cold-ent"
+    },
+    {
+      "name": "ACTIFED RHUME",
+      "cip13": "3400935562937",
+      "expect": "cold-ent"
+    },
+    {
+      "name": "STREPSILS ORANGE VITAMINE C (pas vitamines, pas bouche)",
+      "cip13": "3400936954748",
+      "expect": "cold-ent"
+    },
+    {
+      "name": "OTIPAX gouttes auriculaires",
+      "cip13": "3400932790661",
+      "expect": "cold-ent"
+    },
+    {
+      "name": "RHINOFLUIMUCIL spray nasal",
+      "cip13": "3400932637119",
+      "expect": "cold-ent"
+    },
+    {
+      "name": "AVAMYS spray nasal",
+      "cip13": "3400938322446",
+      "expect": "cold-ent"
+    },
+    {
+      "name": "ALLERGODIL spray nasal (forme nez d'un antiallergique)",
+      "cip13": "3400933830595",
+      "expect": "cold-ent"
+    },
+    {
+      "name": "SMECTALIA",
+      "cip13": "3400930007877",
+      "expect": "digestion"
+    },
+    {
+      "name": "IMODIUMCAPS",
+      "cip13": "3400938571905",
+      "expect": "digestion"
+    },
+    {
+      "name": "GAVISCON suspension",
+      "cip13": "3400932285020",
+      "expect": "digestion"
+    },
+    {
+      "name": "SPASFON suppositoire",
+      "cip13": "3400930986141",
+      "expect": "digestion"
+    },
+    {
+      "name": "MOVICOL",
+      "cip13": "3400930313817",
+      "expect": "digestion"
+    },
+    {
+      "name": "FORLAX 10 g",
+      "cip13": "3400933899783",
+      "expect": "digestion"
+    },
+    {
+      "name": "CETIRIZINE EG 10 mg",
+      "cip13": "3400936266162",
+      "expect": "allergy"
+    },
+    {
+      "name": "AERIUS 5 mg comprimé",
+      "cip13": "3400935655769",
+      "expect": "allergy"
+    },
+    {
+      "name": "POLARAMINE 2 mg comprimé",
+      "cip13": "3400934227301",
+      "expect": "allergy"
+    },
+    {
+      "name": "BIAFINE émulsion",
+      "cip13": "3400931922827",
+      "expect": "skin-wound"
+    },
+    {
+      "name": "BETADINE DERMIQUE 10 %",
+      "cip13": "3400931499787",
+      "expect": "skin-wound"
+    },
+    {
+      "name": "FUCIDINE pommade",
+      "cip13": "3400930417034",
+      "expect": "skin-wound"
+    },
+    {
+      "name": "HEXOMEDINE gel",
+      "cip13": "3400933562175",
+      "expect": "skin-wound"
+    },
+    {
+      "name": "ZOVIRAX 5 % crème",
+      "cip13": "3400932846184",
+      "expect": "skin-wound"
+    },
+    {
+      "name": "DACRYOSERUM",
+      "cip13": "3400934732652",
+      "expect": "eyes"
+    },
+    {
+      "name": "TOBREX collyre",
+      "cip13": "3400932805433",
+      "expect": "eyes"
+    },
+    {
+      "name": "OPTICRON unidose",
+      "cip13": "3400930119303",
+      "expect": "eyes"
+    },
+    {
+      "name": "ALLERGODIL collyre (forme œil d'un antiallergique)",
+      "cip13": "3400934767203",
+      "expect": "eyes"
+    },
+    {
+      "name": "CROMABAK collyre",
+      "cip13": "3400934053061",
+      "expect": "eyes"
+    },
+    {
+      "name": "VOLTARENE EMULGEL (diclofénac local)",
+      "cip13": "3400937230414",
+      "expect": "muscles-joints"
+    },
+    {
+      "name": "FLECTOREFFIGEL",
+      "cip13": "3400927721328",
+      "expect": "muscles-joints"
+    },
+    {
+      "name": "KETUM gel",
+      "cip13": "3400933354978",
+      "expect": "muscles-joints"
+    },
+    {
+      "name": "MIOREL gélule",
+      "cip13": "3400933398743",
+      "expect": "muscles-joints"
+    },
+    {
+      "name": "THIOCOLCHICOSIDE ARROW",
+      "cip13": "3400935971975",
+      "expect": "muscles-joints"
+    },
+    {
+      "name": "HEXTRIL bain de bouche",
+      "cip13": "3400930496046",
+      "expect": "mouth-teeth"
+    },
+    {
+      "name": "ELUDRILPERIO",
+      "cip13": "3400922257204",
+      "expect": "mouth-teeth"
+    },
+    {
+      "name": "PANSORAL gel gingival (salicylate, pas douleur)",
+      "cip13": "3400936075764",
+      "expect": "mouth-teeth"
+    },
+    {
+      "name": "DYNEXAN crème buccale",
+      "cip13": "3400935279897",
+      "expect": "mouth-teeth"
+    },
+    {
+      "name": "ZYMAFLUOR comprimé",
+      "cip13": "3400934089480",
+      "expect": "mouth-teeth"
+    },
+    {
+      "name": "UVEDOSE capsule",
+      "cip13": "3400930234976",
+      "expect": "vitamins-minerals"
+    },
+    {
+      "name": "ZYMADUO vitamine D + fluor",
+      "cip13": "3400934780509",
+      "expect": "vitamins-minerals"
+    },
+    {
+      "name": "LAROSCORBINE 1 g",
+      "cip13": "3400935445803",
+      "expect": "vitamins-minerals"
+    },
+    {
+      "name": "TARDYFERON 50 mg",
+      "cip13": "3400928025777",
+      "expect": "vitamins-minerals"
+    },
+    {
+      "name": "MAG 2 100 mg comprimé",
+      "cip13": "3400934608773",
+      "expect": "vitamins-minerals"
+    },
+    {
+      "name": "SPECIAFOLDINE 0,4 mg",
+      "cip13": "3400936155701",
+      "expect": "vitamins-minerals"
+    },
+    {
+      "name": "KARDEGIC 160 mg (aspirine antiagrégant, pas douleur)",
+      "cip13": "3400933247379",
+      "expect": "other"
+    },
+    {
+      "name": "ZOVIRAX 200 mg comprimé (antiviral oral)",
+      "cip13": "3400932708178",
+      "expect": "other"
+    },
+    {
+      "name": "AMOXICILLINE BIOGARAN 500 mg",
+      "cip13": "3400933857042",
+      "expect": "other"
+    },
+    {
+      "name": "LEVOTHYROX 25 µg",
+      "cip13": "3400930065556",
+      "expect": "other"
+    },
+    {
+      "name": "OPTIMIZETTE",
+      "cip13": "3400927406980",
+      "expect": "other"
+    },
+    {
+      "name": "LANTUS flacon",
+      "cip13": "3400935946492",
+      "expect": "other"
+    },
+    {
+      "name": "POLARAMINE injectable",
+      "cip13": "3400930849255",
+      "expect": "other"
+    },
+    {
+      "name": "ARNICA MONTANA BIOGARAN CONSEIL gel (homéopathie)",
+      "cip13": "3400930305751",
+      "expect": "other"
+    }
+  ]
+}

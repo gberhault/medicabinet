@@ -2,6 +2,13 @@
 <resources>
     <string name="app_name" translatable="false">MediCabinet</string>
     <string name="about_disclaimer">MediCabinet est un outil d\'inventaire. Il ne donne aucun conseil médical : pour toute question sur un médicament, demandez conseil à un pharmacien ou à un médecin.</string>
+    <string name="about_reference_date">Données du %1$s</string>
+    <string name="about_reference_loading">Chargement des données de référence…</string>
+    <string name="about_reference_notEndorsed">MediCabinet n\'est ni affilié ni approuvé par l\'ANSM, la HAS ou l\'Assurance Maladie. Les catégories sont proposées par MediCabinet pour ranger l\'armoire.</string>
+    <string name="about_reference_open">Ouvre le site de la base de données</string>
+    <string name="about_reference_source">Source : Base de Données Publique des Médicaments</string>
+    <string name="about_reference_title">Données de référence</string>
+    <string name="about_reference_unavailable">Données de référence indisponibles : les produits scannés devront être nommés à la main.</string>
     <string name="about_version">Version %1$s (%2$s)</string>
     <string name="bootstrap_error_backup_message">Avant de mettre à jour vos données, MediCabinet doit en faire une copie, mais elle n\'a pas pu être écrite (espace insuffisant ?). Vos données n\'ont pas été modifiées.</string>
     <string name="bootstrap_error_backup_title">Sauvegarde impossible</string>
@@ -11,6 +18,18 @@
     <string name="bootstrap_error_storage_title">Stockage inaccessible</string>
     <string name="bootstrap_loading">Ouverture de l\'armoire…</string>
     <string name="bootstrap_retry">Réessayer</string>
+    <string name="category_allergy">Allergies</string>
+    <string name="category_cold_ent">Nez, gorge, oreilles</string>
+    <string name="category_digestion">Digestion</string>
+    <string name="category_eyes">Yeux</string>
+    <string name="category_first_aid">Trousse de secours</string>
+    <string name="category_mouth_teeth">Bouche et dents</string>
+    <string name="category_muscles_joints">Muscles et articulations</string>
+    <string name="category_other">Autres</string>
+    <string name="category_pain_fever">Douleur et fièvre</string>
+    <string name="category_skin_wound">Peau et plaies</string>
+    <string name="category_uncategorized">Non classé</string>
+    <string name="category_vitamins_minerals">Vitamines et minéraux</string>
     <string name="location_default_name">Armoire à pharmacie</string>
     <string name="placeholder_cabinet_message">Vos médicaments, classés par catégorie et par lieu, apparaîtront ici.</string>
     <string name="placeholder_cabinet_title">L\'armoire arrive bientôt</string>

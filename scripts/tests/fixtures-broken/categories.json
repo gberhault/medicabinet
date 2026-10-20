@@ -1,0 +1,18 @@
+{
+  "formatVersion": 1,
+  "description": "Deliberately wrong copy of fixtures/categories.json: the first two categories are swapped, so every platform's taxonomy test must fail on it.",
+  "cases": [
+    { "name": "cold-ent", "assignedByBuild": true, "userSelectable": true },
+    { "name": "pain-fever", "assignedByBuild": true, "userSelectable": true },
+    { "name": "digestion", "assignedByBuild": true, "userSelectable": true },
+    { "name": "allergy", "assignedByBuild": true, "userSelectable": true },
+    { "name": "skin-wound", "assignedByBuild": true, "userSelectable": true },
+    { "name": "eyes", "assignedByBuild": true, "userSelectable": true },
+    { "name": "muscles-joints", "assignedByBuild": true, "userSelectable": true },
+    { "name": "mouth-teeth", "assignedByBuild": true, "userSelectable": true },
+    { "name": "vitamins-minerals", "assignedByBuild": true, "userSelectable": true },
+    { "name": "first-aid", "assignedByBuild": false, "userSelectable": true },
+    { "name": "other", "assignedByBuild": true, "userSelectable": true },
+    { "name": "uncategorized", "assignedByBuild": false, "userSelectable": false }
+  ]
+}

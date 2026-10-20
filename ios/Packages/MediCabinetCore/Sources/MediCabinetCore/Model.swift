@@ -1,7 +1,6 @@
 import Foundation
 
-/// Stable key of a category (e.g. `pain-fever`); the taxonomy itself arrives with the
-/// reference-data epic.
+/// Stable key of a category (e.g. `pain-fever`); the twelve categories are in `Taxonomy`.
 public struct CategoryID: RawRepresentable, Hashable, Sendable, Codable {
     public let rawValue: String
 

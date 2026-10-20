@@ -8,8 +8,12 @@ import com.medicabinet.app.app.AppEnvironment
 import com.medicabinet.app.app.AppLog
 import com.medicabinet.app.app.BootstrapFailure
 import com.medicabinet.app.app.BootstrapState
+import com.medicabinet.app.persistence.reference.AndroidReferenceAssets
+import com.medicabinet.app.persistence.reference.ReferenceInstaller
+import com.medicabinet.app.persistence.reference.SqlReferenceData
 import com.medicabinet.core.Clock
 import com.medicabinet.core.SystemClock
+import com.medicabinet.core.reference.ReferenceDataSource
 import java.io.File
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +30,12 @@ class Bootstrap(
     private val clock: Clock = SystemClock,
     private val backupsToKeep: Int = BackupService.DEFAULT_KEEP_COUNT,
     private val io: CoroutineDispatcher = Dispatchers.IO,
-    private val databaseName: String = AppPaths.DATABASE_NAME
+    private val databaseName: String = AppPaths.DATABASE_NAME,
+    /** Only handed to the environment here: it installs and opens the reference data on first use, not at launch. */
+    private val reference: ReferenceDataSource = SqlReferenceData(
+        ReferenceInstaller(AndroidReferenceAssets(context.assets), AppPaths(context).referenceDirectory),
+        io
+    )
 ) {
     suspend fun run(): BootstrapState = withContext(io) {
         try {
@@ -50,7 +59,7 @@ class Bootstrap(
         val locations = SqlLocationRepository(cabinet, clock, io)
         ensureDefaultLocation(cabinet, locations)
         runCatching { backups.prune(backupsToKeep) }
-        return AppEnvironment(locations, SqlBoxRepository(cabinet, clock, io), clock)
+        return AppEnvironment(locations, SqlBoxRepository(cabinet, clock, io), clock, reference)
     }
 
     /** A needed copy that cannot be written stops everything: nothing is migrated without a safety copy. */

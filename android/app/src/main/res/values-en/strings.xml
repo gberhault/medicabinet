@@ -2,6 +2,13 @@
 <resources>
     <string name="app_name" translatable="false">MediCabinet</string>
     <string name="about_disclaimer">MediCabinet is an inventory tool. It gives no medical advice: for any question about a medicine, ask a pharmacist or a doctor.</string>
+    <string name="about_reference_date">Data as of %1$s</string>
+    <string name="about_reference_loading">Loading reference data…</string>
+    <string name="about_reference_notEndorsed">MediCabinet is not affiliated with or endorsed by ANSM, HAS or the French national health insurance. Categories are suggested by MediCabinet to tidy the cabinet.</string>
+    <string name="about_reference_open">Opens the database website</string>
+    <string name="about_reference_source">Source: Base de Données Publique des Médicaments</string>
+    <string name="about_reference_title">Reference data</string>
+    <string name="about_reference_unavailable">Reference data unavailable: scanned products will need to be named by hand.</string>
     <string name="about_version">Version %1$s (%2$s)</string>
     <string name="bootstrap_error_backup_message">Before updating your data, MediCabinet must make a copy of it, but the copy could not be written (is storage full?). Your data has not been changed.</string>
     <string name="bootstrap_error_backup_title">Backup failed</string>
@@ -11,6 +18,18 @@
     <string name="bootstrap_error_storage_title">Storage unavailable</string>
     <string name="bootstrap_loading">Opening your cabinet…</string>
     <string name="bootstrap_retry">Try again</string>
+    <string name="category_allergy">Allergies</string>
+    <string name="category_cold_ent">Nose, throat and ears</string>
+    <string name="category_digestion">Digestion</string>
+    <string name="category_eyes">Eyes</string>
+    <string name="category_first_aid">First-aid kit</string>
+    <string name="category_mouth_teeth">Mouth and teeth</string>
+    <string name="category_muscles_joints">Muscles and joints</string>
+    <string name="category_other">Other</string>
+    <string name="category_pain_fever">Pain and fever</string>
+    <string name="category_skin_wound">Skin and wounds</string>
+    <string name="category_uncategorized">Uncategorized</string>
+    <string name="category_vitamins_minerals">Vitamins and minerals</string>
     <string name="location_default_name">Medicine cabinet</string>
     <string name="placeholder_cabinet_message">Your medicines, sorted by category and location, will appear here.</string>
     <string name="placeholder_cabinet_title">Your cabinet is coming soon</string>

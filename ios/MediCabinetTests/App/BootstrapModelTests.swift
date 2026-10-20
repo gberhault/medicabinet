@@ -8,7 +8,10 @@ import Testing
 @Suite struct BootstrapModelTests {
     private func environment() -> AppEnvironment {
         let store = InMemoryCabinetStore(clock: SystemClock())
-        return AppEnvironment(locations: store, boxes: store, clock: SystemClock())
+        return AppEnvironment(
+            locations: store, boxes: store, clock: SystemClock(),
+            reference: InMemoryReferenceData(status: .unavailable(.missing))
+        )
     }
 
     private final class Script: @unchecked Sendable {

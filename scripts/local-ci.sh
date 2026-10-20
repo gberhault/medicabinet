@@ -18,6 +18,11 @@ if [[ "$WHICH" == all || "$WHICH" == shared ]]; then
   python3 -I scripts/check-fixtures.py
   bash scripts/tests/test-check-fixtures.sh
 
+  step "shared: reference data (build script, committed bundle, golden list)"
+  python3 -I scripts/tests/test-build-reference-db.py
+  python3 -I scripts/build-reference-db.py verify --apps ios,android
+  bash scripts/tests/test-reference-data-break.sh
+
   step "shared: iOS and Android say the same thing"
   python3 -I scripts/check-string-parity.py
 
