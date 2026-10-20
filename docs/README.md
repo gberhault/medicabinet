@@ -10,6 +10,7 @@
 | [expiry-tracking.md](expiry-tracking.md) | Expiry status of a box, the "expiring soon" window, the Expiring tab, the monthly reminder on each platform, privacy |
 | [export-import.md](export-import.md) | Exporting the cabinet, importing it (replace only, preview and confirmation), opening a file with the app, automatic backups and restore, privacy |
 | [export-format.md](export-format.md) | The `.medicabinet` archive: format version 1 field by field, canonical form, limits, error kinds, how a version is added |
+| [named-products.md](named-products.md) | The products you named (a name and category remembered per code the medicines database does not know), Settings → Products you named: rename, category, forget with Undo, the upgrade fill, export |
 | [locations.md](locations.md) | Managing locations (add, rename, reorder, default, delete with move and Undo), the tombstone, where the code is |
 | [app-icon.md](app-icon.md) | The app icon: one source SVG generated into the Android adaptive icon, the iOS light/dark/tinted icons and the Google Play assets; how to change it, rights rules, Play requirements |
 

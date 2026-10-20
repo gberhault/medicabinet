@@ -53,8 +53,10 @@ Remove is never remembered, so a scan meant as an intake can never take a box ou
   once, so leaving without Done loses nothing.
 
 A product is named, and categorised, from the bundled medicines database ([`reference-data.md`](reference-data.md)),
-else from the last box with the same code (keeping a category the user set), else the user types the name. Boxes
-whose product is not in the database stay *uncategorized*.
+else from the **product the household named** for that code ([`named-products.md`](named-products.md): the name and the
+category it chose), else the user types the name. For a code the database knows, a category the user set on the
+newest box with that code is still carried over. A previous box no longer names a code the database does not know.
+Boxes whose product is neither in the database nor named stay *uncategorized*.
 
 ## The rules (shared fixtures)
 
