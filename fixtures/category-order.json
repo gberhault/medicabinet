@@ -1,0 +1,82 @@
+{
+  "formatVersion": 1,
+  "description": "CategoryOrder.alphabetical: category ids sorted by their label as normalized text (TextNormalizer.normalize, compared by code point), ties by raw id; the id `other` and then the id `uncategorized` always come last whatever their label; only the ids in `labels` are ordered. `labels` maps an id to the label the app shows in its language. The two real-label cases are the shipped French and English labels (values/strings.xml, Localizable.xcstrings): renaming a label that changes the order fails here on both platforms.",
+  "cases": [
+    {
+      "name": "the shipped French labels",
+      "labels": {
+        "pain-fever": "Douleur et fièvre",
+        "cold-ent": "Nez, gorge, oreilles",
+        "digestion": "Digestion",
+        "allergy": "Allergies",
+        "skin-wound": "Peau et plaies",
+        "eyes": "Yeux",
+        "muscles-joints": "Muscles et articulations",
+        "mouth-teeth": "Bouche et dents",
+        "vitamins-minerals": "Vitamines et minéraux",
+        "first-aid": "Trousse de secours",
+        "other": "Autres",
+        "uncategorized": "Non classé"
+      },
+      "expect": ["allergy", "mouth-teeth", "digestion", "pain-fever", "muscles-joints", "cold-ent", "skin-wound", "first-aid", "vitamins-minerals", "eyes", "other", "uncategorized"]
+    },
+    {
+      "name": "the shipped English labels",
+      "labels": {
+        "pain-fever": "Pain and fever",
+        "cold-ent": "Nose, throat and ears",
+        "digestion": "Digestion",
+        "allergy": "Allergies",
+        "skin-wound": "Skin and wounds",
+        "eyes": "Eyes",
+        "muscles-joints": "Muscles and joints",
+        "mouth-teeth": "Mouth and teeth",
+        "vitamins-minerals": "Vitamins and minerals",
+        "first-aid": "First-aid kit",
+        "other": "Other",
+        "uncategorized": "Uncategorized"
+      },
+      "expect": ["allergy", "digestion", "eyes", "first-aid", "mouth-teeth", "muscles-joints", "cold-ent", "pain-fever", "skin-wound", "vitamins-minerals", "other", "uncategorized"]
+    },
+    {
+      "name": "other and uncategorized stay last even when their labels sort first",
+      "labels": { "other": "Aaa", "uncategorized": "Aab", "digestion": "Zzz", "eyes": "Yyy" },
+      "expect": ["eyes", "digestion", "other", "uncategorized"]
+    },
+    {
+      "name": "uncategorized is last even when there is no other",
+      "labels": { "uncategorized": "Aaa", "eyes": "Zzz" },
+      "expect": ["eyes", "uncategorized"]
+    },
+    {
+      "name": "an accented capital sorts with its base letter",
+      "labels": { "eyes": "Éraflures", "digestion": "Estomac", "allergy": "Eau" },
+      "expect": ["allergy", "eyes", "digestion"]
+    },
+    {
+      "name": "case and surrounding whitespace do not matter",
+      "labels": { "eyes": "  beta", "digestion": "ALPHA", "allergy": "Charlie" },
+      "expect": ["digestion", "eyes", "allergy"]
+    },
+    {
+      "name": "equal labels are ordered by raw id",
+      "labels": { "pain-fever": "Same", "cold-ent": "SAME", "allergy": "same" },
+      "expect": ["allergy", "cold-ent", "pain-fever"]
+    },
+    {
+      "name": "a label that is a prefix of another comes first",
+      "labels": { "eyes": "Peau et plaies", "digestion": "Peau" },
+      "expect": ["digestion", "eyes"]
+    },
+    {
+      "name": "a single category",
+      "labels": { "other": "Autres" },
+      "expect": ["other"]
+    },
+    {
+      "name": "no labels give no order",
+      "labels": {},
+      "expect": []
+    }
+  ]
+}

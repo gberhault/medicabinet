@@ -1,7 +1,6 @@
 package com.medicabinet.app.app
 
 import com.medicabinet.core.BoxRepository
-import com.medicabinet.core.CategoryID
 import com.medicabinet.core.Clock
 import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.ExpiryStatus
@@ -10,7 +9,6 @@ import com.medicabinet.core.expiry.CalendarDay
 import com.medicabinet.core.expiry.ExpiryRule
 import com.medicabinet.core.expiry.ExpiryWindow
 import com.medicabinet.core.reference.ReferenceDataSource
-import com.medicabinet.core.reference.Taxonomy
 import java.time.ZoneId
 
 /**
@@ -18,8 +16,7 @@ import java.time.ZoneId
  * bundled BDPM data; it is opened lazily, never during launch.
  *
  * [zone] turns the [clock]'s instant into "today" (the device time zone); [todaySource] says when "today" changes.
- * [expiryPreferences] holds the "expiring soon" window and the reminder choices. [categoryOrder] is the taxonomy's
- * order of the Cabinet sections.
+ * [expiryPreferences] holds the "expiring soon" window and the reminder choices.
  */
 class AppEnvironment(
     val locations: LocationRepository,
@@ -27,7 +24,6 @@ class AppEnvironment(
     val clock: Clock,
     val reference: ReferenceDataSource,
     val zone: ZoneId = ZoneId.systemDefault(),
-    val categoryOrder: List<CategoryID> = Taxonomy.ordered,
     val expiryPreferences: ExpiryPreferences = InMemoryExpiryPreferences(),
     val todaySource: TodaySource = DayTicker(clock, zone)
 ) {

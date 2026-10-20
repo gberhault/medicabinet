@@ -32,6 +32,37 @@ import Testing
         #expect(CabinetText.rowBoxes(count, bundle: bundle, locale: locale) == expected)
     }
 
+    @Test(arguments: [
+        ("fr", ExpiryStatus.ok, "Doliprane 1000 mg, comprimé, 3 boîtes"),
+        ("fr", .expired, "Doliprane 1000 mg, comprimé, 3 boîtes, Périmé"),
+        ("fr", .unknown, "Doliprane 1000 mg, comprimé, 3 boîtes, Péremption inconnue"),
+        ("en", .ok, "Doliprane 1000 mg, comprimé, 3 boxes"),
+        ("en", .expiringSoon, "Doliprane 1000 mg, comprimé, 3 boxes, Expiring soon")
+    ])
+    func aPillIsSpokenWithItsFullNameCountAndOnlyAnAlertStatus(
+        code: String, status: ExpiryStatus, expected: String
+    ) throws {
+        let bundle = try languageBundle(code)
+        let spoken = CabinetText.pillLabel(
+            name: "Doliprane 1000 mg, comprimé", boxes: 3, status: status, bundle: bundle,
+            locale: Locale(identifier: code))
+        #expect(spoken == expected)
+    }
+
+    @Test(arguments: [
+        ("fr", 1, "1 filtre actif"), ("fr", 2, "2 filtres actifs"),
+        ("en", 1, "1 active filter"), ("en", 2, "2 active filters")
+    ])
+    func theActiveFilterCountIsPluralAware(code: String, count: Int, expected: String) throws {
+        let bundle = try languageBundle(code)
+        #expect(CabinetText.activeFilters(count, bundle: bundle, locale: Locale(identifier: code)) == expected)
+    }
+
+    @Test(arguments: [("fr", "Retirer le filtre Cuisine"), ("en", "Remove filter Cuisine")])
+    func aChipSaysWhichFilterItRemoves(code: String, expected: String) throws {
+        #expect(CabinetText.removeFilter("Cuisine", bundle: try languageBundle(code)) == expected)
+    }
+
     @Test(arguments: [("fr", "Doliprane : utilisée"), ("en", "Doliprane: used up")])
     func undoMessagesNameTheProduct(code: String, expected: String) throws {
         let bundle = try languageBundle(code)

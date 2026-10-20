@@ -8,8 +8,9 @@ struct AppEnvironment: Sendable {
     let clock: any Clock
     /// The bundled BDPM reference data; opened lazily, never during launch.
     let reference: any ReferenceDataSource
-    /// The taxonomy's order: the Cabinet list's category sections follow it, `uncategorized` last.
-    var categoryOrder: [CategoryID] = Taxonomy.ordered
+    /// The label a category shows in the app's language: the Cabinet's category cards are ordered A–Z by it, so a
+    /// test can inject labels without touching the string catalog.
+    var categoryLabel: @Sendable (CategoryID) -> String = { CategoryLabel.text(for: $0) }
     /// The device preferences of expiry tracking: the "expiring soon" window and the reminder choices.
     var preferences: any ExpiryPreferences = InMemoryExpiryPreferences()
     /// What says "today" may have changed (midnight, time zone, clock).

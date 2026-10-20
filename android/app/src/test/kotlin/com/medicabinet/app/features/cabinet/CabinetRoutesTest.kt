@@ -25,6 +25,7 @@ class CabinetRoutesTest {
     private fun row(vararg boxes: Box) = ProductRow(
         ProductRowId(CategoryID.PAIN_FEVER, ProductKey.Name("x")),
         "X",
+        "X",
         boxes.toList(),
         ExpiryStatus.OK,
         null

@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "description": "CabinetRows.build: groups the boxes in the cabinet into product rows under category sections. Filters (location, status of the box, then the search on the row name) apply before the row is built, so a row holds only the boxes that passed. Product key = GTIN, else the normalized name; a row is one (category, key). Row name = name of the most recently created box (then greater id). Row status = most urgent box (expired, expiringSoon, unknown, ok). Rows: status urgency, earliest expiry (month precision = last day of the month, none last), normalized name by code point, first box id. Boxes: expiry (none last), createdOrder, id. Sections: categoryOrder, then other categories by key, `uncategorized` always last. Box ids `bN` become UUIDs ending in N (zero-padded) so id order is numeric; `status` is given per box (the app supplies it from the expiry-status rule); `createdOrder` is a rank, not a date; locations are opaque labels.",
+  "description": "CabinetRows.build: groups the boxes in the cabinet into product rows under category sections. Filters (location, status of the box, then the search on the row name) apply before the row is built, so a row holds only the boxes that passed. Product key = GTIN, else the normalized name; a row is one (category, key). Row name = name of the most recently created box (then greater id). Row status = most urgent box (expired, expiringSoon, unknown, ok). Row displayName = ShortName.of(name), except that when two rows of the same section have the same short name (as normalized text) both show their full name. Rows are ordered by the normalized displayName, then by first box id: status and expiry do not move a row. Boxes: expiry (none last), createdOrder, id. Sections: categoryOrder, then other categories by key, `uncategorized` always last. Box ids `bN` become UUIDs ending in N (zero-padded) so id order is numeric; `status` is given per box (the app supplies it from the expiry-status rule); `createdOrder` is a rank, not a date; locations are opaque labels.",
   "cases": [
     {
       "name": "an empty cabinet has no sections",
@@ -64,6 +64,7 @@
             "rows": [
               {
                 "name": "DOLIPRANE 1000 mg cp",
+                "displayName": "DOLIPRANE 1000 mg cp",
                 "boxes": [
                   "b1",
                   "b2"
@@ -143,6 +144,7 @@
             "rows": [
               {
                 "name": "Doliprane",
+                "displayName": "Doliprane",
                 "boxes": [
                   "b3",
                   "b2",
@@ -209,6 +211,7 @@
             "rows": [
               {
                 "name": "Doliprane",
+                "displayName": "Doliprane",
                 "boxes": [
                   "b1"
                 ],
@@ -226,6 +229,7 @@
             "rows": [
               {
                 "name": "Doliprane",
+                "displayName": "Doliprane",
                 "boxes": [
                   "b2"
                 ],
@@ -286,6 +290,7 @@
             "rows": [
               {
                 "name": "pansement sterile",
+                "displayName": "pansement sterile",
                 "boxes": [
                   "b1",
                   "b2"
@@ -351,6 +356,7 @@
             "rows": [
               {
                 "name": "Doliprane",
+                "displayName": "Doliprane",
                 "boxes": [
                   "b1"
                 ],
@@ -363,6 +369,7 @@
               },
               {
                 "name": "Doliprane",
+                "displayName": "Doliprane",
                 "boxes": [
                   "b2"
                 ],
@@ -379,7 +386,7 @@
       }
     },
     {
-      "name": "rows are ordered by status urgency, then earliest expiry, then name",
+      "name": "rows are ordered by displayed name, ignoring status and expiry",
       "categoryOrder": [
         "pain-fever",
         "cold-ent"
@@ -478,19 +485,21 @@
             "category": "pain-fever",
             "rows": [
               {
-                "name": "Gamma",
+                "name": "Alpha",
+                "displayName": "Alpha",
                 "boxes": [
-                  "b4"
+                  "b2"
                 ],
-                "status": "expired",
+                "status": "ok",
                 "earliestExpiry": {
-                  "year": 2026,
-                  "month": 8,
+                  "year": 2027,
+                  "month": 6,
                   "day": 1
                 }
               },
               {
                 "name": "Beta",
+                "displayName": "Beta",
                 "boxes": [
                   "b3"
                 ],
@@ -503,6 +512,7 @@
               },
               {
                 "name": "Delta",
+                "displayName": "Delta",
                 "boxes": [
                   "b5"
                 ],
@@ -511,6 +521,7 @@
               },
               {
                 "name": "Épsilon",
+                "displayName": "Épsilon",
                 "boxes": [
                   "b6"
                 ],
@@ -522,7 +533,21 @@
                 }
               },
               {
+                "name": "Gamma",
+                "displayName": "Gamma",
+                "boxes": [
+                  "b4"
+                ],
+                "status": "expired",
+                "earliestExpiry": {
+                  "year": 2026,
+                  "month": 8,
+                  "day": 1
+                }
+              },
+              {
                 "name": "Zeta",
+                "displayName": "Zeta",
                 "boxes": [
                   "b1"
                 ],
@@ -532,18 +557,6 @@
                   "month": 12,
                   "day": 1
                 }
-              },
-              {
-                "name": "Alpha",
-                "boxes": [
-                  "b2"
-                ],
-                "status": "ok",
-                "earliestExpiry": {
-                  "year": 2027,
-                  "month": 6,
-                  "day": 1
-                }
               }
             ]
           }
@@ -551,7 +564,7 @@
       }
     },
     {
-      "name": "a month-precise expiry sorts as the last day of its month",
+      "name": "a month-precise expiry sorts as the last day of its month, inside a row",
       "categoryOrder": [
         "pain-fever",
         "cold-ent"
@@ -569,12 +582,12 @@
             "day": 15
           },
           "status": "ok",
-          "createdOrder": 1
+          "createdOrder": 2
         },
         {
           "id": "b2",
-          "gtin": "03400930000021",
-          "name": "Abe",
+          "gtin": "03400930000014",
+          "name": "Zed",
           "category": "pain-fever",
           "location": "bath",
           "expiry": {
@@ -583,7 +596,7 @@
             "day": null
           },
           "status": "ok",
-          "createdOrder": 2
+          "createdOrder": 1
         }
       ],
       "filter": {
@@ -599,26 +612,16 @@
             "rows": [
               {
                 "name": "Zed",
+                "displayName": "Zed",
                 "boxes": [
-                  "b1"
-                ],
-                "status": "ok",
-                "earliestExpiry": {
-                  "year": 2027,
-                  "month": 3,
-                  "day": 15
-                }
-              },
-              {
-                "name": "Abe",
-                "boxes": [
+                  "b1",
                   "b2"
                 ],
                 "status": "ok",
                 "earliestExpiry": {
                   "year": 2027,
                   "month": 3,
-                  "day": null
+                  "day": 15
                 }
               }
             ]
@@ -709,6 +712,7 @@
             "rows": [
               {
                 "name": "Latest name",
+                "displayName": "Latest name",
                 "boxes": [
                   "b5",
                   "b3",
@@ -791,6 +795,7 @@
             "rows": [
               {
                 "name": "New",
+                "displayName": "New",
                 "boxes": [
                   "b1",
                   "b2",
@@ -899,6 +904,7 @@
             "rows": [
               {
                 "name": "D",
+                "displayName": "D",
                 "boxes": [
                   "b4"
                 ],
@@ -916,6 +922,7 @@
             "rows": [
               {
                 "name": "C",
+                "displayName": "C",
                 "boxes": [
                   "b3"
                 ],
@@ -933,6 +940,7 @@
             "rows": [
               {
                 "name": "E",
+                "displayName": "E",
                 "boxes": [
                   "b5"
                 ],
@@ -950,6 +958,7 @@
             "rows": [
               {
                 "name": "B",
+                "displayName": "B",
                 "boxes": [
                   "b2"
                 ],
@@ -967,6 +976,7 @@
             "rows": [
               {
                 "name": "A",
+                "displayName": "A",
                 "boxes": [
                   "b1"
                 ],
@@ -1031,6 +1041,7 @@
             "rows": [
               {
                 "name": "B",
+                "displayName": "B",
                 "boxes": [
                   "b2"
                 ],
@@ -1048,6 +1059,7 @@
             "rows": [
               {
                 "name": "A",
+                "displayName": "A",
                 "boxes": [
                   "b1"
                 ],
@@ -1109,6 +1121,7 @@
             "rows": [
               {
                 "name": "B",
+                "displayName": "B",
                 "boxes": [
                   "b2"
                 ],
@@ -1126,6 +1139,7 @@
             "rows": [
               {
                 "name": "A",
+                "displayName": "A",
                 "boxes": [
                   "b1"
                 ],
@@ -1204,6 +1218,7 @@
             "rows": [
               {
                 "name": "EFFÉRALGAN 500",
+                "displayName": "EFFÉRALGAN 500",
                 "boxes": [
                   "b2"
                 ],
@@ -1282,6 +1297,7 @@
             "rows": [
               {
                 "name": "Doliprane 1000",
+                "displayName": "Doliprane 1000",
                 "boxes": [
                   "b1"
                 ],
@@ -1420,6 +1436,7 @@
             "rows": [
               {
                 "name": "Doliprane 1000",
+                "displayName": "Doliprane 1000",
                 "boxes": [
                   "b1"
                 ],
@@ -1432,6 +1449,7 @@
               },
               {
                 "name": "EFFÉRALGAN 500",
+                "displayName": "EFFÉRALGAN 500",
                 "boxes": [
                   "b2"
                 ],
@@ -1444,6 +1462,7 @@
               },
               {
                 "name": "Spasfon",
+                "displayName": "Spasfon",
                 "boxes": [
                   "b3"
                 ],
@@ -1581,19 +1600,8 @@
             "category": "pain-fever",
             "rows": [
               {
-                "name": "Beta",
-                "boxes": [
-                  "b3"
-                ],
-                "status": "ok",
-                "earliestExpiry": {
-                  "year": 2026,
-                  "month": 12,
-                  "day": 1
-                }
-              },
-              {
                 "name": "Alpha",
+                "displayName": "Alpha",
                 "boxes": [
                   "b2"
                 ],
@@ -1601,6 +1609,19 @@
                 "earliestExpiry": {
                   "year": 2027,
                   "month": 1,
+                  "day": 1
+                }
+              },
+              {
+                "name": "Beta",
+                "displayName": "Beta",
+                "boxes": [
+                  "b3"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2026,
+                  "month": 12,
                   "day": 1
                 }
               }
@@ -1672,6 +1693,7 @@
             "rows": [
               {
                 "name": "Alpha",
+                "displayName": "Alpha",
                 "boxes": [
                   "b2"
                 ],
@@ -1732,6 +1754,7 @@
             "rows": [
               {
                 "name": "Alpha",
+                "displayName": "Alpha",
                 "boxes": [
                   "b1"
                 ],
@@ -1833,19 +1856,8 @@
             "category": "pain-fever",
             "rows": [
               {
-                "name": "Dolirhume",
-                "boxes": [
-                  "b4"
-                ],
-                "status": "ok",
-                "earliestExpiry": {
-                  "year": 2027,
-                  "month": 1,
-                  "day": 1
-                }
-              },
-              {
                 "name": "Doliprane",
+                "displayName": "Doliprane",
                 "boxes": [
                   "b1"
                 ],
@@ -1853,6 +1865,19 @@
                 "earliestExpiry": {
                   "year": 2027,
                   "month": 2,
+                  "day": 1
+                }
+              },
+              {
+                "name": "Dolirhume",
+                "displayName": "Dolirhume",
+                "boxes": [
+                  "b4"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
                   "day": 1
                 }
               }
@@ -1910,8 +1935,507 @@
             "rows": [
               {
                 "name": "Doliprane",
+                "displayName": "Doliprane",
                 "boxes": [
                   "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "the displayed name is the short name",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "DOLIPRANE 1000 mg, comprimé",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "DIPROSONE 0,05 %, lotion",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 2,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "DIPROSONE 0,05 %, lotion",
+                "displayName": "DIPROSONE 0,05 %",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              },
+              {
+                "name": "DOLIPRANE 1000 mg, comprimé",
+                "displayName": "DOLIPRANE 1000 mg",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "two products with the same short name in a category show their full names",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "DOLIPRANE 500 mg, gélule",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "DOLIPRANE 500 mg, comprimé",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000038",
+          "name": "DOLIPRANE 1000 mg, comprimé",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 3
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 3,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "DOLIPRANE 1000 mg, comprimé",
+                "displayName": "DOLIPRANE 1000 mg",
+                "boxes": [
+                  "b3"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              },
+              {
+                "name": "DOLIPRANE 500 mg, comprimé",
+                "displayName": "DOLIPRANE 500 mg, comprimé",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              },
+              {
+                "name": "DOLIPRANE 500 mg, gélule",
+                "displayName": "DOLIPRANE 500 mg, gélule",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "the same short name in two categories is not a collision",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "NUROFEN 200 mg, comprimé",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "NUROFEN 200 mg, sirop",
+          "category": "cold-ent",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 2,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "NUROFEN 200 mg, comprimé",
+                "displayName": "NUROFEN 200 mg",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          },
+          {
+            "category": "cold-ent",
+            "rows": [
+              {
+                "name": "NUROFEN 200 mg, sirop",
+                "displayName": "NUROFEN 200 mg",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "a collision only counts the rows that pass the filters",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "DOLIPRANE 500 mg, gélule",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2026,
+            "month": 8,
+            "day": 1
+          },
+          "status": "expired",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000021",
+          "name": "DOLIPRANE 500 mg, comprimé",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 8,
+            "day": 1
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": "expired"
+      },
+      "expect": {
+        "boxCount": 1,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "DOLIPRANE 500 mg, gélule",
+                "displayName": "DOLIPRANE 500 mg",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "expired",
+                "earliestExpiry": {
+                  "year": 2026,
+                  "month": 8,
+                  "day": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "rows with the same displayed name are ordered by first box id",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "Aspirine",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b1",
+          "gtin": "03400930000021",
+          "name": "Aspirine",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 2
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 2,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Aspirine",
+                "displayName": "Aspirine",
+                "boxes": [
+                  "b1"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              },
+              {
+                "name": "Aspirine",
+                "displayName": "Aspirine",
+                "boxes": [
+                  "b2"
+                ],
+                "status": "ok",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "a row with an unknown box among ok boxes is not drawn as ok, whatever its place in the order",
+      "categoryOrder": [
+        "pain-fever",
+        "cold-ent"
+      ],
+      "boxes": [
+        {
+          "id": "b1",
+          "gtin": "03400930000014",
+          "name": "Alpha",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 1
+        },
+        {
+          "id": "b2",
+          "gtin": "03400930000014",
+          "name": "Alpha",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": null,
+          "status": "unknown",
+          "createdOrder": 2
+        },
+        {
+          "id": "b3",
+          "gtin": "03400930000021",
+          "name": "Beta",
+          "category": "pain-fever",
+          "location": "bath",
+          "expiry": {
+            "year": 2027,
+            "month": 1,
+            "day": null
+          },
+          "status": "ok",
+          "createdOrder": 3
+        }
+      ],
+      "filter": {
+        "query": "",
+        "location": null,
+        "status": null
+      },
+      "expect": {
+        "boxCount": 3,
+        "sections": [
+          {
+            "category": "pain-fever",
+            "rows": [
+              {
+                "name": "Alpha",
+                "displayName": "Alpha",
+                "boxes": [
+                  "b1",
+                  "b2"
+                ],
+                "status": "unknown",
+                "earliestExpiry": {
+                  "year": 2027,
+                  "month": 1,
+                  "day": null
+                }
+              },
+              {
+                "name": "Beta",
+                "displayName": "Beta",
+                "boxes": [
+                  "b3"
                 ],
                 "status": "ok",
                 "earliestExpiry": {

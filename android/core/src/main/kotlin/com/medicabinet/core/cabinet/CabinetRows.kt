@@ -43,6 +43,11 @@ data class ProductRow(
     val id: ProductRowId,
     /** Name of the most recently created box of the row. */
     val name: String,
+    /**
+     * What the list shows: the short name, or the full [name] when another row of the same category has the same
+     * short name (compared as normalized text).
+     */
+    val displayName: String,
     /** Only the boxes that passed the filters, earliest expiry first (unknown last). */
     val boxes: List<Box>,
     /** The most urgent status among [boxes]. */
@@ -93,16 +98,13 @@ object CabinetRows {
         val rank = categoryRank(categoryOrder)
         val sections = entries.groupBy { it.row.id.category }
             .toSortedMap(compareBy<CategoryID> { rank(it) })
-            .map { (category, rows) -> CategorySection(category, rows.sortedWith(ROW_ORDER).map { it.row }) }
+            .map { (category, rows) -> CategorySection(category, orderedRows(rows)) }
         return CabinetSnapshot(sections, entries.sumOf { it.row.boxes.size })
     }
 
-    private class Entry(
-        val row: ProductRow,
-        val normalizedName: String,
-        val earliestKey: String?,
-        val firstBoxId: String
-    )
+    private class Entry(val row: ProductRow, val firstBoxId: String)
+
+    private class NamedRow(val row: ProductRow, val key: String, val firstBoxId: String)
 
     private data class CategoryRank(val bucket: Int, val index: Int, val key: String) : Comparable<CategoryRank> {
         override fun compareTo(other: CategoryRank): Int = when {
@@ -126,27 +128,28 @@ object CabinetRows {
         }
         val mostUrgent = ordered.map { it.second }.minByOrNull { ExpiryUrgency.rank(it) } ?: ExpiryStatus.UNKNOWN
         val earliest = ordered.mapNotNull { it.first.expiry }.minOrNull()
-        val row = ProductRow(id, newest.product.name, ordered.map { it.first }, mostUrgent, earliest)
-        return Entry(row, normalizedName, earliest?.sortKey, BoxOrdering.idKey(ordered.first().first))
+        val name = newest.product.name
+        val row = ProductRow(id, name, name, ordered.map { it.first }, mostUrgent, earliest)
+        return Entry(row, BoxOrdering.idKey(ordered.first().first))
     }
 
-    private val ROW_ORDER = Comparator<Entry> { left, right ->
-        val byUrgency = ExpiryUrgency.rank(left.row.status).compareTo(ExpiryUrgency.rank(right.row.status))
-        val leftKey = left.earliestKey
-        val rightKey = right.earliestKey
-        val byExpiry = when {
-            leftKey != null && rightKey != null -> leftKey.compareTo(rightKey)
-            leftKey == null && rightKey != null -> 1
-            leftKey != null && rightKey == null -> -1
-            else -> 0
+    /**
+     * The rows of one category with their display names, A–Z by displayed name (normalized), then first box id. A
+     * row shows its short name unless another row of the category has the same one: then both show their full
+     * name, so two forms of a product stay distinguishable. Status and expiry never move a row.
+     */
+    private fun orderedRows(entries: List<Entry>): List<ProductRow> {
+        val shortNames = entries.map { ShortName.of(it.row.name) }
+        val sharing = shortNames.groupingBy { TextNormalizer.normalize(it) }.eachCount()
+        val named = entries.zip(shortNames).map { (entry, short) ->
+            val shared = (sharing[TextNormalizer.normalize(short)] ?: 0) > 1
+            val displayName = if (shared) entry.row.name else short
+            NamedRow(entry.row.copy(displayName = displayName), TextNormalizer.normalize(displayName), entry.firstBoxId)
         }
-        val byName = TextNormalizer.compare(left.normalizedName, right.normalizedName)
-        when {
-            byUrgency != 0 -> byUrgency
-            byExpiry != 0 -> byExpiry
-            byName != 0 -> byName
-            else -> TextNormalizer.compare(left.firstBoxId, right.firstBoxId)
-        }
+        return named.sortedWith { left, right ->
+            val byName = TextNormalizer.compare(left.key, right.key)
+            if (byName != 0) byName else TextNormalizer.compare(left.firstBoxId, right.firstBoxId)
+        }.map { it.row }
     }
 
     private fun categoryRank(order: List<CategoryID>): (CategoryID) -> CategoryRank {

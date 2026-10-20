@@ -23,7 +23,7 @@ class CabinetRowsFixtureTest {
     fun theSharedFixtureLoadsAndHasCases() {
         val fixture = SharedFixtures.cabinetRows()
         assertEquals(1, fixture.formatVersion)
-        assertTrue(fixture.cases.size >= 20, "expected at least 20 cases, found ${fixture.cases.size}")
+        assertTrue(fixture.cases.size >= 25, "expected at least 25 cases, found ${fixture.cases.size}")
     }
 
     @TestFactory
@@ -63,6 +63,7 @@ class CabinetRowsFixtureTest {
                 section.rows.map { row ->
                     CabinetRowsCase.FixtureRow(
                         row.name,
+                        row.displayName,
                         row.boxes.map { label(it.id) },
                         row.status.rawValue,
                         row.earliestExpiry?.let { CabinetRowsCase.FixtureExpiry(it.year, it.month, it.day) }

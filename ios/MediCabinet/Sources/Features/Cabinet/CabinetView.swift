@@ -26,22 +26,33 @@ struct CabinetView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            content
-                .navigationTitle("cabinet.title")
-                .navigationDestination(for: CabinetRoute.self) { route in
-                    switch route {
-                    case .product(let id):
-                        ProductBoxesView(model: model, rowID: id) { path.removeAll { $0 == .product(id) } }
-                    case .box(let id):
-                        BoxDetailView(boxID: id, environment: environment, undo: undo) { path.removeAll { $0 == .box(id) } }
-                    }
+            VStack(spacing: 0) {
+                CabinetHeader(model: model, showsControls: showsList)
+                content
+            }
+            // The header shows the title; the name stays for the back button of the screens pushed from here.
+            .navigationTitle("cabinet.title")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: CabinetRoute.self) { route in
+                switch route {
+                case .product(let id):
+                    ProductBoxesView(model: model, rowID: id) { path.removeAll { $0 == .product(id) } }
+                case .box(let id):
+                    BoxDetailView(boxID: id, environment: environment, undo: undo) { path.removeAll { $0 == .box(id) } }
                 }
+            }
         }
         // Follows the cabinet only while the tab is on screen; a retry restarts it.
         .task(id: model.attempt) { await model.observe() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { model.refreshToday() }
         }
+    }
+
+    /// Search and filters show once the cabinet is loaded and not empty.
+    private var showsList: Bool {
+        model.phase == .loaded && !model.isEmptyCabinet
     }
 
     @ViewBuilder private var content: some View {
@@ -76,39 +87,28 @@ struct CabinetView: View {
     }
 
     private var list: some View {
-        @Bindable var model = model
-        return List {
-            Section {
-                Text(verbatim: CabinetText.boxCount(model.snapshot.boxCount))
-                    .font(.headline)
-                    .accessibilityIdentifier("cabinet.count")
-                CabinetFilterBar(model: model)
-            }
+        ScrollView {
             if model.hasNoResults {
-                Section {
-                    ContentUnavailableView {
-                        Label("cabinet.noResults.title", systemImage: "magnifyingglass")
-                    } description: {
-                        Text("cabinet.noResults.message")
-                    } actions: {
-                        Button("cabinet.noResults.clear") { model.clearFilters() }
-                            .accessibilityIdentifier("cabinet.noResults.clear")
-                    }
+                ContentUnavailableView {
+                    Label("cabinet.noResults.title", systemImage: "magnifyingglass")
+                } description: {
+                    Text("cabinet.noResults.message")
+                } actions: {
+                    Button("cabinet.noResults.clear") { model.clearFilters() }
+                        .accessibilityIdentifier("cabinet.noResults.clear")
                 }
             } else {
-                ForEach(model.snapshot.sections) { section in
-                    Section {
-                        ForEach(section.rows) { row in
-                            NavigationLink(value: route(for: row)) { ProductRowView(row: row) }
-                                .accessibilityIdentifier("cabinet.row")
-                        }
-                    } header: {
-                        Text(LocalizedStringKey(CategoryLabel.key(for: section.category)))
+                LazyVStack(spacing: 12) {
+                    ForEach(model.snapshot.sections) { section in
+                        CategoryCardView(section: section, route: route(for:))
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
             }
         }
-        .searchable(text: $model.searchText, prompt: Text("cabinet.search.prompt"))
+        .scrollDismissesKeyboard(.immediately)
+        .background(Color(.systemGroupedBackground))
         .accessibilityIdentifier("cabinet.list")
     }
 
@@ -116,27 +116,5 @@ struct CabinetView: View {
     private func route(for row: ProductRow) -> CabinetRoute {
         if row.boxes.count == 1, let box = row.boxes.first { return .box(box.id) }
         return .product(row.id)
-    }
-}
-
-private struct ProductRowView: View {
-    let row: ProductRow
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(verbatim: row.name).font(.headline)
-            Text(verbatim: details)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            ExpiryStatusLabel(status: row.status)
-        }
-        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-    }
-
-    /// "3 boxes · Expires end of March 2027"; just the count when no box has a known expiry (the status says so).
-    private var details: String {
-        let count = CabinetText.rowBoxes(row.boxes.count)
-        guard let earliest = row.earliestExpiry else { return count }
-        return "\(count) · \(ScanText.expiry(earliest))"
     }
 }

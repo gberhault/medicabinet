@@ -2,32 +2,42 @@
 
 The **Cabinet** tab answers *do we have something for this, where is it, is it still good?* It lists what is in the
 cabinet, lets the household correct a box, mark it opened and take it out — and every removal can be undone.
-Specs: [`specs/cabinet-inventory/`](../specs/cabinet-inventory/) (epic #17). Both apps behave the same; the grouping,
+Specs: [`specs/cabinet-inventory/`](../specs/cabinet-inventory/) (epic #17) and, for the cards, pills and filter menu,
+[`specs/cabinet-grid/`](../specs/cabinet-grid/) (#48). Both apps behave the same; the grouping,
 ordering and search rules are written once as shared fixtures (see below). Removing boxes by scanning them is
 described in [`bulk-scan.md`](bulk-scan.md#remove-mode-taking-boxes-out-by-scanning); locations in
 [`locations.md`](locations.md).
 
 ## What the user sees
 
-1. **The list.** One row per product, grouped under its category (the taxonomy's order, *Uncategorized* last, empty
-   categories hidden). A product is the same product when it has the same GTIN (else the same normalized name) and
-   category; a product whose boxes sit in two categories (the user changed one) appears once in each. A row shows the
-   name of the most recently added box, the number of boxes ("1 box", "3 boxes"), the earliest known expiry and the
-   **row status** — the most urgent status among its boxes, as text and icon. A row never says *OK* while one of its
-   boxes has an unknown expiry; with no known expiry at all it says *Expiry unknown*.
-2. **Order.** Inside a category: expired first, then expiring soon, unknown, OK; then the earliest known expiry (rows
-   with none last); then the name compared as normalized text (accent- and case-insensitive).
+1. **Category cards.** One full-width card per category that has boxes, in **A–Z order of the label in the app's
+   language** (accents and case ignored), *Other* and then *Uncategorized* always last. A card shows the category's
+   icon, its label and its number of boxes. Inside it, one **pill** per product (the same product means the same GTIN,
+   else the same normalized name, and the same category): its **short name** and its box count ("×3"). A product whose
+   boxes sit in two categories (the user changed one) appears once in each. The card's icon is decorative.
+2. **Pills.** The short name is the stored name up to its first ", " ("DOLIPRANE 1000 mg, comprimé" is shown
+   "DOLIPRANE 1000 mg"; a decimal comma like "0,05 %" is never cut). When two products of the same card have the same
+   short name, both show their full name. The stored name never changes. Pills are in A–Z order of the shown name
+   (accent- and case-insensitive). **No date and no "OK" in the list**: only a product that is expired, expiring soon
+   or of unknown expiry is marked, with an icon and a tint (never colour alone), and the product's status is its worst
+   box. A pill with a box of unknown expiry is never plain. A plain pill is a product with nothing to report. A pill
+   draws about 32 pt / 32 dp high and takes taps over 44 pt / 48 dp; a long name wraps onto two lines, then ends with
+   an ellipsis, and the count always stays visible. VoiceOver and TalkBack read the full name, the count and the
+   status ("Doliprane 1000, 2 boxes, Expired").
 3. **Search.** Every word typed must appear in the product name ("doli 1000" finds "DOLIPRANE 1000 mg", "efferalgan"
-   finds "EFFÉRALGAN"). An empty or blank query filters nothing.
-4. **Filters.** One location (or all) and one expiry status (all, expired, expiring soon, expiry unknown, OK). They
-   combine with the search; active filters are shown as text with a one-tap **Clear**. A row is kept when at least one
-   of its boxes matches, and then counts only those boxes. Search text and filters last while the app runs; they are
-   never stored, logged or exported.
-5. **Header.** The number of boxes matching the search and filters.
+   finds "EFFÉRALGAN"). An empty or blank query filters nothing. The search field has a clear button.
+4. **Filters.** A **filter button** sits to the right of the search field, on the same line. It opens one menu with a
+   *Location* section (all locations or one) and an *Expiry* section (all, expired, expiring soon, expiry unknown, OK;
+   each with its icon), and *Clear filters* while one is on. They combine with the search; a card keeps a product
+   when at least one of its boxes matches, and then counts only those boxes. While a filter is on, the button looks
+   filled and says how many are on, and one **chip** per filter shows under the search field; a chip's x removes
+   only that filter. Search text and filters last while the app runs; they are never stored, logged or exported.
+5. **Header.** The number of boxes matching the search and filters, next to the title. The search field, the filter
+   button and the chips are the only thing between the title and the cards.
 6. **States.** Loading, an error with **Retry**, an empty cabinet (with a button that opens the Scan tab) and "no
    results" (with a button that clears the search and filters).
-7. **A product's boxes.** Opening a row with several boxes lists them (expiry with status, location, *Opened*;
-   earliest first, unknown last, current filters applied). A row with one box opens its detail directly. When the last
+7. **A product's boxes.** Tapping a pill with several boxes lists them (expiry with status, location, *Opened*;
+   earliest first, unknown last, current filters applied). A pill with one box opens its detail directly. When the last
    box of the list leaves the cabinet the app returns to the list.
 8. **Live.** The list follows the database: a scan on the Scan tab, a removal or an import shows up by itself.
 
@@ -53,7 +63,9 @@ described in [`bulk-scan.md`](bulk-scan.md#remove-mode-taking-boxes-out-by-scann
 | Rule | Fixture | Core type (Swift / Kotlin) |
 |------|---------|----------------------------|
 | Text folding and name search | `fixtures/text-normalization.json` | `TextNormalizer` |
-| Rows, sections, row status, order, filters | `fixtures/cabinet-rows.json` | `CabinetRows` |
+| Rows, sections, row status, displayed name, order, filters | `fixtures/cabinet-rows.json` | `CabinetRows` |
+| Short name of a product | `fixtures/short-names.json` | `ShortName` |
+| Order of the category cards (A–Z by label) | `fixtures/category-order.json` | `CategoryOrder` |
 | Which box a scan removes | `fixtures/scan-removal.json` | `RemovalPolicy`, `ScanRemoval` |
 | Expiry status of a box | `fixtures/expiry-status.json` | `ExpiryRule` |
 
@@ -73,6 +85,7 @@ The export (#26) must carry `location.deletedAt` and the box tombstones.
 
 | | iOS | Android |
 |--|-----|---------|
-| List, filters, product boxes | `ios/MediCabinet/Sources/Features/Cabinet/` | `android/app/src/main/kotlin/com/medicabinet/app/features/cabinet/` |
+| Header, cards, pills, product boxes | `ios/MediCabinet/Sources/Features/Cabinet/` (`CabinetHeader`, `CategoryCardView`, `ProductPill`) | `android/app/src/main/kotlin/com/medicabinet/app/features/cabinet/` (`CabinetHeader`, `CategoryCard`, `ProductPill`) |
+| Category icons | `Features/CategoryIcon.swift` | `features/CategoryIcons.kt` |
 | Pure rules | `ios/Packages/MediCabinetCore/Sources/MediCabinetCore/Cabinet/` | `android/core/src/main/kotlin/com/medicabinet/core/cabinet/` |
 | Undo message | `Features/Common/UndoBanner.swift`, `UndoCenter.swift` | `features/common/` (`UndoController`, snackbar in `MainScaffold`) |

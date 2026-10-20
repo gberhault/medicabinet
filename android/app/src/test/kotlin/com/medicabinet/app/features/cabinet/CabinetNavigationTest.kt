@@ -1,6 +1,7 @@
 package com.medicabinet.app.features.cabinet
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -62,8 +63,8 @@ class CabinetNavigationTest {
             kit.box("Doliprane", CabinetTestKit.DOLIPRANE, CabinetTestKit.EXPIRED)
         }
         open()
-        waitFor("cabinet.row")
-        compose.onNodeWithTag("cabinet.row").performClick()
+        waitFor("cabinet.pill")
+        compose.onNodeWithTag("cabinet.pill").performClick()
 
         waitFor("product.box", 2)
         assertEquals(2, compose.onAllNodesWithTag("product.box").fetchSemanticsNodes().size)
@@ -88,8 +89,8 @@ class CabinetNavigationTest {
             kit.box("Doliprane", CabinetTestKit.DOLIPRANE, CabinetTestKit.FINE)
         }
         open()
-        waitFor("cabinet.row")
-        compose.onNodeWithTag("cabinet.row").performClick()
+        waitFor("cabinet.pill")
+        compose.onNodeWithTag("cabinet.pill").performClick()
         waitFor("box.name")
         compose.onNodeWithTag("box.takeOut").performClick()
         compose.onNodeWithTag("box.takeOut.usedUp").performClick()
@@ -106,16 +107,16 @@ class CabinetNavigationTest {
             kit.box("Pansements", expiry = CabinetTestKit.FINE)
         }
         open()
-        waitFor("cabinet.row", 2)
-        compose.onAllNodesWithTag("cabinet.row")[0].performClick()
+        waitFor("cabinet.pill", 2)
+        compose.onAllNodesWithTag("cabinet.pill")[0].performClick()
         waitFor("product.box", 2)
         runBlocking {
             kit.store.activeBoxes().filter { it.product.name == "Doliprane" }.forEach {
                 kit.store.markRemoved(it.id, RemovalReason.USED_UP, kit.clock.now())
             }
         }
-        waitFor("cabinet.row")
-        compose.onNodeWithText("Pansements").assertIsDisplayed()
+        waitFor("cabinet.pill")
+        compose.onNode(hasContentDescription("Pansements", substring = true)).assertIsDisplayed()
         assertEquals(CategoryID.UNCATEGORIZED, first.category)
     }
 
@@ -127,8 +128,8 @@ class CabinetNavigationTest {
             kit.box("Gel à 50%/ml {x}", expiry = CabinetTestKit.SOON)
         }
         open()
-        waitFor("cabinet.row")
-        compose.onNodeWithTag("cabinet.row").performClick()
+        waitFor("cabinet.pill")
+        compose.onNodeWithTag("cabinet.pill").performClick()
         waitFor("product.box", 2)
         compose.onNodeWithText("Gel à 50%/ml {x}").assertIsDisplayed()
     }
@@ -143,12 +144,12 @@ class CabinetNavigationTest {
             kit.box("Doliprane", CabinetTestKit.DOLIPRANE, CabinetTestKit.EXPIRED, location = kitchen)
         }
         open()
-        waitFor("cabinet.row")
-        compose.onNodeWithTag("cabinet.filter.location").performClick()
+        waitFor("cabinet.pill")
+        compose.onNodeWithTag("cabinet.filter.button").performClick()
         waitForText("Kitchen")
         compose.onAllNodesWithText("Kitchen")[0].performClick()
-        waitForText("Filters: Kitchen")
-        compose.onNodeWithTag("cabinet.row").performClick()
+        waitFor("cabinet.filter.chip")
+        compose.onNodeWithTag("cabinet.pill").performClick()
         waitFor("product.box", 2)
         assertEquals(2, compose.onAllNodesWithTag("product.box").fetchSemanticsNodes().size)
     }

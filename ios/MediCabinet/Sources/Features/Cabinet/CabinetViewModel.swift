@@ -148,6 +148,10 @@ final class CabinetViewModel {
         rebuild()
     }
 
+    func clearLocation() { selectLocation(nil) }
+
+    func clearStatus() { selectStatus(nil) }
+
     func clearFilters() {
         searchText = ""
         debounce?.cancel()
@@ -171,18 +175,9 @@ final class CabinetViewModel {
     var isEmptyCabinet: Bool { phase == .loaded && cabinetBoxCount == 0 }
     var hasNoResults: Bool { phase == .loaded && cabinetBoxCount > 0 && snapshot.boxCount == 0 }
 
-    /// The active filters as short texts (the search text, the location name, the status).
-    var activeFilterParts: [String] {
-        var parts: [String] = []
-        let query = TextNormalizer.trimmed(filter.query)
-        if !query.isEmpty { parts.append("\u{201C}\(query)\u{201D}") }
-        if let id = filter.locationID, let location = locations.first(where: { $0.id == id }) {
-            parts.append(location.name)
-        }
-        if let status = filter.status {
-            parts.append(String(localized: String.LocalizationValue(ExpiryStatusStyle.key(status))))
-        }
-        return parts
+    /// How many of the location and status filters are on; the search text has its own clear button.
+    var activeFilterCount: Int {
+        (filter.locationID == nil ? 0 : 1) + (filter.status == nil ? 0 : 1)
     }
 
     func locationName(_ id: Location.ID) -> String {
@@ -204,11 +199,18 @@ final class CabinetViewModel {
 
     // MARK: Building
 
+    /// The category cards A–Z by their label in the app's language, *Other* then *Uncategorized* last. The app
+    /// restarts when the language changes, so the labels are read per build rather than cached.
+    private func categoryOrder() -> [CategoryID] {
+        CategoryOrder.alphabetical(
+            labels: Dictionary(uniqueKeysWithValues: Taxonomy.ordered.map { ($0, environment.categoryLabel($0)) }))
+    }
+
     private func rebuild() {
         guard let source = cabinetBoxes, hasLocations else { return }
         build?.cancel()
         let filter = filter
-        let order = environment.categoryOrder
+        let order = categoryOrder()
         let day = today
         let window = window
         let environment = environment

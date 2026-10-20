@@ -3,60 +3,61 @@ import XCTest
 /// The Cabinet tab, box detail and edit on a seeded cabinet (English), through the real screens.
 @MainActor
 final class CabinetUITests: XCTestCase {
-    /// Statuses are relative to today, so the seed never rots: Doliprane x2 (one expired, one ok), Spasfon (ok),
-    /// a thermometer with no expiry, Gaviscon in the car (expiring soon).
-    private let seed = """
-    [{"name":"Doliprane 1000","gtin":"03400930000014","category":"pain-fever","expiryInDays":-5,"serial":"A1"},
-     {"name":"Doliprane 1000","gtin":"03400930000014","category":"pain-fever","expiryInDays":500,"serial":"A2","opened":true,"lot":"LOT9"},
-     {"name":"Spasfon","gtin":"03400930000021","category":"digestion","expiryInDays":400},
-     {"name":"Thermometer","category":"first-aid"},
-     {"name":"Gaviscon","gtin":"03400930000038","category":"digestion","expiryInDays":20,"location":"Car"}]
-    """
+    /// Frames are floating point: a 44 pt target can measure 43.99999999999997.
+    private static let pointTolerance = 0.01
 
     override func setUp() {
         continueAfterFailure = false
     }
 
     private func launch(seeded: Bool = true, extra: [String] = []) -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments = ["-UITestingTemporaryStorage", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
-        if seeded { app.launchEnvironment["MEDICABINET_UI_TEST_CABINET"] = seed }
-        app.launch()
-        let bar = app.tabBars.firstMatch
-        XCTAssertTrue(bar.waitForExistence(timeout: 15))
-        bar.buttons["Cabinet"].tap()
-        return app
+        CabinetUI.launch(seeded: seeded, extra: extra)
     }
 
-    /// A static text by its visible text (identifiers set on a container would hide it from `staticTexts["…"]`).
-    private func text(_ app: XCUIApplication, _ label: String) -> XCUIElement {
-        app.staticTexts.matching(NSPredicate(format: "label ==[c] %@ OR label ENDSWITH[c] %@", label, ", " + label)).firstMatch
-    }
+    private func text(_ app: XCUIApplication, _ label: String) -> XCUIElement { CabinetUI.text(app, label) }
 
-    private func row(_ app: XCUIApplication, _ name: String) -> XCUIElement {
-        app.cells.containing(.staticText, identifier: name).firstMatch
-    }
+    private func row(_ app: XCUIApplication, _ name: String) -> XCUIElement { CabinetUI.row(app, name) }
 
     // MARK: List
 
-    func testRowsAreGroupedByCategoryWithCountAndStatusAsText() {
+    func testCardsAreAlphabeticalAndPillsShowShortNameCountAndOnlyAlertStatuses() {
         let app = launch()
         XCTAssertTrue(app.staticTexts["cabinet.count"].waitForExistence(timeout: 10))
-        XCTAssertEqual(app.staticTexts["cabinet.count"].label, "5 boxes")
-        XCTAssertTrue(text(app, "Pain and fever").exists)
-        XCTAssertTrue(text(app, "Digestion").exists)
-        XCTAssertTrue(text(app, "First-aid kit").exists)
-        let doliprane = row(app, "Doliprane 1000")
-        XCTAssertTrue(doliprane.exists)
-        XCTAssertEqual(doliprane.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '2 boxes'")).count, 1)
-        XCTAssertTrue(doliprane.staticTexts["Expired"].exists, "the status is text, not colour alone")
-        XCTAssertTrue(row(app, "Thermometer").staticTexts["Expiry unknown"].exists, "an unknown expiry is never OK")
-        XCTAssertFalse(row(app, "Thermometer").staticTexts["OK"].exists)
+        XCTAssertEqual(app.staticTexts["cabinet.count"].label, "6 boxes")
+
+        let headers = app.descendants(matching: .any).matching(identifier: "cabinet.card.header")
+            .allElementsBoundByIndex.sorted { $0.frame.minY < $1.frame.minY }
+        XCTAssertEqual(headers.count, 3)
+        XCTAssertTrue(headers[0].label.hasPrefix("Digestion"), "A to Z: Digestion first")
+        XCTAssertTrue(headers[0].label.contains("3 boxes"))
+        XCTAssertTrue(headers[1].label.hasPrefix("First-aid kit"))
+        XCTAssertTrue(headers[2].label.hasPrefix("Pain and fever"))
+
+        // The spoken label has the full name; the eye reads the short one, in A to Z order within the card.
+        XCTAssertTrue(row(app, "Smecta 3 g, poudre pour suspension buvable, 1 box").exists)
+        XCTAssertEqual(row(app, "Spasfon").label, "Spasfon, 1 box", "an ok pill says nothing more")
+        XCTAssertEqual(row(app, "Doliprane 1000").label, "Doliprane 1000, 2 boxes, Expired", "the worst box wins")
+        XCTAssertEqual(row(app, "Thermometer").label, "Thermometer, 1 box, Expiry unknown", "never OK without a date")
+        XCTAssertEqual(row(app, "Gaviscon").label, "Gaviscon, 1 box, Expiring soon")
+        let names = app.buttons.matching(identifier: "cabinet.pill").allElementsBoundByIndex
+            .sorted { ($0.frame.minY, $0.frame.minX) < ($1.frame.minY, $1.frame.minX) }.map(\.label)
+        XCTAssertEqual(names.prefix(3).map { String($0.prefix(5)) }, ["Gavis", "Smect", "Spasf"])
+
+        let dateOrOK = NSPredicate(format: "label CONTAINS 'Expires' OR label == 'OK' OR label CONTAINS '2027'")
+        XCTAssertEqual(app.staticTexts.matching(dateOrOK).count, 0, "no date and no OK in the list")
+    }
+
+    func testAPillIsAtLeast44PointsHighAndALongNameKeepsItsCount() {
+        let app = launch()
+        let pill = row(app, "Smecta")
+        XCTAssertTrue(pill.waitForExistence(timeout: 10))
+        XCTAssertGreaterThanOrEqual(pill.frame.height, 44 - Self.pointTolerance)
+        XCTAssertGreaterThanOrEqual(pill.frame.width, 44 - Self.pointTolerance)
     }
 
     func testSearchNarrowsTheListAndAnUnmatchedSearchOffersClear() {
         let app = launch()
-        let search = app.searchFields.firstMatch
+        let search = app.textFields["cabinet.search"]
         XCTAssertTrue(search.waitForExistence(timeout: 10))
         search.tap()
         search.typeText("spas")
@@ -68,27 +69,7 @@ final class CabinetUITests: XCTestCase {
         XCTAssertTrue(text(app, "No results").waitForExistence(timeout: 5))
         app.buttons["cabinet.noResults.clear"].tap()
         XCTAssertTrue(row(app, "Thermometer").waitForExistence(timeout: 5))
-        XCTAssertEqual(app.staticTexts["cabinet.count"].label, "5 boxes")
-    }
-
-    func testTheStatusAndLocationFiltersShowTheirActiveStateAndClear() {
-        let app = launch()
-        app.buttons["cabinet.filter.status"].tap()
-        app.buttons["Expired"].tap()
-        XCTAssertTrue(app.staticTexts["cabinet.filter.summary"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.staticTexts["cabinet.filter.summary"].label, "Filters: Expired")
-        XCTAssertEqual(app.staticTexts["cabinet.count"].label, "1 box")
-        XCTAssertFalse(row(app, "Spasfon").exists)
-
-        app.buttons["cabinet.filter.clear"].tap()
-        XCTAssertTrue(row(app, "Spasfon").waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["cabinet.filter.summary"].exists)
-
-        app.buttons["cabinet.filter.location"].tap()
-        app.buttons["Car"].tap()
-        XCTAssertTrue(row(app, "Gaviscon").waitForExistence(timeout: 5))
-        XCTAssertFalse(row(app, "Spasfon").exists)
-        XCTAssertEqual(app.staticTexts["cabinet.filter.summary"].label, "Filters: Car")
+        XCTAssertEqual(app.staticTexts["cabinet.count"].label, "6 boxes")
     }
 
     func testAnEmptyCabinetExplainsItselfAndTheButtonOpensTheScanTab() {
@@ -241,11 +222,17 @@ final class CabinetUITests: XCTestCase {
             "-AppleInterfaceStyle", "Dark"
         ])
         XCTAssertTrue(app.staticTexts["cabinet.count"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["cabinet.filter.status"].exists)
-        XCTAssertTrue(app.buttons["cabinet.filter.location"].exists)
+        XCTAssertTrue(app.textFields["cabinet.search"].exists)
+        // A Menu has a nested button over the same frame, so `isHittable` of the outer element is false.
+        let filter = app.buttons["cabinet.filter.button"]
+        XCTAssertTrue(filter.exists)
+        XCTAssertGreaterThanOrEqual(filter.frame.height, 44 - Self.pointTolerance)
+        XCTAssertTrue(app.frame.contains(filter.frame), "the filter button stays on screen")
         let spasfon = row(app, "Spasfon")
         for _ in 0..<8 where !(spasfon.exists && spasfon.isHittable) { app.swipeUp() }
-        XCTAssertTrue(spasfon.isHittable, "rows stay reachable (and wrap) at the largest text size")
+        XCTAssertTrue(spasfon.isHittable, "pills stay reachable (and wrap) at the largest text size")
+        XCTAssertGreaterThanOrEqual(spasfon.frame.minX, app.frame.minX)
+        XCTAssertLessThanOrEqual(spasfon.frame.maxX, app.frame.maxX, "a pill never overflows, so its count stays visible")
         spasfon.tap()
         XCTAssertTrue(app.buttons["box.edit"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["box.edit"].isHittable)

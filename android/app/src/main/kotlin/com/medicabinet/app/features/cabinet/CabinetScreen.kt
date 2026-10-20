@@ -1,6 +1,5 @@
 package com.medicabinet.app.features.cabinet
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,42 +11,28 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.MedicalServices
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -55,9 +40,10 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.medicabinet.app.R
 import com.medicabinet.app.features.CategoryLabels
-import com.medicabinet.app.features.scan.ScanText
+import com.medicabinet.core.cabinet.CategoryOrder
 import com.medicabinet.core.cabinet.CategorySection
 import com.medicabinet.core.cabinet.ProductRow
+import com.medicabinet.core.reference.Taxonomy
 
 /** The Cabinet tab: what the household has, by category, searchable and filterable by location and expiry status. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,52 +56,39 @@ fun CabinetScreen(
 ) {
     val state by model.state.collectAsStateWithLifecycle()
     LifecycleEventEffect(Lifecycle.Event.ON_START) { model.onForeground() }
-    Scaffold(modifier = modifier, topBar = {
-        TopAppBar(title = { Text(stringResource(R.string.cabinet_title)) })
-    }) { padding ->
-        val content = Modifier.padding(padding).fillMaxSize()
-        when (val current = state) {
-            CabinetUiState.Loading -> LoadingMessage(content)
-            CabinetUiState.Failed -> ErrorMessage(content, model::retry)
-            is CabinetUiState.Loaded ->
-                if (current.isCabinetEmpty) {
-                    EmptyMessage(content, onOpenScan)
-                } else {
-                    CabinetList(model, current, onOpenProduct, content)
-                }
+    // The cards are A to Z by the label in the app's language; a language change recreates the screen.
+    val labels = Taxonomy.ordered.associateWith { stringResource(CategoryLabels.resource(it)) }
+    LaunchedEffect(labels) { model.setCategoryOrder(CategoryOrder.alphabetical(labels)) }
+    Scaffold(modifier = modifier) { padding ->
+        Column(Modifier.padding(padding).fillMaxSize()) {
+            val loaded = (state as? CabinetUiState.Loaded)?.takeUnless { it.isCabinetEmpty }
+            CabinetHeader(model, loaded)
+            val content = Modifier.weight(1f).fillMaxWidth()
+            when (val current = state) {
+                CabinetUiState.Loading -> LoadingMessage(content)
+                CabinetUiState.Failed -> ErrorMessage(content, model::retry)
+                is CabinetUiState.Loaded ->
+                    if (current.isCabinetEmpty) {
+                        EmptyMessage(content, onOpenScan)
+                    } else {
+                        CabinetList(current, model::clearFilters, onOpenProduct, content)
+                    }
+            }
         }
     }
 }
 
 @Composable
 private fun CabinetList(
-    model: CabinetViewModel,
     state: CabinetUiState.Loaded,
+    onClearFilters: () -> Unit,
     onOpenProduct: (ProductRow) -> Unit,
     modifier: Modifier
 ) {
     LazyColumn(modifier.testTag("cabinet.list"), contentPadding = PaddingValues(16.dp)) {
-        item(key = "search") { SearchField(model, Modifier.padding(bottom = 8.dp)) }
-        item(key = "filters") {
-            CabinetFilterBar(
-                state.filter,
-                state.locations,
-                onLocation = model::setLocation,
-                onStatus = model::setStatus,
-                onClear = model::clearFilters,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
         if (state.snapshot.sections.isEmpty()) {
-            item(key = "no-results") { NoResults(model::clearFilters) }
+            item(key = "no-results") { NoResults(onClearFilters) }
         } else {
-            item(key = "count") {
-                Text(
-                    pluralStringResource(R.plurals.cabinet_count, state.snapshot.boxCount, state.snapshot.boxCount),
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(vertical = 8.dp).semantics { heading() }.testTag("cabinet.count")
-                )
-            }
             state.snapshot.sections.forEach { section -> sectionItems(section, onOpenProduct) }
         }
     }
@@ -123,64 +96,7 @@ private fun CabinetList(
 
 private fun LazyListScope.sectionItems(section: CategorySection, onOpenProduct: (ProductRow) -> Unit) {
     item(key = "category:${section.category.rawValue}") {
-        Text(
-            stringResource(CategoryLabels.resource(section.category)),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp).semantics { heading() }.testTag("cabinet.category")
-        )
-    }
-    items(section.rows, key = { CabinetRoutes.rowKey(it.id) }) { row ->
-        ProductRowItem(row) { onOpenProduct(row) }
-    }
-}
-
-@Composable
-private fun SearchField(model: CabinetViewModel, modifier: Modifier) {
-    val query by model.query.collectAsStateWithLifecycle()
-    // The field keeps its own text so typing never waits for the flow; it follows the model only when it is cleared.
-    var text by remember { mutableStateOf(query) }
-    LaunchedEffect(query) { if (query != text) text = query }
-    OutlinedTextField(
-        value = text,
-        onValueChange = {
-            text = it
-            model.setQuery(it)
-        },
-        label = { Text(stringResource(R.string.cabinet_search_prompt)) },
-        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-        trailingIcon = {
-            if (text.isNotEmpty()) {
-                IconButton(onClick = {
-                    text = ""
-                    model.setQuery("")
-                }) { Icon(Icons.Outlined.Close, stringResource(R.string.cabinet_noResults_clear)) }
-            }
-        },
-        singleLine = true,
-        modifier = modifier.fillMaxWidth().testTag("cabinet.search")
-    )
-}
-
-/** One product: name, number of boxes, earliest known expiry and the most urgent status (text and icon). */
-@Composable
-private fun ProductRowItem(row: ProductRow, onClick: () -> Unit) {
-    val context = LocalContext.current
-    Column(
-        Modifier.fillMaxWidth()
-            .heightIn(min = 64.dp)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(vertical = 8.dp)
-            .testTag("cabinet.row"),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        Text(row.name, style = MaterialTheme.typography.titleMedium)
-        Text(
-            pluralStringResource(R.plurals.cabinet_row_boxes, row.boxes.size, row.boxes.size),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        // An unknown expiry is said once, by the status label.
-        row.earliestExpiry?.let { Text(ScanText.expiry(context, it), style = MaterialTheme.typography.bodyMedium) }
-        ExpiryStatusLabel(row.status)
+        CategoryCard(section, onOpenProduct, Modifier.padding(bottom = 12.dp))
     }
 }
 

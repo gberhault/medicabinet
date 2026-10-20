@@ -3,6 +3,14 @@
 Newest entry first. The top entry must match `MARKETING_VERSION` in `project.yml`
 (checked by `scripts/check-version.sh`).
 
+## 0.5.0 — 2026-10-20
+
+A Cabinet you can take in at a glance.
+
+- The Cabinet is now one card per category (A to Z, with *Other* and *Uncategorized* last), each with its icon and its number of boxes. Inside a card, each medicine is a pill with its short name and its number of boxes: the name stops at the pharmaceutical form ("Doliprane 1000 mg" for "Doliprane 1000 mg, comprimé"), and VoiceOver still reads the full name.
+- The list shows no dates and no "OK". A medicine that is expired, expiring soon or of unknown expiry is marked with an icon and a tint; a plain pill has nothing to report.
+- Search and filters take one line: the search field with a filter button on its right. The button opens a menu for the location and the expiry status; each active filter shows as a chip you can remove, and the button says how many are on.
+
 ## 0.4.1 — 2026-10-20
 
 New app icon.

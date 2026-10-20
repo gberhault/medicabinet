@@ -13,6 +13,24 @@ public struct TextNormalizationCase: Decodable, Sendable, CustomStringConvertibl
     public var description: String { name }
 }
 
+/// One case of `fixtures/short-names.json`.
+public struct ShortNameCase: Decodable, Sendable, CustomStringConvertible {
+    public let name: String
+    public let input: String
+    public let expect: String
+
+    public var description: String { name }
+}
+
+/// One case of `fixtures/category-order.json`.
+public struct CategoryOrderCase: Decodable, Sendable, CustomStringConvertible {
+    public let name: String
+    public let labels: [String: String]
+    public let expect: [String]
+
+    public var description: String { name }
+}
+
 /// One case of `fixtures/location-names.json`.
 public struct LocationNameCase: Decodable, Sendable, CustomStringConvertible {
     public struct Expect: Decodable, Sendable {
@@ -64,12 +82,14 @@ public struct CabinetRowsCase: Decodable, Sendable, CustomStringConvertible {
 
     public struct FixtureRow: Decodable, Hashable, Sendable {
         public let name: String
+        public let displayName: String
         public let boxes: [String]
         public let status: String
         public let earliestExpiry: FixtureExpiry?
 
-        public init(name: String, boxes: [String], status: String, earliestExpiry: FixtureExpiry?) {
+        public init(name: String, displayName: String, boxes: [String], status: String, earliestExpiry: FixtureExpiry?) {
             self.name = name
+            self.displayName = displayName
             self.boxes = boxes
             self.status = status
             self.earliestExpiry = earliestExpiry
@@ -154,6 +174,24 @@ extension SharedFixtures {
     /// has a test asserting the file loads.
     public static func textNormalizationCases() -> [TextNormalizationCase] {
         (try? textNormalization().cases) ?? []
+    }
+
+    public static func shortNames() throws -> (formatVersion: Int, cases: [ShortNameCase]) {
+        let list = try JSONDecoder().decode(CabinetCaseList<ShortNameCase>.self, from: data("short-names.json"))
+        return (list.formatVersion, list.cases)
+    }
+
+    public static func categoryOrder() throws -> (formatVersion: Int, cases: [CategoryOrderCase]) {
+        let list = try JSONDecoder().decode(CabinetCaseList<CategoryOrderCase>.self, from: data("category-order.json"))
+        return (list.formatVersion, list.cases)
+    }
+
+    public static func categoryOrderCases() -> [CategoryOrderCase] {
+        (try? categoryOrder().cases) ?? []
+    }
+
+    public static func shortNameCases() -> [ShortNameCase] {
+        (try? shortNames().cases) ?? []
     }
 
     public static func locationNameCases() -> [LocationNameCase] {
