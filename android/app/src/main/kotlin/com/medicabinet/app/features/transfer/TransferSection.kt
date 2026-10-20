@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -30,13 +31,14 @@ import com.medicabinet.app.R
 import com.medicabinet.app.app.AppEnvironment
 import com.medicabinet.app.app.BootstrapUiState
 import com.medicabinet.app.persistence.AppPaths
+import com.medicabinet.core.archive.ArchiveBackupEntry
 import com.medicabinet.core.archive.ArchiveFormat
 import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 
 /** The section with its view models, built from the environment (absent when the environment has no transfer). */
 @Composable
-fun TransferSettings(environment: AppEnvironment) {
+fun TransferSettings(environment: AppEnvironment, onOpenBackups: () -> Unit = {}) {
     val transfer = environment.transfer ?: return
     val context = LocalContext.current.applicationContext
     val export = viewModel {
@@ -52,7 +54,7 @@ fun TransferSettings(environment: AppEnvironment) {
     val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) coordinator?.receive(uri)
     }
-    TransferSection(export, onImport = { pick.launch(PICKER_TYPES) })
+    TransferSection(export, onImport = { pick.launch(PICKER_TYPES) }, onBackups = onOpenBackups)
 }
 
 /**
@@ -71,6 +73,15 @@ fun OpenIncomingImport(coordinator: ImportCoordinator, environment: AppEnvironme
     }
 }
 
+/** Settings → **Automatic backups**, reloaded after every replace (a restore adds a backup). */
+@Composable
+fun BackupsRoute(environment: AppEnvironment, onRestore: (ArchiveBackupEntry) -> Unit, onBack: () -> Unit) {
+    val transfer = environment.transfer ?: return
+    val model = viewModel { BackupsViewModel(transfer, Dispatchers.IO) }
+    val revision by environment.revision.collectAsState()
+    BackupsScreen(model, revision, onRestore, onBack)
+}
+
 /** The import (or restore) flow as a screen of the Settings tab. It holds any newer file back until it closes. */
 @Composable
 fun ImportRoute(environment: AppEnvironment, request: () -> ImportRequest, onClose: () -> Unit) {
@@ -82,7 +93,12 @@ fun ImportRoute(environment: AppEnvironment, request: () -> ImportRequest, onClo
 
 /** Settings → **Backup and transfer** (E1, O3, B4): export the cabinet, import one, the automatic backups. */
 @Composable
-fun TransferSection(export: ExportViewModel, modifier: Modifier = Modifier, onImport: () -> Unit = {}) {
+fun TransferSection(
+    export: ExportViewModel,
+    modifier: Modifier = Modifier,
+    onImport: () -> Unit = {},
+    onBackups: () -> Unit = {}
+) {
     Column(modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         Text(
             stringResource(R.string.transfer_section_title),
@@ -100,6 +116,11 @@ fun TransferSection(export: ExportViewModel, modifier: Modifier = Modifier, onIm
             supportingContent = { Text(stringResource(R.string.transfer_import_wrongFileHint)) },
             leadingContent = { Icon(Icons.Outlined.Download, contentDescription = null) },
             modifier = Modifier.clickable(role = Role.Button, onClick = onImport).testTag("transfer.import")
+        )
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.transfer_backups_action)) },
+            leadingContent = { Icon(Icons.Outlined.History, contentDescription = null) },
+            modifier = Modifier.clickable(role = Role.Button, onClick = onBackups).testTag("transfer.backups")
         )
         Text(
             stringResource(R.string.transfer_section_footer),

@@ -153,8 +153,10 @@ independent of each other.
   closes. The "file not offered?" hint is the supporting text of **Import a cabinet** in
   the section. Once confirmed, the replace and the revision bump run to the end even if the
   screen goes away (back is refused meanwhile).
-- [ ] **T21 — Automatic backups and restore** `[android]` [#29] (B4, B5)
+- [x] **T21 — Automatic backups and restore** `[android]` [#29] (B4, B5)
   `BackupsScreen` → restore flow. *Tests:* as T15.
+  Done: each **Restore** button is described to TalkBack with the backup's date
+  (`transfer_backups_restoreTitle`), since every row has one.
 - [ ] **T22 — Android accessibility pass** `[android]` (X3, X4)
   Font scale 2.0, dark theme, TalkBack labels and live regions, 48 dp targets.
 

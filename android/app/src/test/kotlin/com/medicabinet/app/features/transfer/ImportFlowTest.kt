@@ -157,4 +157,33 @@ class ImportFlowTest {
         waitFor("import.file")
         compose.onNodeWithTag("import.pendingBanner").assertDoesNotExist()
     }
+
+    @Test
+    fun importThenRestoreBringsTheFirstCabinetBack() {
+        showApp()
+        coordinator.receive(Uri.parse("content://downloads/1"))
+        waitFor("import.replace")
+        compose.onNodeWithTag("import.replace").performScrollTo().performClick()
+        compose.onNodeWithTag("import.confirm.replace").performClick()
+        waitFor("import.doneClose")
+        compose.onNodeWithTag("import.doneClose").performScrollTo().performClick()
+
+        waitFor("transfer.backups")
+        compose.onNodeWithTag("transfer.backups").performScrollTo().performClick()
+        waitFor("backups.restore")
+        compose.onNodeWithTag("backups.restore").performClick()
+        waitFor("import.replace")
+        compose.onNodeWithText("Restore the backup of", substring = true).assertIsDisplayed()
+        compose.onNodeWithTag("import.replace").performScrollTo().performClick()
+        compose.onNodeWithTag("import.confirm.replace").performClick()
+        waitFor("import.done")
+
+        assertEquals(TransferTestKit.sampleCabinet(), runBlocking { kit.store.snapshot() })
+        assertEquals(2L, environment.revision.value)
+        compose.onNodeWithTag("import.doneClose").performScrollTo().performClick()
+        // The restore kept a backup of the imported cabinet: the list reloads to two rows.
+        compose.waitUntil(5_000) {
+            compose.onAllNodes(androidx.compose.ui.test.hasTestTag("backups.row")).fetchSemanticsNodes().size == 2
+        }
+    }
 }

@@ -352,4 +352,18 @@
     <string name="transfer_import_replace">Remplacer mon armoire</string>
     <string name="transfer_import_title">Importer une armoire</string>
     <string name="transfer_import_wrongFileHint">Fichier non proposé ? Utilisez « Importer une armoire » et choisissez le fichier .medicabinet.</string>
+    <string name="transfer_backups_action">Sauvegardes automatiques</string>
+    <string name="transfer_backups_beforeImport">Avant un import</string>
+    <string name="transfer_backups_beforeRestore">Avant une restauration</string>
+    <plurals name="transfer_backups_boxes">
+        <item quantity="one">%1$d boîte</item>
+        <item quantity="other">%1$d boîtes</item>
+    </plurals>
+    <string name="transfer_backups_empty">Aucune sauvegarde. Une sauvegarde est faite avant chaque import.</string>
+    <string name="transfer_backups_error">Les sauvegardes n\'ont pas pu être lues.</string>
+    <string name="transfer_backups_footer">Les 3 dernières armoires remplacées par un import ou une restauration.</string>
+    <string name="transfer_backups_loading">Chargement des sauvegardes…</string>
+    <string name="transfer_backups_restore">Restaurer</string>
+    <string name="transfer_backups_title">Sauvegardes automatiques</string>
+    <string name="transfer_backups_unreadable">Illisible</string>
 </resources>

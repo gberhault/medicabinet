@@ -352,4 +352,18 @@
     <string name="transfer_import_replace">Replace my cabinet</string>
     <string name="transfer_import_title">Import a cabinet</string>
     <string name="transfer_import_wrongFileHint">File not offered? Use \"Import a cabinet\" and choose the .medicabinet file.</string>
+    <string name="transfer_backups_action">Automatic backups</string>
+    <string name="transfer_backups_beforeImport">Before an import</string>
+    <string name="transfer_backups_beforeRestore">Before a restore</string>
+    <plurals name="transfer_backups_boxes">
+        <item quantity="one">%1$d box</item>
+        <item quantity="other">%1$d boxes</item>
+    </plurals>
+    <string name="transfer_backups_empty">No backups. A backup is made before every import.</string>
+    <string name="transfer_backups_error">The backups could not be read.</string>
+    <string name="transfer_backups_footer">The last 3 cabinets replaced by an import or a restore.</string>
+    <string name="transfer_backups_loading">Loading backups…</string>
+    <string name="transfer_backups_restore">Restore</string>
+    <string name="transfer_backups_title">Automatic backups</string>
+    <string name="transfer_backups_unreadable">Unreadable</string>
 </resources>

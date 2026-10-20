@@ -69,12 +69,12 @@ import com.medicabinet.app.features.settings.PackageAppInfo
 import com.medicabinet.app.features.settings.SettingsScreen
 import com.medicabinet.app.features.settings.locations.LocationsRoute
 import com.medicabinet.app.features.transfer.ImportCoordinator
-import com.medicabinet.app.features.transfer.ImportRequest
-import com.medicabinet.app.features.transfer.ImportRoute
 import com.medicabinet.app.features.transfer.LocalImportCoordinator
 import com.medicabinet.app.features.transfer.OpenIncomingImport
 import com.medicabinet.app.features.transfer.PendingImportBanner
+import com.medicabinet.app.features.transfer.TransferRoutes
 import com.medicabinet.app.features.transfer.TransferSettings
+import com.medicabinet.app.features.transfer.transferRoutes
 import com.medicabinet.app.reminders.ReminderModel
 import com.medicabinet.app.reminders.ReminderServices
 import com.medicabinet.app.reminders.reminderServices
@@ -85,7 +85,6 @@ import kotlinx.coroutines.launch
 private const val SETTINGS_HOME = "settings/home"
 private const val SETTINGS_ABOUT = "settings/about"
 private const val SETTINGS_LOCATIONS = "settings/locations"
-private const val SETTINGS_IMPORT = "settings/import"
 
 /** The models shared by several tabs: the Expiring list and its badge, and the monthly-reminder setting. */
 private class MainModels(
@@ -146,7 +145,7 @@ fun MainScaffold(
     importCoordinator?.let { coordinator ->
         OpenIncomingImport(coordinator, environment) {
             navController.openTab(Destination.Settings)
-            navController.navigate(SETTINGS_IMPORT)
+            navController.navigate(TransferRoutes.IMPORT)
         }
     }
     val requested by tabRouter.requested.collectAsState()
@@ -266,20 +265,17 @@ private fun MainNavHost(
                     expirySection = {
                         ExpirySettingsSection(environment.expiryPreferences, models.reminder, models.reminderActions)
                     },
-                    transferSection = { TransferSettings(environment) },
+                    transferSection = {
+                        TransferSettings(environment, onOpenBackups = {
+                            navController.navigate(TransferRoutes.BACKUPS)
+                        })
+                    },
                     extraRows = { DebugSettingsRow { navController.navigate(DEBUG_ROUTE) } }
                 )
             }
             composable(SETTINGS_ABOUT) { AboutScreen(aboutViewModel, onBack = { navController.popBackStack() }) }
             composable(SETTINGS_LOCATIONS) { LocationsRoute(environment, onBack = { navController.popBackStack() }) }
-            composable(SETTINGS_IMPORT) {
-                val coordinator = LocalImportCoordinator.current
-                ImportRoute(
-                    environment,
-                    request = { ImportRequest.File(coordinator?.take()) },
-                    onClose = { navController.popBackStack() }
-                )
-            }
+            transferRoutes(navController, environment)
             debugRoutes()
         }
     }
