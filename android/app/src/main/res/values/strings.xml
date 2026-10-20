@@ -34,6 +34,7 @@
     <string name="placeholder_scan_message">Vous pourrez bientôt scanner vos boîtes de médicaments les unes après les autres.</string>
     <string name="placeholder_scan_title">Le scan arrive bientôt</string>
     <string name="settings_about">À propos</string>
+    <string name="settings_namedProducts">Produits nommés par vous</string>
     <string name="settings_title">Réglages</string>
     <string name="tab_cabinet">Armoire</string>
     <string name="tab_expiring">Péremptions</string>
@@ -370,4 +371,26 @@
     <string name="transfer_backups_restore">Restaurer</string>
     <string name="transfer_backups_title">Sauvegardes automatiques</string>
     <string name="transfer_backups_unreadable">Illisible</string>
+    <string name="namedProducts_edit_note">Le nom et la catégorie s\'appliquent à toutes les boîtes de ce produit, y compris celles utilisées ou jetées.</string>
+    <string name="namedProducts_edit_title">Modifier le produit</string>
+    <string name="namedProducts_empty_message">Quand vous scannez un produit que la base des médicaments ne connaît pas, le nom que vous lui donnez apparaît ici.</string>
+    <string name="namedProducts_empty_title">Aucun produit nommé</string>
+    <string name="namedProducts_error_message">Les produits nommés n\'ont pas pu être lus.</string>
+    <string name="namedProducts_error_title">Liste indisponible</string>
+    <string name="namedProducts_forget">Oublier</string>
+    <string name="namedProducts_forget_message">Le prochain scan de ce code vous demandera un nom.</string>
+    <plurals name="namedProducts_forget_messageInCabinet">
+        <item quantity="one">%1$d boîte est encore dans l\'armoire et garde son nom. Le prochain scan de ce code vous demandera un nom.</item>
+        <item quantity="other">%1$d boîtes sont encore dans l\'armoire et gardent leur nom. Le prochain scan de ce code vous demandera un nom.</item>
+    </plurals>
+    <string name="namedProducts_forget_title">Oublier « %1$s » ?</string>
+    <string name="namedProducts_forgotten">« %1$s » oublié</string>
+    <plurals name="namedProducts_inCabinet">
+        <item quantity="one">%1$d boîte dans l\'armoire</item>
+        <item quantity="other">%1$d boîtes dans l\'armoire</item>
+    </plurals>
+    <string name="namedProducts_more">Plus d\'actions</string>
+    <string name="namedProducts_notInCabinet">Pas dans l\'armoire</string>
+    <string name="namedProducts_title">Produits nommés par vous</string>
+    <string name="namedProducts_undoFailed">Impossible de rétablir : ce code a été nommé à nouveau.</string>
 </resources>

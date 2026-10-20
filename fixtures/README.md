@@ -27,7 +27,9 @@ Every file is JSON with:
 | `gs1-datamatrix.json` | GS1 DataMatrix / EAN-13 payload parsing: GTIN, expiry (invalid vs missing), lot, serial, the `shape` of a payload, parse error kinds |
 | `scan-debounce.json` | `ScanDebouncer`: which sightings count as a new scan (1 s re-scan gap) |
 | `scan-intake.json` | `IntakePolicy`: add / complete / confirmAnother / alreadyInCabinet / removedEarlier |
-| `product-resolution.json` | `ProductResolver`: name and category from reference data and the previous box |
+| `product-resolution.json` | `ProductResolver`: name and category from reference data, the named product of the code and the previous box (the previous box only carries a user category over for a code the reference knows) |
+| `product-memory.json` | `MemoryPolicy`: when a box save (new box, box edit, session correction) remembers its name and category as the named product of its code |
+| `named-product-backfill.json` | `NamedProductBackfill`: the named products created once after the schema v4 upgrade, from the newest box of every code the reference does not know |
 | `expiry-status.json` | `ExpiryRule` (status + days left from an expiry, today and the window) and how an instant + time zone becomes today (`todayCases`) |
 | `expiring-overview.json` | the Expiring view: sections, order, tie-breaks by folded name, badge count |
 | `expiry-digest.json` | the monthly reminder: counts per digest day (`cases`) and the next / due digest days (`scheduleCases`) |
