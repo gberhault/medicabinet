@@ -44,6 +44,18 @@ class ImportCoordinatorTest {
         assertEquals(listOf(file), reads)
     }
 
+    // Regression #28: a file tapped in WhatsApp arrives as an octet-stream address with no file name or extension;
+    // it is read through the content resolver (the `read` function), never by name.
+    @Test
+    fun aFileOpenedFromAnAddressWithoutAFileNameIsReadByItsAddress() {
+        val whatsApp = Uri.parse("content://com.whatsapp.provider.media/item/42")
+        contents[whatsApp] = "archive".toByteArray()
+        val view = Intent(Intent.ACTION_VIEW).setDataAndType(whatsApp, "application/octet-stream")
+        assertTrue(coordinator.receive(view))
+        assertContentEquals("archive".toByteArray(), ready())
+        assertEquals(listOf(whatsApp), reads)
+    }
+
     @Test
     fun aFileSharedWithTheAppIsReadFromItsStream() {
         assertTrue(coordinator.receive(Intent(Intent.ACTION_SEND).putExtra(Intent.EXTRA_STREAM, file)))

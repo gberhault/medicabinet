@@ -1,5 +1,6 @@
 package com.medicabinet.app.features.transfer
 
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
@@ -92,6 +93,27 @@ class ImportFlowTest {
 
         compose.onNodeWithTag("import.doneClose").performScrollTo().performClick()
         waitFor("transfer.export")
+    }
+
+    // Regression #28: with an octet-stream type MediCabinet is offered for any unknown binary file; one that is not a
+    // cabinet is refused with the "not a cabinet" message and nothing changes.
+    @Test
+    fun aFileThatIsNotACabinetOpenedFromAnotherAppIsRefusedAndChangesNothing() {
+        val garbage = byteArrayOf(0x00, 0x7f, 0x45, 0x4c, 0x46, 0x02, 0x01, 0x01, -1, -2, -3)
+        val whatsApp = Uri.parse("content://com.whatsapp.provider.media/item/42")
+        val refusing = ImportCoordinator(TestScope(dispatcher), dispatcher) { garbage }
+        compose.setContent {
+            MediCabinetTheme {
+                MainScaffold(environment, scanServices = testScanServices(), importCoordinator = refusing)
+            }
+        }
+        refusing.receive(Intent(Intent.ACTION_VIEW).setDataAndType(whatsApp, "application/octet-stream"))
+        waitFor("import.errorMessage")
+        compose.onNodeWithText("Couldn't import").assertIsDisplayed()
+        compose.onNodeWithText("This file is not a MediCabinet cabinet.").assertIsDisplayed()
+        compose.onNodeWithTag("import.replace").assertDoesNotExist()
+        assertEquals(TransferTestKit.sampleCabinet(), runBlocking { kit.store.snapshot() })
+        assertEquals(0L, environment.revision.value)
     }
 
     @Test

@@ -48,18 +48,15 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="application/vnd.medicabinet+json" />
             </intent-filter>
-            <!-- Saved files often come back as octet-stream: only when the path ends in .medicabinet (pathPattern
-                 stops at the first dot, hence one pattern per number of dots before the extension). -->
+            <!-- Files come back as octet-stream: a saved file, and the copy another app (WhatsApp, Mail, a file manager)
+                 opens through its own provider, whose address has no file name or extension and whose type it derived
+                 itself. A filter cannot see the display name, so there is NO host and NO path restriction: MediCabinet
+                 may be offered for any unknown binary file. Safe because only content addresses are read and the import
+                 refuses anything that is not a cabinet before changing anything (design §7.3, O2). -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="content" />
-                <data android:host="*" />
-                <data android:mimeType="application/octet-stream" />
-                <data android:pathPattern=".*\\.medicabinet" />
-                <data android:pathPattern=".*\\..*\\.medicabinet" />
-                <data android:pathPattern=".*\\..*\\..*\\.medicabinet" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.medicabinet" />
+                <data android:scheme="content" android:mimeType="application/octet-stream" />
             </intent-filter>
         </activity>
 
