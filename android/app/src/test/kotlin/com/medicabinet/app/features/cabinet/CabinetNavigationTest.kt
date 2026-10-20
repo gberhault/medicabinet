@@ -35,7 +35,6 @@ class CabinetNavigationTest {
 
     private fun open() {
         compose.setContent { MediCabinetTheme { MainScaffold(kit.environment, scanServices = testScanServices()) } }
-        compose.onNodeWithText("Cabinet").performClick()
     }
 
     private fun waitFor(tag: String, count: Int = 1) = compose.waitUntil(WAIT_MS) {

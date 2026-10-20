@@ -28,6 +28,10 @@ final class ScanUITests: XCTestCase {
         app.launchEnvironment["MEDICABINET_UI_TEST_SCAN_INTERVAL_MS"] = String(interval)
         if let products { app.launchEnvironment["MEDICABINET_UI_TEST_PRODUCTS"] = products }
         app.launch()
+        // The app opens on the Cabinet (#53): the camera starts only once the Scan tab is shown.
+        let bar = app.tabBars.firstMatch
+        XCTAssertTrue(bar.waitForExistence(timeout: 15))
+        bar.buttons["Scan"].tap()
         return app
     }
 

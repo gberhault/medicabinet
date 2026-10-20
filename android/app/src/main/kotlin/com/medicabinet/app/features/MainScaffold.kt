@@ -103,9 +103,9 @@ private enum class Destination(val tab: AppTab, val labelRes: Int, val icon: Ima
 }
 
 /**
- * Four destinations — Scan, Cabinet, Expiring, Settings — as on iOS. The Expiring model lives here, above the tabs,
- * so the badge on the tab is live whichever tab is shown and always agrees with the list. [tabRouter] lets the
- * notification tap switch tab from outside.
+ * Four destinations — Scan, Cabinet, Expiring, Settings — as on iOS; the app opens on the Cabinet
+ * ([AppTab.LAUNCH]). The Expiring model lives here, above the tabs, so the badge on the tab is live whichever tab is
+ * shown and always agrees with the list. [tabRouter] lets the notification tap switch tab from outside.
  */
 @Composable
 fun MainScaffold(
@@ -149,8 +149,11 @@ fun MainScaffold(
         }
     }
     val requested by tabRouter.requested.collectAsState()
-    LaunchedEffect(requested) {
-        requested?.let { tab ->
+    // The NavHost is composed inside the Scaffold, one pass after this effect first runs: a request already waiting
+    // at a cold start (the notification tap) must wait for the graph, or navigating would throw.
+    val graphReady = backStack != null
+    LaunchedEffect(requested, graphReady) {
+        requested?.takeIf { graphReady }?.let { tab ->
             navController.openTab(Destination.entries.first { it.tab == tab })
             tabRouter.consume(tab)
         }
@@ -248,7 +251,7 @@ private fun MainNavHost(
     models: MainModels,
     modifier: Modifier
 ) {
-    NavHost(navController, startDestination = Destination.Scan.route, modifier = modifier) {
+    NavHost(navController, startDestination = AppTab.LAUNCH.route, modifier = modifier) {
         composable(Destination.Scan.route) {
             val model = viewModel { ScanViewModel(environment, scanServices) }
             ScanScreen(model, scanServices)

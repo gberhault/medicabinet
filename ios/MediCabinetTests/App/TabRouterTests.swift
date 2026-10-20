@@ -3,8 +3,13 @@ import Testing
 
 @MainActor
 @Suite struct TabRouterTests {
-    @Test func startsOnTheScanTab() {
-        #expect(TabRouter().selection == .scan)
+    // Issue #53: the app opens on the cabinet; the camera only starts once the Scan tab is shown.
+    @Test func startsOnTheCabinetTab() {
+        #expect(TabRouter().selection == .cabinet)
+    }
+
+    @Test func aRouterCreatedForATabStartsThere() {
+        #expect(TabRouter(selection: .expiring).selection == .expiring)
     }
 
     @Test func selectingATabChangesTheSelection() {

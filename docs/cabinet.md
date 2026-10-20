@@ -39,7 +39,9 @@ described in [`bulk-scan.md`](bulk-scan.md#remove-mode-taking-boxes-out-by-scann
 7. **A product's boxes.** Tapping a pill with several boxes lists them (expiry with status, location, *Opened*;
    earliest first, unknown last, current filters applied). A pill with one box opens its detail directly. When the last
    box of the list leaves the cabinet the app returns to the list.
-8. **Live.** The list follows the database: a scan on the Scan tab, a removal or an import shows up by itself.
+8. **Launch.** The app opens on this tab (issue #53); a notification tap that targets another tab, such as the monthly
+   reminder opening Expiring, wins over it, also on a cold start.
+9. **Live.** The list follows the database: a scan on the Scan tab, a removal or an import shows up by itself.
 
 ## Box detail
 

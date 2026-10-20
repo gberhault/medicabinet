@@ -3,6 +3,13 @@
 Newest entry first. The top entry must match `MARKETING_VERSION` in `project.yml`
 (checked by `scripts/check-version.sh`).
 
+## 0.6.1 — 2026-10-20
+
+The app opens on the Cabinet.
+
+- The app now opens on the Cabinet tab instead of Scan, so you see what you have first. The camera starts only when you open the Scan tab.
+- Tapping the monthly reminder still opens the Expiring tab.
+
 ## 0.6.0 — 2026-10-20
 
 Export, import and automatic backups of the cabinet.
