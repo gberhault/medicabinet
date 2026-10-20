@@ -23,6 +23,11 @@ if [[ "$WHICH" == all || "$WHICH" == shared ]]; then
   python3 -I scripts/build-reference-db.py verify --apps ios,android
   bash scripts/tests/test-reference-data-break.sh
 
+  step "shared: app icon is generated from its source"
+  python3 -I scripts/tests/test-build-app-icon.py
+  python3 -I scripts/build-app-icon.py check
+  bash scripts/tests/test-app-icon-break.sh
+
   step "shared: iOS and Android say the same thing"
   python3 -I scripts/check-string-parity.py
 

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  MediCabinet app icon: source art (D2 monogram, safe-zone corrected). Original geometry only.
+  Every asset is generated from this file by scripts/build-app-icon.py; edit here, then run
+  `python3 -I scripts/build-app-icon.py build`. Only the SVG subset listed in
+  specs/app-icon/design.md section 2 is allowed (no text, image, use, filter or style).
+  background / foreground: the 108x108 adaptive-icon canvas. wordmark: Play feature graphic only
+  (stored in defs so it does not draw over the icon; it is 36 units tall, 284.5 wide).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="512" height="512">
+  <defs>
+    <linearGradient id="teal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0D9488"/>
+      <stop offset="1" stop-color="#115E59"/>
+    </linearGradient>
+    <g id="wordmark" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <!-- M e d i C a b i n e t on one baseline, cap height 36, x-height 22 -->
+      <path d="M2.5 33.5V2.5L15 21L27.5 2.5V33.5"/>
+      <g transform="translate(36 0)"><path d="M2.5 25H19.5A8.5 8.5 0 1 0 17.51 30.46"/></g>
+      <g transform="translate(64 0)"><path d="M19.5 25A8.5 8.5 0 0 0 2.5 25A8.5 8.5 0 0 0 19.5 25Z"/><path d="M19.5 2.5V33.5"/></g>
+      <g transform="translate(92 0)"><path d="M2.5 16.5V33.5"/><path d="M2.5 3.5V4.5"/></g>
+      <g transform="translate(103 0)"><path d="M29.87 8.04A15.5 15.5 0 1 0 29.87 27.96"/></g>
+      <g transform="translate(142 0)"><path d="M19.5 25A8.5 8.5 0 0 0 2.5 25A8.5 8.5 0 0 0 19.5 25Z"/><path d="M19.5 16.5V33.5"/></g>
+      <g transform="translate(170 0)"><path d="M19.5 25A8.5 8.5 0 0 0 2.5 25A8.5 8.5 0 0 0 19.5 25Z"/><path d="M2.5 2.5V33.5"/></g>
+      <g transform="translate(198 0)"><path d="M2.5 16.5V33.5"/><path d="M2.5 3.5V4.5"/></g>
+      <g transform="translate(209 0)"><path d="M2.5 33.5V16.5"/><path d="M2.5 25A8.5 8.5 0 0 1 19.5 25V33.5"/></g>
+      <g transform="translate(237 0)"><path d="M2.5 25H19.5A8.5 8.5 0 1 0 17.51 30.46"/></g>
+      <g transform="translate(265 0)"><path d="M8.5 5V27A6.5 6.5 0 0 0 15 33.5H17"/><path d="M2.5 16.5H14.5"/></g>
+    </g>
+  </defs>
+  <rect id="background" x="0" y="0" width="108" height="108" fill="url(#teal)"/>
+  <g id="foreground" transform="translate(54 54) scale(0.94) translate(-54 -54)">
+    <g fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M35 76V36L54 55"/>
+      <path d="M54 55L73 36V76"/>
+    </g>
+    <g transform="rotate(-45 54 72)">
+      <path d="M47.75 66.375h6.25v11.25h-6.25a5.625 5.625 0 0 1 0-11.25z" fill="#FBBF24"/>
+      <path d="M54 66.375h6.25a5.625 5.625 0 0 1 0 11.25H54z" fill="#FFFFFF"/>
+    </g>
+  </g>
+</svg>

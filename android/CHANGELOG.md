@@ -3,6 +3,13 @@
 Newest entry first. The top entry must match `versionName` in `app/build.gradle.kts`
 (checked by `scripts/check-version.sh android`).
 
+## 0.4.1 — 2026-10-20
+
+New app icon.
+
+- MediCabinet has its own icon: a white M with a capsule on a teal background, instead of the system default.
+- The icon is an adaptive icon, so it follows your launcher's shape, and it supports themed icons on Android 13 and later.
+
 ## 0.4.0 — 2026-10-20
 
 Expiry tracking and a monthly reminder.

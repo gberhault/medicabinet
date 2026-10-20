@@ -10,6 +10,7 @@
 | [expiry-tracking.md](expiry-tracking.md) | Expiry status of a box, the "expiring soon" window, the Expiring tab, the monthly reminder on each platform, privacy |
 | [export-format.md](export-format.md) | The `.medicabinet` archive: format version 1 field by field, canonical form, limits, error kinds, how a version is added |
 | [locations.md](locations.md) | Managing locations (add, rename, reorder, default, delete with move and Undo), the tombstone, where the code is |
+| [app-icon.md](app-icon.md) | The app icon: one source SVG generated into the Android adaptive icon, the iOS light/dark/tinted icons and the Google Play assets; how to change it, rights rules, Play requirements |
 
 Feature pages are added next to these as each feature ships (see `specs/` for the specs that drive
 them; every epic is specified once and built on both platforms). The export/import screens will get their own

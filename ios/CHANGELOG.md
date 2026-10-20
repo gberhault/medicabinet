@@ -3,6 +3,13 @@
 Newest entry first. The top entry must match `MARKETING_VERSION` in `project.yml`
 (checked by `scripts/check-version.sh`).
 
+## 0.4.1 — 2026-10-20
+
+New app icon.
+
+- MediCabinet has its own icon: a white M with a capsule on a teal background.
+- The icon has dark and tinted versions for iOS 18's Home Screen styles.
+
 ## 0.4.0 — 2026-10-20
 
 Expiry tracking and a monthly reminder.
