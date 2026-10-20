@@ -3,6 +3,16 @@
 Newest entry first. The top entry must match `MARKETING_VERSION` in `project.yml`
 (checked by `scripts/check-version.sh`).
 
+## 0.7.0 — 2026-10-21
+
+Official leaflet link, and the products you named.
+
+- A medicine the database knows now has an **Official page and leaflet** link in its box detail. It opens the medicine's public page in the French medicines database (which carries the official leaflet) in your browser. The app itself shows no leaflet text and gives no medical advice.
+- **Settings → Products you named** lists the names you gave to products the database does not know. Rename a product (all its boxes, including used-up and thrown-away ones, take the new name), change its category, or forget it (the next scan asks for a name again, with Undo). A wrong name can no longer come back from a box that has left the cabinet.
+- Names you already gave are kept: they are collected into that list once, after the update.
+- Export files now carry your named products (file format version 2). Files from earlier versions still import.
+- The medicines database was rebuilt (data of 2026-10-19) and now keeps each medicine's official identifier; no medicine was added, withdrawn or renamed.
+
 ## 0.6.1 — 2026-10-20
 
 The app opens on the Cabinet.
