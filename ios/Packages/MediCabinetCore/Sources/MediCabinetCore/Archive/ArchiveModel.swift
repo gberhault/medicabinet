@@ -23,6 +23,18 @@ public struct ArchiveLimits: Sendable {
     public init() {}
 }
 
+/// A location as the archive carries it: one the user deleted keeps its row, with `deletedAt`, because removed and
+/// deleted boxes still point at it (schema v3).
+public struct ArchivedLocation: Hashable, Sendable {
+    public var location: Location
+    public var deletedAt: Date?
+
+    public init(location: Location, deletedAt: Date? = nil) {
+        self.location = location
+        self.deletedAt = deletedAt
+    }
+}
+
 /// A box as the archive carries it: removed boxes keep their `removal`, deleted ones (added by
 /// mistake, tombstones for a future sync) also have a `deletedAt`.
 public struct ArchivedBox: Hashable, Sendable {
@@ -37,6 +49,7 @@ public struct ArchivedBox: Hashable, Sendable {
 
 /// What a cabinet holds, in numbers (the import preview).
 public struct CabinetSummary: Hashable, Sendable {
+    /// Locations that are not deleted.
     public var locations: Int
     /// Boxes still in the cabinet (not removed, not deleted).
     public var inCabinet: Int
@@ -56,6 +69,7 @@ public struct CabinetSummary: Hashable, Sendable {
     }
 
     /// False when there is nothing to lose: no box of any kind and no location besides (at most) the default one.
+    /// Deleted locations are not counted, like everywhere the user sees them.
     public var needsBackup: Bool {
         locations > 1 || inCabinet + removed + deleted > 0
     }
@@ -63,10 +77,10 @@ public struct CabinetSummary: Hashable, Sendable {
 
 /// The whole cabinet data: every location and every box, removed and deleted ones included.
 public struct CabinetContents: Hashable, Sendable {
-    public var locations: [Location]
+    public var locations: [ArchivedLocation]
     public var boxes: [ArchivedBox]
 
-    public init(locations: [Location], boxes: [ArchivedBox]) {
+    public init(locations: [ArchivedLocation], boxes: [ArchivedBox]) {
         self.locations = locations
         self.boxes = boxes
     }
@@ -75,7 +89,7 @@ public struct CabinetContents: Hashable, Sendable {
         let live = boxes.filter { $0.deletedAt == nil }
         let inCabinet = live.filter { $0.box.removal == nil }
         return CabinetSummary(
-            locations: locations.count,
+            locations: locations.filter { $0.deletedAt == nil }.count,
             inCabinet: inCabinet.count,
             removed: live.count - inCabinet.count,
             deleted: boxes.count - live.count,

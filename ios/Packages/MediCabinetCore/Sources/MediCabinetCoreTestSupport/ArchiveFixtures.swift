@@ -88,7 +88,7 @@ public enum SyntheticArchive {
 
     private static func location(_ index: Int) -> String {
         "{\"id\":\"\(uuid("1", index))\",\"name\":\"Location \(index)\",\"isDefault\":\(index == 0),\"sortOrder\":\(index),"
-            + "\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\"}"
+            + "\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}"
     }
 
     private static func box(_ index: Int) -> String {

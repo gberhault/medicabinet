@@ -28,11 +28,11 @@ class InMemoryArchiveStore(initial: CabinetContents = CabinetContents(emptyList(
 
     /** The constraints a database enforces: unique ids, one default location, boxes in known locations. */
     private fun requireHoldable(snapshot: CabinetContents) {
-        val known = snapshot.locations.map { it.id }.toSet()
+        val known = snapshot.locations.map { it.location.id }.toSet()
         val boxIds = snapshot.boxes.map { it.box.id }.toSet()
         val problem = when {
             known.size != snapshot.locations.size || boxIds.size != snapshot.boxes.size -> RepositoryError.DUPLICATE
-            snapshot.locations.count { it.isDefault } > 1 -> RepositoryError.DUPLICATE_DEFAULT
+            snapshot.locations.count { it.location.isDefault } > 1 -> RepositoryError.DUPLICATE_DEFAULT
             snapshot.boxes.any { it.box.locationId !in known } -> RepositoryError.UNKNOWN_LOCATION
             else -> null
         }

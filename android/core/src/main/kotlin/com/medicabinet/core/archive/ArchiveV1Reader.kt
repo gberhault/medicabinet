@@ -13,7 +13,7 @@ import java.util.UUID
 internal class ArchiveBody {
     var exportedAt: Instant = Instant.EPOCH
     var app = ArchiveApp(name = "", platform = "", version = "", build = "")
-    val locations = ArrayList<Location>()
+    val locations = ArrayList<ArchivedLocation>()
     val boxes = ArrayList<ArchivedBox>()
 }
 
@@ -80,6 +80,7 @@ internal object ArchiveV1Reader : ArchiveVersionReader {
         var sortOrder = 0
         var createdAt: Instant = Instant.EPOCH
         var updatedAt: Instant = Instant.EPOCH
+        var deletedAt: Instant? = null
     }
 
     private val locationFields = listOf(
@@ -88,13 +89,16 @@ internal object ArchiveV1Reader : ArchiveVersionReader {
         ObjectField("isDefault") { draft, json, field -> draft.isDefault = json.readBoolean(field) },
         ObjectField("sortOrder") { draft, json, field -> draft.sortOrder = json.readInt32(field) },
         ObjectField("createdAt") { draft, json, field -> draft.createdAt = json.readDate(field) },
-        ObjectField("updatedAt") { draft, json, field -> draft.updatedAt = json.readDate(field) }
+        ObjectField("updatedAt") { draft, json, field -> draft.updatedAt = json.readDate(field) },
+        ObjectField("deletedAt") { draft, json, field -> draft.deletedAt = json.readOptionalDate(field) }
     )
 
-    private fun readLocation(reader: JsonReader, path: String): Location {
+    private fun readLocation(reader: JsonReader, path: String): ArchivedLocation {
         val draft = LocationDraft()
         reader.readObject(path, draft, locationFields)
-        return Location(draft.id, draft.name, draft.isDefault, draft.sortOrder, draft.createdAt, draft.updatedAt)
+        val location =
+            Location(draft.id, draft.name, draft.isDefault, draft.sortOrder, draft.createdAt, draft.updatedAt)
+        return ArchivedLocation(location, draft.deletedAt)
     }
 
     private class BoxDraft {

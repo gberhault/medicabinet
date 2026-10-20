@@ -25,7 +25,8 @@ import MediCabinetCoreTestSupport
     }
 
     private func archive(locations: [Location]? = nil, boxes: [ArchivedBox] = []) -> Archive {
-        Archive(exportedAt: stamp, app: app, cabinet: CabinetContents(locations: locations ?? [location()], boxes: boxes))
+        let archived = (locations ?? [location()]).map { ArchivedLocation(location: $0) }
+        return Archive(exportedAt: stamp, app: app, cabinet: CabinetContents(locations: archived, boxes: boxes))
     }
 
     private func encoding(_ archive: Archive, limits: ArchiveLimits = .default) throws -> [UInt8] {
@@ -72,13 +73,16 @@ import MediCabinetCoreTestSupport
         Breakage("app.platform") { $0.app.platform = "windows" },
         Breakage("app.version") { $0.app.version = String(repeating: "v", count: 21) },
         Breakage("app.build") { $0.app.build = "" },
-        Breakage("locations[0].name") { $0.cabinet.locations[0].name = "" },
-        Breakage("locations[0].sortOrder") { $0.cabinet.locations[0].sortOrder = Int(Int32.max) + 1 },
-        Breakage("locations[0].sortOrder") { $0.cabinet.locations[0].sortOrder = Int(Int32.min) - 1 },
+        Breakage("locations[0].name") { $0.cabinet.locations[0].location.name = "" },
+        Breakage("locations[0].sortOrder") { $0.cabinet.locations[0].location.sortOrder = Int(Int32.max) + 1 },
+        Breakage("locations[0].sortOrder") { $0.cabinet.locations[0].location.sortOrder = Int(Int32.min) - 1 },
         Breakage("locations[0].createdAt") {
-            $0.cabinet.locations[0] = $0.cabinet.locations[0].with(createdAt: Date(timeIntervalSince1970: -1e18))
+            $0.cabinet.locations[0] = ArchivedLocation(
+                location: $0.cabinet.locations[0].location.with(createdAt: Date(timeIntervalSince1970: -1e18))
+            )
         },
-        Breakage("locations[0].updatedAt") { $0.cabinet.locations[0].updatedAt = Date(timeIntervalSince1970: 1e18) },
+        Breakage("locations[0].updatedAt") { $0.cabinet.locations[0].location.updatedAt = Date(timeIntervalSince1970: 1e18) },
+        Breakage("locations[0].deletedAt") { $0.cabinet.locations[0].deletedAt = Date(timeIntervalSince1970: 1e18) },
         Breakage("boxes[0].gtin") { $0.cabinet.boxes[0].box.product.gtin = "123" },
         Breakage("boxes[0].gtin") { $0.cabinet.boxes[0].box.product.gtin = "0340093640456A" },
         Breakage("boxes[0].productName") { $0.cabinet.boxes[0].box.product.name = "" },
@@ -121,6 +125,30 @@ import MediCabinetCoreTestSupport
         #expect(throws: ArchiveError(.duplicateSerial, path: "boxes[1].serial")) {
             try encoding(archive(locations: [location(), other], boxes: [box(1) { $0.serial = "S" }, box(2) { $0.serial = "S" }]))
         }
+    }
+
+    // MARK: Deleted locations
+
+    private func contents(_ locations: [ArchivedLocation], _ boxes: [ArchivedBox]) -> Archive {
+        Archive(exportedAt: stamp, app: app, cabinet: CabinetContents(locations: locations, boxes: boxes))
+    }
+
+    @Test func aDeletedLocationKeepsTheHistoryButNotTheBoxesInTheCabinet() throws {
+        let home = ArchivedLocation(location: location())
+        let goneID = UUID()
+        let gone = ArchivedLocation(location: location(goneID, name: "Gone", isDefault: false, order: 1), deletedAt: stamp)
+        var removed = box(1, in: goneID)
+        removed.box.removal = Box.Removal(reason: .usedUp, date: stamp)
+        var mistake = box(2, in: goneID)
+        mistake.deletedAt = stamp
+        let archive = contents([home, gone], [removed, mistake, box(3)])
+        #expect(try ArchiveDecoder.decode(try encoding(archive)) == archive)
+
+        #expect(throws: ArchiveError(.unknownLocation, path: "boxes[0].locationId")) {
+            try encoding(contents([home, gone], [box(1, in: goneID)]))
+        }
+        let deletedDefault = ArchivedLocation(location: location(), deletedAt: stamp)
+        #expect(throws: ArchiveError(.defaultLocation, path: "locations")) { try encoding(contents([deletedDefault], [])) }
     }
 
     @Test func aSerialRepeatedWithoutAGtinOrAfterADeletionIsFine() throws {

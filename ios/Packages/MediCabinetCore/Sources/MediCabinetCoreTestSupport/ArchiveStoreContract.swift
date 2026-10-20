@@ -39,6 +39,12 @@ public enum ArchiveStoreContract {
                 try require(boxes.contains { $0.deletedAt != nil }, "a deleted box is missing")
                 try require(boxes.contains { $0.box.removal == nil && $0.deletedAt == nil }, "a box in the cabinet is missing")
             },
+            Check(name: "snapshot includes deleted locations") { store in
+                try await store.replace(with: Sample.first) { _ in }
+                let locations = try await store.snapshot().locations
+                try require(locations.contains { $0.deletedAt != nil }, "a deleted location is missing")
+                try require(locations.contains { $0.deletedAt == nil }, "a location is missing")
+            },
             Check(name: "replace hands the hook exactly the cabinet it replaces") { store in
                 try await store.replace(with: Sample.first) { _ in }
                 let seen = SnapshotBox()
@@ -68,7 +74,11 @@ public enum ArchiveStoreContract {
             },
             Check(name: "two default locations are rejected and changes nothing") { store in
                 try await store.replace(with: Sample.first) { _ in }
-                let defaults = Sample.second.locations.map { Location(id: $0.id, name: $0.name, isDefault: true, createdAt: $0.createdAt) }
+                let defaults = Sample.second.locations.map { archived in
+                    let location = archived.location
+                    let made = Location(id: location.id, name: location.name, isDefault: true, createdAt: location.createdAt)
+                    return ArchivedLocation(location: made)
+                }
                 let bad = CabinetContents(locations: defaults + [Sample.extraDefault], boxes: [])
                 try await expectError(.duplicateDefault) { try await store.replace(with: bad) { _ in } }
                 try require(normalized(try await store.snapshot()) == normalized(Sample.first), "a rejected replace changed the cabinet")
@@ -91,7 +101,7 @@ public enum ArchiveStoreContract {
     /// Stores return rows in their own order; the contract compares contents.
     private static func normalized(_ snapshot: CabinetContents) -> CabinetContents {
         CabinetContents(
-            locations: snapshot.locations.sorted { $0.id.uuidString < $1.id.uuidString },
+            locations: snapshot.locations.sorted { $0.location.id.uuidString < $1.location.id.uuidString },
             boxes: snapshot.boxes.sorted { $0.box.id.uuidString < $1.box.id.uuidString }
         )
     }
@@ -141,9 +151,10 @@ private enum Sample {
     static let unknownLocationID = UUID(uuidString: "10000009-0000-4000-8000-000000000009") ?? UUID()
     private static let stamp = Date(timeIntervalSince1970: 1_800_000_000.123)
 
-    static func location(_ number: Int, name: String, isDefault: Bool) -> Location {
+    static func location(_ number: Int, name: String, isDefault: Bool, deleted: Bool = false) -> ArchivedLocation {
         let id = UUID(uuidString: String(format: "1000000%d-0000-4000-8000-00000000000%d", number, number)) ?? UUID()
-        return Location(id: id, name: name, isDefault: isDefault, sortOrder: number, createdAt: stamp, updatedAt: stamp)
+        let location = Location(id: id, name: name, isDefault: isDefault, sortOrder: number, createdAt: stamp, updatedAt: stamp)
+        return ArchivedLocation(location: location, deletedAt: deleted ? stamp : nil)
     }
 
     static func box(_ number: Int, in locationID: UUID) -> Box {
@@ -161,19 +172,20 @@ private enum Sample {
     static let first: CabinetContents = {
         let home = location(1, name: "Home", isDefault: true)
         let car = location(2, name: "Car", isDefault: false)
-        var removed = box(2, in: car.id)
+        let old = location(4, name: "Old cupboard", isDefault: false, deleted: true)
+        var removed = box(2, in: old.location.id)
         removed.removal = Box.Removal(reason: .thrownAway, date: stamp)
         return CabinetContents(
-            locations: [home, car],
+            locations: [home, car, old],
             boxes: [
-                ArchivedBox(box: box(1, in: home.id)), ArchivedBox(box: removed),
-                ArchivedBox(box: box(3, in: car.id), deletedAt: stamp)
+                ArchivedBox(box: box(1, in: home.location.id)), ArchivedBox(box: removed),
+                ArchivedBox(box: box(3, in: car.location.id), deletedAt: stamp)
             ]
         )
     }()
 
     static let second: CabinetContents = {
         let kitchen = location(3, name: "Kitchen", isDefault: true)
-        return CabinetContents(locations: [kitchen], boxes: [ArchivedBox(box: box(4, in: kitchen.id))])
+        return CabinetContents(locations: [kitchen], boxes: [ArchivedBox(box: box(4, in: kitchen.location.id))])
     }()
 }

@@ -4,7 +4,7 @@ import Foundation
 struct ArchiveBody {
     var exportedAt = Date(timeIntervalSince1970: 0)
     var app = ArchiveApp(name: "", platform: "", version: "", build: "")
-    var locations: [Location] = []
+    var locations: [ArchivedLocation] = []
     var boxes: [ArchivedBox] = []
 }
 
@@ -58,6 +58,7 @@ enum ArchiveV1Reader: ArchiveVersionReader {
         var sortOrder = 0
         var createdAt = Date(timeIntervalSince1970: 0)
         var updatedAt = Date(timeIntervalSince1970: 0)
+        var deletedAt: Date?
     }
 
     private static let locationFields: [ObjectField<LocationDraft>] = [
@@ -66,16 +67,18 @@ enum ArchiveV1Reader: ArchiveVersionReader {
         ObjectField(key: "isDefault") { draft, reader, field in draft.isDefault = try reader.readBool(field) },
         ObjectField(key: "sortOrder") { draft, reader, field in draft.sortOrder = try Reading.readInt32(&reader, field) },
         ObjectField(key: "createdAt") { draft, reader, field in draft.createdAt = try Reading.readDate(&reader, field) },
-        ObjectField(key: "updatedAt") { draft, reader, field in draft.updatedAt = try Reading.readDate(&reader, field) }
+        ObjectField(key: "updatedAt") { draft, reader, field in draft.updatedAt = try Reading.readDate(&reader, field) },
+        ObjectField(key: "deletedAt") { draft, reader, field in draft.deletedAt = try Reading.readOptionalDate(&reader, field) }
     ]
 
-    private static func readLocation(_ reader: inout JSONReader, path: String) throws(ArchiveError) -> Location {
+    private static func readLocation(_ reader: inout JSONReader, path: String) throws(ArchiveError) -> ArchivedLocation {
         var draft = LocationDraft()
         try Reading.readObject(&reader, path: path, into: &draft, fields: locationFields)
-        return Location(
+        let location = Location(
             id: draft.id, name: draft.name, isDefault: draft.isDefault, sortOrder: draft.sortOrder,
             createdAt: draft.createdAt, updatedAt: draft.updatedAt
         )
+        return ArchivedLocation(location: location, deletedAt: draft.deletedAt)
     }
 
     private struct BoxDraft {

@@ -71,11 +71,14 @@ enum RandomCabinet {
 
     static func make(using random: inout SeededGenerator) -> Archive {
         let locations = (0..<Int.random(in: 1...4, using: &random)).map { index in
-            Location(
+            let location = Location(
                 id: id(using: &random), name: text(1...100, using: &random), isDefault: index == 0,
                 sortOrder: Int.random(in: Int(Int32.min)...Int(Int32.max), using: &random),
                 createdAt: date(using: &random), updatedAt: date(using: &random)
             )
+            // The default location (the first) is never deleted.
+            let isDeleted = index > 0 && Bool.random(using: &random)
+            return ArchivedLocation(location: location, deletedAt: isDeleted ? date(using: &random) : nil)
         }
         let boxes = (0..<Int.random(in: 0...60, using: &random)).map { index in
             box(index, in: locations, using: &random)
@@ -87,7 +90,7 @@ enum RandomCabinet {
         return Archive(exportedAt: date(using: &random), app: app, cabinet: CabinetContents(locations: locations, boxes: boxes))
     }
 
-    private static func box(_ index: Int, in locations: [Location], using random: inout SeededGenerator) -> ArchivedBox {
+    private static func box(_ index: Int, in locations: [ArchivedLocation], using random: inout SeededGenerator) -> ArchivedBox {
         let gtin = Bool.random(using: &random) ? (0..<14).map { _ in String(Int.random(in: 0...9, using: &random)) }.joined() : nil
         let expiry = Bool.random(using: &random)
             ? try? ExpiryDate.make(
@@ -98,15 +101,19 @@ enum RandomCabinet {
         let removal = Bool.random(using: &random)
             ? Box.Removal(reason: RemovalReason.allCases.randomElement(using: &random) ?? .usedUp, date: date(using: &random))
             : nil
+        let deletedAt = Int.random(in: 0...4, using: &random) == 0 ? date(using: &random) : nil
+        // Only removed and deleted boxes may sit in a deleted location.
+        let isHistory = removal != nil || deletedAt != nil
+        let candidates = locations.filter { isHistory || $0.deletedAt == nil }
         let box = Box(
             id: id(using: &random), product: ProductRef(gtin: gtin, name: text(1...200, using: &random)),
             category: CategoryID(rawValue: text(1...100, using: &random)), categoryOverridden: Bool.random(using: &random),
-            locationID: (locations.randomElement(using: &random) ?? locations[0]).id, expiry: expiry,
+            locationID: (candidates.randomElement(using: &random) ?? locations[0]).location.id, expiry: expiry,
             lot: Bool.random(using: &random) ? text(1...20, using: &random) : nil,
             // Unique per box, so a (gtin, serial) pair never repeats.
             serial: Bool.random(using: &random) ? "S\(index)" : nil, isOpened: Bool.random(using: &random),
             createdAt: date(using: &random), updatedAt: date(using: &random), removal: removal
         )
-        return ArchivedBox(box: box, deletedAt: Int.random(in: 0...4, using: &random) == 0 ? date(using: &random) : nil)
+        return ArchivedBox(box: box, deletedAt: deletedAt)
     }
 }

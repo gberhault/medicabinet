@@ -29,8 +29,9 @@ public enum ArchiveEncoder {
         return bytes
     }
 
-    private static func isOrdered(_ lhs: Location, _ rhs: Location) -> Bool {
-        lhs.sortOrder != rhs.sortOrder ? lhs.sortOrder < rhs.sortOrder : lhs.id.uuidString < rhs.id.uuidString
+    private static func isOrdered(_ lhs: ArchivedLocation, _ rhs: ArchivedLocation) -> Bool {
+        let (left, right) = (lhs.location, rhs.location)
+        return left.sortOrder != right.sortOrder ? left.sortOrder < right.sortOrder : left.id.uuidString < right.id.uuidString
     }
 
     private static func isOrdered(_ lhs: ArchivedBox, _ rhs: ArchivedBox) -> Bool {
@@ -53,7 +54,8 @@ public enum ArchiveEncoder {
         writer.endObject()
     }
 
-    private static func write(_ location: Location, to writer: inout CanonicalJSONWriter) {
+    private static func write(_ archived: ArchivedLocation, to writer: inout CanonicalJSONWriter) {
+        let location = archived.location
         writer.beginObject()
         writer.key("id")
         writer.string(location.id.uuidString)
@@ -67,6 +69,8 @@ public enum ArchiveEncoder {
         writer.string(ArchiveDates.format(location.createdAt))
         writer.key("updatedAt")
         writer.string(ArchiveDates.format(location.updatedAt))
+        writer.key("deletedAt")
+        write(archived.deletedAt, to: &writer)
         writer.endObject()
     }
 

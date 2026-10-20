@@ -2,7 +2,6 @@ package com.medicabinet.core.archive
 
 import com.medicabinet.core.Box
 import com.medicabinet.core.ExpiryDate
-import com.medicabinet.core.Location
 import java.time.Instant
 
 /**
@@ -11,7 +10,10 @@ import java.time.Instant
  * so one cabinet always gives the same bytes on both platforms.
  */
 object ArchiveEncoder {
-    private val locationOrder = compareBy<Location>({ it.sortOrder }, { it.id.toString().uppercase() })
+    private val locationOrder = compareBy<ArchivedLocation>(
+        { it.location.sortOrder },
+        { it.location.id.toString().uppercase() }
+    )
 
     private val boxOrder = compareBy<ArchivedBox>(
         { ArchiveDates.milliseconds(it.box.createdAt) },
@@ -58,7 +60,8 @@ private fun CanonicalJsonWriter.writeApp(app: ArchiveApp) {
     endObject()
 }
 
-private fun CanonicalJsonWriter.writeLocation(location: Location) {
+private fun CanonicalJsonWriter.writeLocation(archived: ArchivedLocation) {
+    val location = archived.location
     beginObject()
     key("id")
     string(location.id.toString().uppercase())
@@ -72,6 +75,8 @@ private fun CanonicalJsonWriter.writeLocation(location: Location) {
     string(ArchiveDates.format(location.createdAt))
     key("updatedAt")
     string(ArchiveDates.format(location.updatedAt))
+    key("deletedAt")
+    optionalDate(archived.deletedAt)
     endObject()
 }
 

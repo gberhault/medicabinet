@@ -15,7 +15,8 @@
             "isDefault": true,
             "sortOrder": 0,
             "createdAt": "2026-10-01T09:00:00.000Z",
-            "updatedAt": "2026-10-01T09:00:00.000Z"
+            "updatedAt": "2026-10-01T09:00:00.000Z",
+            "deletedAt": null
         },
         {
             "id": "10000002-0000-4000-8000-000000000002",
@@ -23,7 +24,8 @@
             "isDefault": false,
             "sortOrder": 1,
             "createdAt": "2026-10-01T09:00:00.000Z",
-            "updatedAt": "2026-10-01T09:00:00.000Z"
+            "updatedAt": "2026-10-01T09:00:00.000Z",
+            "deletedAt": null
         },
         {
             "id": "10000003-0000-4000-8000-000000000003",
@@ -31,7 +33,17 @@
             "isDefault": false,
             "sortOrder": 1,
             "createdAt": "2026-10-01T09:30:00.000Z",
-            "updatedAt": "2026-10-01T09:30:00.000Z"
+            "updatedAt": "2026-10-01T09:30:00.000Z",
+            "deletedAt": null
+        },
+        {
+            "id": "10000004-0000-4000-8000-000000000004",
+            "name": "Ancienne armoire",
+            "isDefault": false,
+            "sortOrder": 2,
+            "createdAt": "2026-10-01T10:00:00.000Z",
+            "updatedAt": "2026-10-01T10:00:00.000Z",
+            "deletedAt": "2026-10-14T09:00:00.000Z"
         }
     ],
     "boxes": [
@@ -160,7 +172,7 @@
             "productName": "Produit 7",
             "category": "uncategorized",
             "categoryOverridden": false,
-            "locationId": "10000001-0000-4000-8000-000000000001",
+            "locationId": "10000004-0000-4000-8000-000000000004",
             "expiry": {
                 "year": 2027,
                 "month": 3,
@@ -183,7 +195,7 @@
             "productName": "Produit 8",
             "category": "uncategorized",
             "categoryOverridden": false,
-            "locationId": "10000001-0000-4000-8000-000000000001",
+            "locationId": "10000004-0000-4000-8000-000000000004",
             "expiry": {
                 "year": 2027,
                 "month": 3,

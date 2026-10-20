@@ -24,11 +24,11 @@ public actor InMemoryArchiveStore: CabinetArchiveStore {
 
     /// The constraints a database enforces: unique ids, one default location, boxes in known locations.
     private static func requireHoldable(_ snapshot: CabinetContents) throws {
-        guard Set(snapshot.locations.map(\.id)).count == snapshot.locations.count,
+        guard Set(snapshot.locations.map(\.location.id)).count == snapshot.locations.count,
               Set(snapshot.boxes.map(\.box.id)).count == snapshot.boxes.count
         else { throw RepositoryError.duplicate }
-        guard snapshot.locations.filter(\.isDefault).count <= 1 else { throw RepositoryError.duplicateDefault }
-        let known = Set(snapshot.locations.map(\.id))
+        guard snapshot.locations.filter(\.location.isDefault).count <= 1 else { throw RepositoryError.duplicateDefault }
+        let known = Set(snapshot.locations.map(\.location.id))
         guard snapshot.boxes.allSatisfy({ known.contains($0.box.locationID) }) else { throw RepositoryError.unknownLocation }
     }
 }

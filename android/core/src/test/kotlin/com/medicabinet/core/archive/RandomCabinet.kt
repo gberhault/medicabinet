@@ -29,7 +29,7 @@ object RandomCabinet {
 
     fun make(random: Random): Archive {
         val locations = (0 until random.nextInt(1, 5)).map { index ->
-            Location(
+            val location = Location(
                 id(random),
                 text(1..100, random),
                 index == 0,
@@ -37,6 +37,8 @@ object RandomCabinet {
                 instant(random),
                 instant(random)
             )
+            // The default location (the first) is never deleted.
+            ArchivedLocation(location, if (index > 0 && random.nextBoolean()) instant(random) else null)
         }
         val boxes = (0 until random.nextInt(0, 61)).map { box(it, locations, random) }
         val app = ArchiveApp(
@@ -48,7 +50,7 @@ object RandomCabinet {
         return Archive(instant(random), app, CabinetContents(locations, boxes))
     }
 
-    private fun box(index: Int, locations: List<Location>, random: Random): ArchivedBox {
+    private fun box(index: Int, locations: List<ArchivedLocation>, random: Random): ArchivedBox {
         val gtin = if (random.nextBoolean()) (0 until 14).joinToString("") { random.nextInt(10).toString() } else null
         val expiry = if (random.nextBoolean()) {
             val day = if (random.nextBoolean()) random.nextInt(1, 29) else null
@@ -58,12 +60,16 @@ object RandomCabinet {
         }
         val reason = RemovalReason.entries.random(random)
         val removal = if (random.nextBoolean()) Box.Removal(reason, instant(random)) else null
+        val deletedAt = if (random.nextInt(5) == 0) instant(random) else null
+        // Only removed and deleted boxes may sit in a deleted location.
+        val isHistory = removal != null || deletedAt != null
+        val candidates = locations.filter { isHistory || it.deletedAt == null }
         val box = Box(
             id = id(random),
             product = ProductRef(gtin, text(1..200, random)),
             category = CategoryID(text(1..100, random)),
             categoryOverridden = random.nextBoolean(),
-            locationId = locations.random(random).id,
+            locationId = candidates.random(random).location.id,
             expiry = expiry,
             lot = if (random.nextBoolean()) text(1..20, random) else null,
             // Unique per box, so a (gtin, serial) pair never repeats.
@@ -73,6 +79,6 @@ object RandomCabinet {
             updatedAt = instant(random),
             removal = removal
         )
-        return ArchivedBox(box, if (random.nextInt(5) == 0) instant(random) else null)
+        return ArchivedBox(box, deletedAt)
     }
 }

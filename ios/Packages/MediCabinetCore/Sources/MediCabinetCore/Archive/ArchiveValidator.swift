@@ -28,11 +28,13 @@ enum ArchiveValidator {
         try require(isLength(app.build, 1...20), FieldPath("app", "build"))
     }
 
-    private static func validateLocation(_ location: Location, prefix: String) throws(ArchiveError) {
+    private static func validateLocation(_ archived: ArchivedLocation, prefix: String) throws(ArchiveError) {
+        let location = archived.location
         try require(isLength(location.name, 1...100), FieldPath(prefix, "name"))
         try require((Int(Int32.min)...Int(Int32.max)).contains(location.sortOrder), FieldPath(prefix, "sortOrder"))
         try require(isRepresentable(location.createdAt), FieldPath(prefix, "createdAt"))
         try require(isRepresentable(location.updatedAt), FieldPath(prefix, "updatedAt"))
+        try require(isRepresentable(archived.deletedAt), FieldPath(prefix, "deletedAt"))
     }
 
     private static func validateBox(_ archived: ArchivedBox, prefix: String) throws(ArchiveError) {
@@ -68,16 +70,26 @@ enum ArchiveValidator {
     // MARK: Cross checks
 
     private static func validateReferences(_ cabinet: CabinetContents) throws(ArchiveError) {
-        try requireUnique(cabinet.locations.map(\.id), in: "locations")
+        try requireUnique(cabinet.locations.map(\.location.id), in: "locations")
         try requireUnique(cabinet.boxes.map(\.box.id), in: "boxes")
-        guard cabinet.locations.filter(\.isDefault).count == 1 else {
+        let defaults = cabinet.locations.filter(\.location.isDefault)
+        guard defaults.count == 1, defaults[0].deletedAt == nil else {
             throw ArchiveError(.defaultLocation, path: "locations")
         }
-        let known = Set(cabinet.locations.map(\.id))
-        if let index = cabinet.boxes.firstIndex(where: { !known.contains($0.box.locationID) }) {
+        let known = Set(cabinet.locations.map(\.location.id))
+        let live = Set(cabinet.locations.filter { $0.deletedAt == nil }.map(\.location.id))
+        if let index = cabinet.boxes.firstIndex(where: { !isPlaced($0, known: known, live: live) }) {
             throw ArchiveError(.unknownLocation, path: "boxes[\(index)].locationId")
         }
         try requireUniqueSerials(cabinet.boxes)
+    }
+
+    /// A box sits in a location of the file; one still in the cabinet sits in a location that is not deleted (the app
+    /// moves a location's boxes away before deleting it). Removed and deleted boxes keep pointing at a deleted one.
+    private static func isPlaced(_ archived: ArchivedBox, known: Set<UUID>, live: Set<UUID>) -> Bool {
+        let id = archived.box.locationID
+        let isHistory = archived.box.removal != nil || archived.deletedAt != nil
+        return known.contains(id) && (live.contains(id) || isHistory)
     }
 
     private static func requireUnique(_ ids: [UUID], in list: String) throws(ArchiveError) {

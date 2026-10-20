@@ -35,6 +35,12 @@ data class ArchiveLimits(
 }
 
 /**
+ * A location as the archive carries it: one the user deleted keeps its row, with [deletedAt], because removed and
+ * deleted boxes still point at it (schema v3).
+ */
+data class ArchivedLocation(val location: Location, val deletedAt: Instant? = null)
+
+/**
  * A box as the archive carries it: removed boxes keep their `removal`, deleted ones (added by mistake,
  * tombstones for a future sync) also have a [deletedAt].
  */
@@ -42,6 +48,7 @@ data class ArchivedBox(val box: Box, val deletedAt: Instant? = null)
 
 /** What a cabinet holds, in numbers (the import preview). */
 data class CabinetSummary(
+    /** Locations that are not deleted. */
     val locations: Int,
     /** Boxes still in the cabinet (not removed, not deleted). */
     val inCabinet: Int,
@@ -57,13 +64,13 @@ data class CabinetSummary(
 }
 
 /** The whole cabinet data: every location and every box, removed and deleted ones included. */
-data class CabinetContents(val locations: List<Location>, val boxes: List<ArchivedBox>) {
+data class CabinetContents(val locations: List<ArchivedLocation>, val boxes: List<ArchivedBox>) {
     val summary: CabinetSummary
         get() {
             val live = boxes.filter { it.deletedAt == null }
             val inCabinet = live.filter { it.box.removal == null }
             return CabinetSummary(
-                locations = locations.size,
+                locations = locations.count { it.deletedAt == null },
                 inCabinet = inCabinet.size,
                 removed = live.size - inCabinet.size,
                 deleted = boxes.size - live.size,

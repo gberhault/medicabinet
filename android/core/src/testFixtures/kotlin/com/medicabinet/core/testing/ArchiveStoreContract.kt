@@ -9,6 +9,7 @@ import com.medicabinet.core.RemovalReason
 import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
 import com.medicabinet.core.archive.ArchivedBox
+import com.medicabinet.core.archive.ArchivedLocation
 import com.medicabinet.core.archive.CabinetArchiveStore
 import com.medicabinet.core.archive.CabinetContents
 import java.time.Instant
@@ -47,6 +48,12 @@ object ArchiveStoreContract {
             require(boxes.any { it.deletedAt != null }, "a deleted box is missing")
             require(boxes.any { it.box.removal == null && it.deletedAt == null }, "a box in the cabinet is missing")
         },
+        Check("snapshot includes deleted locations") { store ->
+            store.replace(Sample.first) { }
+            val locations = store.snapshot().locations
+            require(locations.any { it.deletedAt != null }, "a deleted location is missing")
+            require(locations.any { it.deletedAt == null }, "a location is missing")
+        },
         Check("replace hands the hook exactly the cabinet it replaces") { store ->
             store.replace(Sample.first) { }
             var seen: CabinetContents? = null
@@ -73,7 +80,8 @@ object ArchiveStoreContract {
         },
         Check("two default locations are rejected and changes nothing") { store ->
             store.replace(Sample.first) { }
-            val defaults = Sample.second.locations.map { it.copy(isDefault = true) } + Sample.extraDefault
+            val defaults = Sample.second.locations.map { ArchivedLocation(it.location.copy(isDefault = true)) } +
+                Sample.extraDefault
             expectRejected(store, RepositoryError.DUPLICATE_DEFAULT, CabinetContents(defaults, emptyList()))
         },
         Check("replacing with an empty cabinet empties the store") { store ->
@@ -92,7 +100,7 @@ object ArchiveStoreContract {
 
     /** Stores return rows in their own order; the contract compares contents. */
     private fun normalized(snapshot: CabinetContents) = CabinetContents(
-        snapshot.locations.sortedBy { it.id.toString().uppercase() },
+        snapshot.locations.sortedBy { it.location.id.toString().uppercase() },
         snapshot.boxes.sortedBy { it.box.id.toString().uppercase() }
     )
 
@@ -108,13 +116,16 @@ private object Sample {
     val UNKNOWN_LOCATION: UUID = UUID.fromString("10000009-0000-4000-8000-000000000009")
     private val stamp: Instant = Instant.ofEpochMilli(1_800_000_000_123L)
 
-    fun location(number: Int, name: String, isDefault: Boolean) = Location(
-        id = UUID.fromString("1000000$number-0000-4000-8000-00000000000$number"),
-        name = name,
-        isDefault = isDefault,
-        sortOrder = number,
-        createdAt = stamp,
-        updatedAt = stamp
+    fun location(number: Int, name: String, isDefault: Boolean, deleted: Boolean = false) = ArchivedLocation(
+        Location(
+            id = UUID.fromString("1000000$number-0000-4000-8000-00000000000$number"),
+            name = name,
+            isDefault = isDefault,
+            sortOrder = number,
+            createdAt = stamp,
+            updatedAt = stamp
+        ),
+        if (deleted) stamp else null
     )
 
     fun box(number: Int, locationId: UUID) = Box(
@@ -136,15 +147,20 @@ private object Sample {
     val first: CabinetContents = run {
         val home = location(1, "Home", true)
         val car = location(2, "Car", false)
-        val removed = box(2, car.id).copy(removal = Box.Removal(RemovalReason.THROWN_AWAY, stamp))
+        val old = location(4, "Old cupboard", false, deleted = true)
+        val removed = box(2, old.location.id).copy(removal = Box.Removal(RemovalReason.THROWN_AWAY, stamp))
         CabinetContents(
-            listOf(home, car),
-            listOf(ArchivedBox(box(1, home.id)), ArchivedBox(removed), ArchivedBox(box(3, car.id), stamp))
+            listOf(home, car, old),
+            listOf(
+                ArchivedBox(box(1, home.location.id)),
+                ArchivedBox(removed),
+                ArchivedBox(box(3, car.location.id), stamp)
+            )
         )
     }
 
     val second: CabinetContents = run {
         val kitchen = location(3, "Kitchen", true)
-        CabinetContents(listOf(kitchen), listOf(ArchivedBox(box(4, kitchen.id))))
+        CabinetContents(listOf(kitchen), listOf(ArchivedBox(box(4, kitchen.location.id))))
     }
 }

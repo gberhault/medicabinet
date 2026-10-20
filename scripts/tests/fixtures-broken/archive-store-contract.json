@@ -12,6 +12,9 @@
       "name": "snapshot includes removed and deleted boxes"
     },
     {
+      "name": "snapshot includes deleted locations"
+    },
+    {
       "name": "replace hands the hook exactly the cabinet it replaces"
     },
     {

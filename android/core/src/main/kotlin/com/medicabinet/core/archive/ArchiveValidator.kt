@@ -1,6 +1,5 @@
 package com.medicabinet.core.archive
 
-import com.medicabinet.core.Location
 import java.time.Instant
 
 private val appNameLength = 1..50
@@ -35,10 +34,12 @@ internal object ArchiveValidator {
         requireValid(isLength(app.build, appFieldLength), FieldPath("app", "build"))
     }
 
-    private fun validateLocation(location: Location, prefix: String) {
+    private fun validateLocation(archived: ArchivedLocation, prefix: String) {
+        val location = archived.location
         requireValid(isLength(location.name, locationNameLength), FieldPath(prefix, "name"))
         requireValid(isRepresentable(location.createdAt), FieldPath(prefix, "createdAt"))
         requireValid(isRepresentable(location.updatedAt), FieldPath(prefix, "updatedAt"))
+        requireValid(isRepresentable(archived.deletedAt), FieldPath(prefix, "deletedAt"))
     }
 
     private fun validateBox(archived: ArchivedBox, prefix: String) {

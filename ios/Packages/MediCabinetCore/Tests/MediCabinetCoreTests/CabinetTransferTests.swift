@@ -30,7 +30,7 @@ import MediCabinetCoreTestSupport
     private func smallCabinet(named name: String) -> CabinetContents {
         let location = Location(name: name, isDefault: true, createdAt: exportedAt)
         let box = Box(product: ProductRef(name: "Only box"), locationID: location.id, createdAt: exportedAt)
-        return CabinetContents(locations: [location], boxes: [ArchivedBox(box: box)])
+        return CabinetContents(locations: [ArchivedLocation(location: location)], boxes: [ArchivedBox(box: box)])
     }
 
     // MARK: Export
@@ -43,7 +43,7 @@ import MediCabinetCoreTestSupport
 
     @Test func anEmptyCabinetCanBeExported() async throws {
         let home = Location(name: "Home", isDefault: true, createdAt: exportedAt)
-        let context = try setup(initial: CabinetContents(locations: [home], boxes: []))
+        let context = try setup(initial: CabinetContents(locations: [ArchivedLocation(location: home)], boxes: []))
         let archive = try ArchiveDecoder.decode(try await context.transfer.exportArchive())
         #expect(archive.cabinet.summary.inCabinet == 0)
         #expect(archive.app == app)
@@ -72,7 +72,8 @@ import MediCabinetCoreTestSupport
     }
 
     @Test func aPhoneWithNothingToLoseNeedsNoBackup() async throws {
-        let empty = CabinetContents(locations: [Location(name: "Home", isDefault: true, createdAt: exportedAt)], boxes: [])
+        let home = ArchivedLocation(location: Location(name: "Home", isDefault: true, createdAt: exportedAt))
+        let empty = CabinetContents(locations: [home], boxes: [])
         #expect(try await setup(initial: empty).transfer.preview(try SharedFixtures.goldenArchive()).willBackUp == false)
         #expect(try await setup().transfer.preview(try SharedFixtures.goldenArchive()).willBackUp == false)
     }

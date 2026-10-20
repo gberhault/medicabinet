@@ -39,7 +39,7 @@ class ArchiveCodecTest {
     }
 
     private fun archive(locations: List<Location> = listOf(location()), boxes: List<ArchivedBox> = emptyList()) =
-        Archive(stamp, app, CabinetContents(locations, boxes))
+        Archive(stamp, app, CabinetContents(locations.map { ArchivedLocation(it) }, boxes))
 
     private fun assertRefused(
         kind: ArchiveErrorKind,
@@ -84,8 +84,13 @@ class ArchiveCodecTest {
     private fun mapBox(archive: Archive, edit: (ArchivedBox) -> ArchivedBox): Archive =
         archive.copy(cabinet = archive.cabinet.copy(boxes = archive.cabinet.boxes.map(edit)))
 
-    private fun mapLocation(archive: Archive, edit: (Location) -> Location): Archive =
-        archive.copy(cabinet = archive.cabinet.copy(locations = archive.cabinet.locations.map(edit)))
+    private fun mapLocation(archive: Archive, edit: (Location) -> Location): Archive = archive.copy(
+        cabinet = archive.cabinet.copy(
+            locations = archive.cabinet.locations.map {
+                it.copy(location = edit(it.location))
+            }
+        )
+    )
 
     private val beyond = Instant.ofEpochSecond(1_000_000_000_000_000L)
     private val before = Instant.ofEpochSecond(-1_000_000_000_000_000L)
@@ -99,6 +104,9 @@ class ArchiveCodecTest {
         Breakage("locations[0].name") { mapLocation(it) { location -> location.copy(name = "") } },
         Breakage("locations[0].createdAt") { mapLocation(it) { location -> location.copy(createdAt = before) } },
         Breakage("locations[0].updatedAt") { mapLocation(it) { location -> location.copy(updatedAt = beyond) } },
+        Breakage("locations[0].deletedAt") {
+            it.copy(cabinet = it.cabinet.copy(locations = it.cabinet.locations.map { l -> l.copy(deletedAt = beyond) }))
+        },
         Breakage("boxes[0].gtin") { mapBox(it) { b -> b.withProduct { p -> p.copy(gtin = "123") } } },
         Breakage("boxes[0].gtin") { mapBox(it) { b -> b.withProduct { p -> p.copy(gtin = "0340093640456A") } } },
         Breakage("boxes[0].productName") { mapBox(it) { b -> b.withProduct { p -> p.copy(name = "") } } },
@@ -164,6 +172,30 @@ class ArchiveCodecTest {
         ArchiveEncoder.encode(archive(boxes = listOf(deleted, box(2) { it.copy(serial = "S") })))
         val distinct = listOf(box(1) { it.copy(serial = "S") }, box(2) { it.copy(serial = "T") }, box(3))
         ArchiveEncoder.encode(archive(boxes = distinct))
+    }
+
+    // MARK: Deleted locations
+
+    private fun contents(locations: List<ArchivedLocation>, boxes: List<ArchivedBox>) =
+        Archive(stamp, app, CabinetContents(locations, boxes))
+
+    @Test
+    fun aDeletedLocationKeepsTheHistoryButNotTheBoxesInTheCabinet() {
+        val home = ArchivedLocation(location())
+        val goneId = UUID(0, 5)
+        val gone = ArchivedLocation(location(goneId, "Gone", false, 1), stamp)
+        val removed = box(1, goneId) { it.copy(removal = Box.Removal(RemovalReason.USED_UP, stamp)) }
+        val mistake = box(2, goneId).copy(deletedAt = stamp)
+        val archive = contents(listOf(home, gone), listOf(removed, mistake, box(3)))
+        assertEquals(archive, ArchiveDecoder.decode(ArchiveEncoder.encode(archive)))
+
+        assertRefused(
+            ArchiveErrorKind.UNKNOWN_LOCATION,
+            "boxes[0].locationId",
+            contents(listOf(home, gone), listOf(box(1, goneId)))
+        )
+        val deletedDefault = ArchivedLocation(location(), stamp)
+        assertRefused(ArchiveErrorKind.DEFAULT_LOCATION, "locations", contents(listOf(deletedDefault), emptyList()))
     }
 
     // MARK: Ordering

@@ -75,7 +75,7 @@ object SyntheticArchive {
     private fun location(index: Int): String =
         "{\"id\":\"${uuid("1", index)}\",\"name\":\"Location $index\",\"isDefault\":${index == 0}," +
             "\"sortOrder\":$index," +
-            "\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\"}"
+            "\"createdAt\":\"2026-10-01T09:00:00.000Z\",\"updatedAt\":\"2026-10-01T09:00:00.000Z\",\"deletedAt\":null}"
 
     private fun box(index: Int): String =
         "{\"id\":\"${uuid("B", index)}\",\"gtin\":\"03400936404564\",\"productName\":\"Box $index\"," +
