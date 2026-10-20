@@ -3,6 +3,7 @@ package com.medicabinet.app
 import android.app.Application
 import com.medicabinet.app.app.BootstrapState
 import com.medicabinet.app.app.ExpiryPreferences
+import com.medicabinet.app.app.NamedProductBackfillLauncher
 import com.medicabinet.app.app.SharedExpiryPreferences
 import com.medicabinet.app.app.TabRouter
 import com.medicabinet.app.features.transfer.ArchiveFiles
@@ -41,6 +42,9 @@ class MediCabinetApplication : Application() {
         )
     }
 
+    /** Fills the named products once after the upgrade, in the background (never on the launch path). */
+    private val namedProductBackfill by lazy { NamedProductBackfillLauncher(MainScope(), Dispatchers.IO) }
+
     private val openLock = Mutex()
     private var opened: BootstrapState.Ready? = null
 
@@ -49,7 +53,12 @@ class MediCabinetApplication : Application() {
      * process alone, with no screen) get the same database, never two. A failure is not remembered, so Retry works.
      */
     suspend fun openCabinet(): BootstrapState = openLock.withLock {
-        opened ?: bootstrap.run().also { if (it is BootstrapState.Ready) opened = it }
+        opened ?: bootstrap.run().also {
+            if (it is BootstrapState.Ready) {
+                opened = it
+                namedProductBackfill.start(it.environment)
+            }
+        }
     }
 
     private val liveReminders: ReminderServices by lazy {

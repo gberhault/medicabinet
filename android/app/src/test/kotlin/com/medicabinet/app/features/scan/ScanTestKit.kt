@@ -22,7 +22,9 @@ class StubLookup(private val products: Map<String, ReferenceProduct> = emptyMap(
 /** A view model on an in-memory cabinet with a default location, and a fake scanner the test controls. */
 class ScanTestKit(
     lookup: ProductLookup = StubLookup(mapOf(GTIN to ReferenceProduct("DOLIPRANE"))),
-    hasCamera: Boolean = true
+    hasCamera: Boolean = true,
+    /** `Available` lets the scan remember the names it is given (the named products); off by default. */
+    referenceStatus: ReferenceStatus = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING)
 ) {
     val clock = MutableClock(START)
     val store = InMemoryCabinetStore(clock)
@@ -35,7 +37,7 @@ class ScanTestKit(
             store,
             store.named,
             clock,
-            InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING))
+            InMemoryReferenceData(status = referenceStatus)
         )
     val model = ScanViewModel(environment, services)
     lateinit var defaultLocation: Location

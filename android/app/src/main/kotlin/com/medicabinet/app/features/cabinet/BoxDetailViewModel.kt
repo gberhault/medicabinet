@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.medicabinet.app.app.AppEnvironment
 import com.medicabinet.app.app.AppLog
+import com.medicabinet.app.app.recordOrLog
 import com.medicabinet.core.Box
 import com.medicabinet.core.CategoryID
 import com.medicabinet.core.ExpiryStatus
@@ -14,6 +15,7 @@ import com.medicabinet.core.RepositoryException
 import com.medicabinet.core.cabinet.BoxEdit
 import com.medicabinet.core.cabinet.BoxEditError
 import com.medicabinet.core.cabinet.BoxEditException
+import com.medicabinet.core.named.MemoryEvent
 import com.medicabinet.core.reference.LeafletLink
 import com.medicabinet.core.reference.ReferenceProduct
 import com.medicabinet.core.scan.ProductResolver
@@ -173,7 +175,12 @@ class BoxDetailViewModel(
         val box = (state.value as? BoxDetailState.Loaded)?.box ?: return SaveResult.Failed
         return try {
             val edited = edit.applyTo(box)
-            if (write("save") { boxes.update(edited) }) SaveResult.Saved else SaveResult.Failed
+            if (write("save") { boxes.update(edited) }) {
+                environment.productMemory.recordOrLog(MemoryEvent.Changed(box, edited))
+                SaveResult.Saved
+            } else {
+                SaveResult.Failed
+            }
         } catch (error: BoxEditException) {
             SaveResult.Invalid(error.error)
         }

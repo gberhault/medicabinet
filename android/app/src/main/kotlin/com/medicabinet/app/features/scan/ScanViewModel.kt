@@ -3,6 +3,7 @@ package com.medicabinet.app.features.scan
 import androidx.lifecycle.ViewModel
 import com.medicabinet.app.app.AppEnvironment
 import com.medicabinet.app.app.AppLog
+import com.medicabinet.app.app.recordOrLog
 import com.medicabinet.app.features.scan.camera.VisibleCodes
 import com.medicabinet.core.Box
 import com.medicabinet.core.ExpiryDate
@@ -12,6 +13,7 @@ import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
 import com.medicabinet.core.cabinet.RemovalOutcome
 import com.medicabinet.core.cabinet.ScanRemoval
+import com.medicabinet.core.named.MemoryEvent
 import com.medicabinet.core.named.ProductMemory
 import com.medicabinet.core.reference.ReferenceStatus
 import com.medicabinet.core.scan.BoxDraft
@@ -421,7 +423,9 @@ class ScanViewModel(environment: AppEnvironment, private val services: ScanServi
         if (trimmed.codePointCount(0, trimmed.length) !in 1..ScanIntake.MAX_NAME_LENGTH) return false
         return try {
             boxes.update(box.copy(product = box.product.copy(name = trimmed), expiry = expiry, locationId = locationId))
-            boxes.box(box.id)?.let { saved -> mutableState.update { it.copy(session = it.session.replace(saved)) } }
+            val saved = boxes.box(box.id)
+            saved?.let { corrected -> mutableState.update { it.copy(session = it.session.replace(corrected)) } }
+            memory.recordOrLog(MemoryEvent.SessionCorrected(box, saved ?: box))
             true
         } catch (cancelled: CancellationException) {
             throw cancelled
