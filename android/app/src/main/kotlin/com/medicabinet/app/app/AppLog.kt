@@ -1,6 +1,7 @@
 package com.medicabinet.app.app
 
 import android.util.Log
+import com.medicabinet.core.archive.ArchiveErrorKind
 import com.medicabinet.core.reference.ReferenceUnavailableReason
 
 /**
@@ -38,5 +39,14 @@ object AppLog {
     /** The cabinet could not be opened for the digest; only the fixed failure kind is logged. */
     fun reminderUnavailable(failure: BootstrapFailure) {
         Log.e(TAG, "reminder cabinet unavailable: ${failure.name}")
+    }
+
+    /**
+     * A step of export, import or restore failed. [stage] is a fixed word (`export`, `read`, `preview`, `apply`…);
+     * [kind] the archive error kind when the file was refused. Never a file name, a path, or anything from the file.
+     */
+    fun transferFailed(stage: String, error: Throwable?, kind: ArchiveErrorKind? = null) {
+        val what = kind?.let { ": ${it.rawValue}" } ?: error?.let { ": ${it::class.java.simpleName}" }.orEmpty()
+        Log.e(TAG, "transfer $stage failed$what")
     }
 }

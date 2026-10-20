@@ -8,6 +8,7 @@ import com.medicabinet.app.app.BootstrapFailure
 import com.medicabinet.app.app.BootstrapState
 import com.medicabinet.core.Clock
 import com.medicabinet.core.Location
+import com.medicabinet.core.archive.ArchiveDecoder
 import com.medicabinet.core.testing.MutableClock
 import java.io.File
 import java.time.Instant
@@ -17,6 +18,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -53,6 +55,29 @@ class BootstrapTest {
                 generateSequence { if (cursor.moveToNext()) cursor.getString(0) else null }.toSet()
             }
         }
+
+    // --- export and import (T17) ---
+
+    @Test
+    fun theEnvironmentExportsTheCabinetAsAnAndroidArchive() = runBlocking<Unit> {
+        val environment = ready(bootstrap().run())
+        val transfer = assertNotNull(environment.transfer)
+        val archive = ArchiveDecoder.decode(transfer.exportArchive())
+        assertEquals("android", archive.app.platform)
+        assertEquals("MediCabinet", archive.app.name)
+        assertEquals(clock.now(), archive.exportedAt)
+        assertEquals(1, archive.cabinet.summary.locations)
+        assertEquals(0L, environment.revision.value)
+    }
+
+    @Test
+    fun aFileSharedAtTheLastLaunchIsDeletedAtLaunch() = runBlocking<Unit> {
+        val exports = AppPaths(context).exportDirectory
+        exports.mkdirs()
+        File(exports, "MediCabinet-2027-01-15.medicabinet").writeText("health data")
+        ready(bootstrap().run())
+        assertFalse(exports.exists())
+    }
 
     // --- first launch and upgrade ---
 

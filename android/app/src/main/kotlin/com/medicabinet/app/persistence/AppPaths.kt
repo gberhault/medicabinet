@@ -16,9 +16,16 @@ class AppPaths(private val context: Context) {
      */
     val referenceDirectory: File get() = File(context.noBackupFilesDir, REFERENCE_DIRECTORY)
 
+    /**
+     * Where a file being shared lives until the next export or the next launch (E6): the cache, which is internal,
+     * never backed up, and reachable from outside only through the app's non-exported `FileProvider`.
+     */
+    val exportDirectory: File get() = File(context.cacheDir, EXPORT_DIRECTORY)
+
     companion object {
         const val DATABASE_NAME = "cabinet.db"
         const val BACKUPS_DIRECTORY = "backups"
         const val REFERENCE_DIRECTORY = "reference"
+        const val EXPORT_DIRECTORY = "export"
     }
 }

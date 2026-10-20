@@ -12,11 +12,15 @@ import com.medicabinet.app.app.DayTicker
 import com.medicabinet.app.app.ExpiryPreferences
 import com.medicabinet.app.app.SharedExpiryPreferences
 import com.medicabinet.app.app.systemTimeChanges
+import com.medicabinet.app.features.settings.PackageAppInfo
+import com.medicabinet.app.features.settings.archiveApp
 import com.medicabinet.app.persistence.reference.AndroidReferenceAssets
 import com.medicabinet.app.persistence.reference.ReferenceInstaller
 import com.medicabinet.app.persistence.reference.SqlReferenceData
 import com.medicabinet.core.Clock
 import com.medicabinet.core.SystemClock
+import com.medicabinet.core.archive.ArchiveApp
+import com.medicabinet.core.archive.CabinetTransfer
 import com.medicabinet.core.reference.ReferenceDataSource
 import java.io.File
 import java.time.ZoneId
@@ -41,7 +45,9 @@ class Bootstrap(
     private val reference: ReferenceDataSource = SqlReferenceData(
         ReferenceInstaller(AndroidReferenceAssets(context.assets), AppPaths(context).referenceDirectory),
         io
-    )
+    ),
+    /** Who writes the archives this cabinet exports (and its automatic backups). */
+    private val archiveApp: ArchiveApp = PackageAppInfo(context).archiveApp()
 ) {
     suspend fun run(): BootstrapState = withContext(io) {
         try {
@@ -54,9 +60,11 @@ class Bootstrap(
     private class BootstrapAbort(val failure: BootstrapFailure) : Exception()
 
     private suspend fun open(): AppEnvironment {
+        val paths = AppPaths(context)
+        clearExports(paths)
         val backups = BackupService(
             context.getDatabasePath(databaseName),
-            AppPaths(context).backupsDirectory,
+            paths.backupsDirectory,
             clock,
             migrations.size
         )
@@ -72,8 +80,22 @@ class Bootstrap(
             reference,
             expiryPreferences = expiryPreferences,
             // The zone is read at each use and a time-zone or clock change wakes the ticker (S9).
-            todaySource = DayTicker(clock, { ZoneId.systemDefault() }, systemTimeChanges(context))
+            todaySource = DayTicker(clock, { ZoneId.systemDefault() }, systemTimeChanges(context)),
+            transfer = CabinetTransfer(
+                SqlCabinetArchiveStore(cabinet, io),
+                FileArchiveBackupStore(paths.backupsDirectory, io = io),
+                clock,
+                archiveApp
+            )
         )
+    }
+
+    /**
+     * A file shared at the last launch is no longer needed (the share sheet never says when the receiving app has read
+     * it, E6). Best effort: a file left behind stays in the private cache and is retried at the next launch.
+     */
+    private fun clearExports(paths: AppPaths) {
+        if (!paths.exportDirectory.deleteRecursively()) AppLog.transferFailed("launch-cleanup", null)
     }
 
     /** A needed copy that cannot be written stops everything: nothing is migrated without a safety copy. */

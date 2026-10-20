@@ -99,11 +99,11 @@ fun ScanScreen(model: ScanViewModel, services: ScanServices, modifier: Modifier 
         model.permissionRequested()
         refreshAccess()
     }
-    LaunchedEffect(Unit) {
-        // The tab was opened: Remove is never remembered (R1).
-        model.resetMode()
-        model.load()
-    }
+    // The tab was opened: Remove is never remembered (R1).
+    LaunchedEffect(Unit) { model.resetMode() }
+    // Also after the whole cabinet was replaced (an import or a restore): the session ends and the locations reload.
+    val revision by model.revision.collectAsState()
+    LaunchedEffect(revision) { model.load() }
     // Also when the user comes back from the system settings.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { refreshAccess() }
     FeedbackEffect(model)

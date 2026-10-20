@@ -120,9 +120,11 @@ independent of each other.
 
 ## 5. Android app (#28, #29)
 
-- [ ] **T17 — Environment, revision and scan session reset** `[android]` (I7; §1.6, §7.4)
+- [x] **T17 — Environment, revision and scan session reset** `[android]` (I7; §1.6, §7.4)
   `AppEnvironment.transfer` and `revision`, `ArchiveApp` from `PackageAppInfo`; launch
   cleanup of `cache/export`; the scan session ends on a revision change. *Tests:* as T11.
+  Done: the scan view model checks the revision each time the Scan tab loads (the tab is never on screen during an
+  import, which runs from Settings), so it needs no coroutine of its own.
 - [ ] **T18 — Export: save and share** `[android]` [#28] (E1–E9, X1; §7.1, flows 1–2)
   `TransferSection`, `ExportViewModel`, `ExportSummarySheet`; **Save to file**
   (`CreateDocument`, delete on failure) and **Share** (`FileProvider`, `export_paths.xml`,
