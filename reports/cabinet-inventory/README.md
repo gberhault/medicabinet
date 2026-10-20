@@ -34,8 +34,10 @@ What was checked, by reading the code and by automated UI tests — **not** a Vo
 - UI tests run the scanner (Add and Remove), the Cabinet list and the box detail at the largest Dynamic Type size in dark
   mode (iOS) or font scale 2.0 (Android Robolectric). The Remove bar was rearranged on two rows after a font-scale-2.0
   test showed its sound button pushed out of the bar.
-- Contrast: the new screens use system semantic colours only (iOS `.red` / `.primary` on materials, Material 3
-  `error` / `onSurface`); the Remove tint is decorative next to a text title. A measured contrast check of the tint in
-  both modes needs a device and is still open.
+- Contrast, computed from the default Material 3 schemes (Android): in the Remove bar (surface at 90 % over the camera,
+  worst case black) body text is 12.9:1 in light and 14.6:1 in dark mode, and the `error` border / icon 5.0:1 and
+  11.1:1 — all above 4.5:1. On iOS the Remove title and the status texts stay in the primary colour; only icons are
+  tinted with system colours (`.red`, `.orange`, `.green`, which Apple adapts to light and dark mode), and the text
+  next to each icon carries the meaning. A pixel-level check of the iOS material over a live camera frame needs a device.
 - Undo messages are announced (VoiceOver announcement, TalkBack live region / snackbar) and the iOS banner does not
   vanish while VoiceOver focus is on its button.

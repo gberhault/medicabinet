@@ -111,9 +111,13 @@ private struct ScannerScreen: View {
     private var removeBar: some View {
         // Two rows so that nothing is pushed out of the bar at the largest text sizes.
         VStack(alignment: .leading, spacing: 0) {
-            Label("scan.remove.title", systemImage: "minus.circle.fill")
+            // Only the icon is tinted: red text on a light material is below the 4.5:1 text contrast.
+            Label {
+                Text("scan.remove.title")
+            } icon: {
+                Image(systemName: "minus.circle.fill").foregroundStyle(.red)
+            }
                 .font(.headline)
-                .foregroundStyle(.red)
                 .padding(.top, 8)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("scan.remove.title")

@@ -141,6 +141,6 @@ iOS and Android UI blocks of each section are independent of each other.
   Scroll 1 000 boxes on the oldest available iPhone and Android phone (emulator serial only
   unless the user names a device); remove-by-scan latency; results in
   `reports/cabinet-inventory/README.md`.
-- [ ] **T29 — Versions and gate** `[shared]` (X7)
+- [x] **T29 — Versions and gate** `[shared]` (X7)
   iOS 0.3.0 (build +1) and Android 0.3.0 (versionCode +1), changelog entries;
   `bash scripts/local-ci.sh` green; coverage stated for the PR.
