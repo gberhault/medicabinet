@@ -289,6 +289,27 @@ class ExpiringScreenTest {
     }
 
     @Test
+    fun theReminderCardIsShownAboveTheListAndInTheEmptyState() {
+        seed()
+        compose.showExpiring(ExpiringViewModel(kit.environment, UnconfinedTestDispatcher())) {
+            androidx.compose.material3.Text("card-slot")
+        }
+        compose.onNodeWithText("card-slot").assertIsDisplayed()
+        val cardTop = compose.onNodeWithText("card-slot").fetchSemanticsNode().boundsInRoot.top
+        assertTrue(top("expiring.section.expired") > cardTop)
+    }
+
+    @Test
+    fun theReminderCardIsAlsoShownWhenNothingNeedsAttention() {
+        runBlocking { kit.open() }
+        compose.showExpiring(ExpiringViewModel(kit.environment, UnconfinedTestDispatcher())) {
+            androidx.compose.material3.Text("card-slot")
+        }
+        compose.onNodeWithText("card-slot").assertIsDisplayed()
+        compose.onNodeWithText("All clear").assertIsDisplayed()
+    }
+
+    @Test
     fun everythingStaysReachableAtTwiceTheFontSizeInTheDarkTheme() {
         seed()
         RuntimeEnvironment.setFontScale(2f)

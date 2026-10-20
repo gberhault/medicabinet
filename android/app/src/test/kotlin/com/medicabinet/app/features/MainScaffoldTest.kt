@@ -2,9 +2,11 @@ package com.medicabinet.app.features
 
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -14,10 +16,13 @@ import com.medicabinet.app.app.TabRouter
 import com.medicabinet.app.features.cabinet.CabinetTestKit
 import com.medicabinet.app.features.scan.testEnvironment
 import com.medicabinet.app.features.scan.testScanServices
+import com.medicabinet.app.reminders.ReminderServices
+import com.medicabinet.app.reminders.ReminderTestKit
 import com.medicabinet.app.ui.theme.MediCabinetTheme
 import com.medicabinet.core.RemovalReason
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -52,7 +57,7 @@ class MainScaffoldTest {
         waitForText("The cabinet is empty")
         compose.onNodeWithText("Expiring").performClick()
         waitForText("All clear")
-        compose.onNodeWithText("Nothing expires in the next 60 days.").assertIsDisplayed()
+        compose.onNodeWithText("Nothing expires in the next 60 days.").assertExists()
     }
 
     @Test
@@ -86,6 +91,35 @@ class MainScaffoldTest {
         assertEquals(0, compose.onAllNodesWithText("1", useUnmergedTree = true).fetchSemanticsNodes().size)
         val described = compose.onAllNodesWithContentDescription("need attention", substring = true)
         assertEquals(0, described.fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun theExpiringTabOffersTheMonthlyReminderAndNotNowRemembersIt() {
+        val kit = ReminderTestKit()
+        val environment = testEnvironment()
+        compose.setContent {
+            MediCabinetTheme {
+                MainScaffold(
+                    environment,
+                    scanServices = testScanServices(),
+                    reminderServices = ReminderServices(kit.access, kit.scheduling)
+                )
+            }
+        }
+        compose.onNodeWithText("Expiring").performClick()
+        waitForText("All clear")
+        compose.onNodeWithTag("reminder.card").assertIsDisplayed()
+        compose.onNodeWithTag("reminder.card.notNow").performClick()
+        compose.waitForIdle()
+        assertEquals(0, compose.onAllNodesWithTag("reminder.card").fetchSemanticsNodes().size)
+        assertTrue(environment.expiryPreferences.reminderCardDismissed)
+    }
+
+    @Test
+    fun settingsOfferTheMonthlyReminderSwitchOffByDefault() {
+        show()
+        compose.onNodeWithText("Settings").performClick()
+        compose.onNodeWithTag("settings.reminder.switch").assertIsDisplayed().assertIsOff()
     }
 
     @Test

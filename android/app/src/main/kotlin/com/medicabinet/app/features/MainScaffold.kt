@@ -29,6 +29,8 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination
@@ -49,6 +51,9 @@ import com.medicabinet.app.features.common.LocalUndoController
 import com.medicabinet.app.features.common.UndoController
 import com.medicabinet.app.features.expiring.ExpiringScreen
 import com.medicabinet.app.features.expiring.ExpiringViewModel
+import com.medicabinet.app.features.expiring.ReminderActions
+import com.medicabinet.app.features.expiring.ReminderCard
+import com.medicabinet.app.features.expiring.rememberReminderActions
 import com.medicabinet.app.features.scan.ScanScreen
 import com.medicabinet.app.features.scan.ScanServices
 import com.medicabinet.app.features.scan.ScanViewModel
@@ -58,14 +63,23 @@ import com.medicabinet.app.features.scan.camera.debugRoutes
 import com.medicabinet.app.features.settings.AboutScreen
 import com.medicabinet.app.features.settings.AboutViewModel
 import com.medicabinet.app.features.settings.AppInfo
-import com.medicabinet.app.features.settings.ExpiryWindowSetting
+import com.medicabinet.app.features.settings.ExpirySettingsSection
 import com.medicabinet.app.features.settings.PackageAppInfo
 import com.medicabinet.app.features.settings.SettingsScreen
 import com.medicabinet.app.features.settings.locations.LocationsRoute
+import com.medicabinet.app.reminders.ReminderModel
+import com.medicabinet.app.reminders.ReminderServices
 
 private const val SETTINGS_HOME = "settings/home"
 private const val SETTINGS_ABOUT = "settings/about"
 private const val SETTINGS_LOCATIONS = "settings/locations"
+
+/** The models shared by several tabs: the Expiring list and its badge, and the monthly-reminder setting. */
+private class MainModels(
+    val expiring: ExpiringViewModel,
+    val reminder: ReminderModel,
+    val reminderActions: ReminderActions
+)
 
 private enum class Destination(val tab: AppTab, val labelRes: Int, val icon: ImageVector) {
     Scan(AppTab.SCAN, R.string.tab_scan, Icons.Outlined.QrCodeScanner),
@@ -87,6 +101,7 @@ fun MainScaffold(
     modifier: Modifier = Modifier,
     appInfo: AppInfo = PackageAppInfo(LocalContext.current),
     scanServices: ScanServices = ScanServices.live(LocalContext.current, environment.reference),
+    reminderServices: ReminderServices = ReminderServices.live(LocalContext.current),
     tabRouter: TabRouter = remember { TabRouter() }
 ) {
     val aboutViewModel = remember(appInfo, environment.reference) { AboutViewModel(appInfo, environment.reference) }
@@ -95,7 +110,21 @@ fun MainScaffold(
     val snackbars = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val undoController = remember(snackbars, scope) { UndoController(snackbars, scope) }
-    val expiringModel = viewModel { ExpiringViewModel(environment) }
+    val reminderModel = viewModel {
+        ReminderModel(
+            environment.expiryPreferences,
+            reminderServices.access,
+            reminderServices.scheduling,
+            environment.clock
+        ) { environment.zone }
+    }
+    // The system may have changed what is allowed while the app was away (notification settings).
+    LifecycleEventEffect(Lifecycle.Event.ON_START) { reminderModel.refresh() }
+    val models = MainModels(
+        expiring = viewModel { ExpiringViewModel(environment) },
+        reminder = reminderModel,
+        reminderActions = rememberReminderActions(reminderModel)
+    )
     val requested by tabRouter.requested.collectAsState()
     LaunchedEffect(requested) {
         requested?.let { tab ->
@@ -109,7 +138,7 @@ fun MainScaffold(
             aboutViewModel,
             environment,
             scanServices,
-            expiringModel,
+            models,
             snackbars,
             backStack?.destination,
             modifier
@@ -123,12 +152,12 @@ private fun MainContent(
     aboutViewModel: AboutViewModel,
     environment: AppEnvironment,
     scanServices: ScanServices,
-    expiringModel: ExpiringViewModel,
+    models: MainModels,
     snackbars: SnackbarHostState,
     current: NavDestination?,
     modifier: Modifier
 ) {
-    val attention by expiringModel.attentionCount.collectAsStateWithLifecycle()
+    val attention by models.expiring.attentionCount.collectAsStateWithLifecycle()
     Scaffold(
         modifier = modifier,
         snackbarHost = { SnackbarHost(snackbars) },
@@ -154,7 +183,7 @@ private fun MainContent(
             aboutViewModel,
             environment,
             scanServices,
-            expiringModel,
+            models,
             Modifier.padding(padding)
         )
     }
@@ -194,7 +223,7 @@ private fun MainNavHost(
     aboutViewModel: AboutViewModel,
     environment: AppEnvironment,
     scanServices: ScanServices,
-    expiringModel: ExpiringViewModel,
+    models: MainModels,
     modifier: Modifier
 ) {
     NavHost(navController, startDestination = Destination.Scan.route, modifier = modifier) {
@@ -203,13 +232,17 @@ private fun MainNavHost(
             ScanScreen(model, scanServices)
         }
         cabinetGraph(navController, environment) { navController.openTab(Destination.Scan) }
-        composable(Destination.Expiring.route) { ExpiringScreen(expiringModel) }
+        composable(Destination.Expiring.route) {
+            ExpiringScreen(models.expiring, reminderCard = { ReminderCard(models.reminder, models.reminderActions) })
+        }
         navigation(route = Destination.Settings.route, startDestination = SETTINGS_HOME) {
             composable(SETTINGS_HOME) {
                 SettingsScreen(
                     onOpenAbout = { navController.navigate(SETTINGS_ABOUT) },
                     onOpenLocations = { navController.navigate(SETTINGS_LOCATIONS) },
-                    expirySection = { ExpiryWindowSetting(environment.expiryPreferences) },
+                    expirySection = {
+                        ExpirySettingsSection(environment.expiryPreferences, models.reminder, models.reminderActions)
+                    },
                     extraRows = { DebugSettingsRow { navController.navigate(DEBUG_ROUTE) } }
                 )
             }

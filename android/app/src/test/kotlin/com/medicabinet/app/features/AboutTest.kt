@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ApplicationProvider
 import com.medicabinet.app.features.scan.testEnvironment
 import com.medicabinet.app.features.scan.testScanServices
@@ -68,7 +69,7 @@ class AboutScreenTest {
             MediCabinetTheme { MainScaffold(testEnvironment(), appInfo = fakeInfo, scanServices = testScanServices()) }
         }
         compose.onNodeWithText("Settings").performClick()
-        compose.onNodeWithText("About").performClick()
+        compose.onNodeWithText("About").performScrollTo().performClick()
 
         compose.onNodeWithText("MediCabinet").assertIsDisplayed()
         compose.onNodeWithText("Version 1.2.3 (45)").assertIsDisplayed()
@@ -81,9 +82,9 @@ class AboutScreenTest {
             MediCabinetTheme { MainScaffold(testEnvironment(), appInfo = fakeInfo, scanServices = testScanServices()) }
         }
         compose.onNodeWithText("Settings").performClick()
-        compose.onNodeWithText("About").performClick()
+        compose.onNodeWithText("About").performScrollTo().performClick()
         compose.onNodeWithContentDescription("Back").performClick()
-        compose.onNodeWithText("About").assertIsDisplayed()
+        compose.onNodeWithText("About").performScrollTo().assertIsDisplayed()
     }
 }
 
@@ -100,7 +101,7 @@ class AboutScreenFrenchTest {
             MediCabinetTheme { MainScaffold(testEnvironment(), appInfo = fakeInfo, scanServices = testScanServices()) }
         }
         compose.onNodeWithText("Réglages").performClick()
-        compose.onNodeWithText("À propos").performClick()
+        compose.onNodeWithText("À propos").performScrollTo().performClick()
         compose.onNodeWithText("Version 1.2.3 (45)").assertIsDisplayed()
         compose.onNodeWithText("aucun conseil médical", substring = true).assertIsDisplayed()
     }

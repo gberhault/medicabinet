@@ -2,10 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- The only permission is the camera, requested at runtime when the user opens the scanner; the app stays
-         usable (manual entry) without it. No network request (see docs/architecture.md). -->
+    <!-- The camera, requested at runtime when the user opens the scanner; the app stays usable (manual entry)
+         without it. No network request (see docs/architecture.md). -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+
+    <!-- The monthly reminder (Android 13+ asks at runtime, only when the user turns the reminder on; older versions
+         have no permission). Never an exact-alarm permission: the digest uses an inexact alarm. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- camera-view pulls in media3-common, which declares this permission for video playback we do not use. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />

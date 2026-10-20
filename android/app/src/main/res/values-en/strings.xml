@@ -256,4 +256,15 @@
     <string name="expiring_thrownAway">Thrown away</string>
     <string name="expiring_thrownAway_done">%1$s thrown away</string>
     <string name="expiring_thrownAway_failed">Couldn’t throw this box away</string>
+    <string name="reminder_card_title">Monthly reminder</string>
+    <string name="reminder_card_message">Get a summary on the 1st of each month when boxes are expired or expiring soon.</string>
+    <string name="reminder_card_turnOn">Turn on</string>
+    <string name="reminder_card_notNow">Not now</string>
+    <string name="reminder_settings_title">Monthly reminder</string>
+    <string name="reminder_settings_footer">One notification on the 1st of the month at 9:00, with only the number of boxes, never a medicine name.</string>
+    <string name="reminder_settings_blocked">Notifications are turned off for MediCabinet.</string>
+    <string name="reminder_settings_denied">Without notification permission, the reminder can’t be sent.</string>
+    <string name="reminder_settings_openSettings">Open Settings</string>
+    <string name="reminder_channel_name">Monthly reminder</string>
+    <string name="reminder_channel_description">Monthly summary of expired or soon-to-expire boxes</string>
 </resources>

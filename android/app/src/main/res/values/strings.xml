@@ -256,4 +256,15 @@
     <string name="expiring_thrownAway">Jetée</string>
     <string name="expiring_thrownAway_done">%1$s jetée</string>
     <string name="expiring_thrownAway_failed">Impossible de jeter cette boîte</string>
+    <string name="reminder_card_title">Rappel mensuel</string>
+    <string name="reminder_card_message">Recevez un récapitulatif le 1er de chaque mois si des boîtes sont périmées ou bientôt périmées.</string>
+    <string name="reminder_card_turnOn">Activer</string>
+    <string name="reminder_card_notNow">Plus tard</string>
+    <string name="reminder_settings_title">Rappel mensuel</string>
+    <string name="reminder_settings_footer">Une notification le 1er du mois à 9 h, avec seulement le nombre de boîtes concernées, jamais un nom de médicament.</string>
+    <string name="reminder_settings_blocked">Les notifications sont désactivées pour MediCabinet.</string>
+    <string name="reminder_settings_denied">Sans autorisation de notification, le rappel ne peut pas être envoyé.</string>
+    <string name="reminder_settings_openSettings">Ouvrir les réglages</string>
+    <string name="reminder_channel_name">Rappel mensuel</string>
+    <string name="reminder_channel_description">Récapitulatif mensuel des boîtes périmées ou bientôt périmées</string>
 </resources>
