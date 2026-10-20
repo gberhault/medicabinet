@@ -122,13 +122,18 @@ boxes`). The Expiring view uses them as they are.
   late Android delivery and the 12-month iOS horizon, privacy), `docs/architecture.md`
   (observation, scheduling), `docs/README.md` link; amend requirements decision 5 if not
   already done at design approval.
-- [ ] **T19 — Device measurements — NOT DONE** `[shared]` (X3; §9, §13)
-  The Android phone was connected but installing on it was not permitted in this session, so none of this
-  was run; the Robolectric and simulator tests stand in until someone runs it (see the PR's risk section).
-  **Needs the user's devices** (`ANDROID_SERIAL` = the device the user names): 1 000-box
-  Expiring list scrolls without dropped frames on both; a digest delivered on a real
-  iPhone and Android phone (clock moved forward), and still armed after an Android app
-  update. Results in `reports/expiry-tracking/README.md`.
+- [ ] **T19 — Device measurements — PARTLY DONE** `[shared]` (X3; §9, §13)
+  Done on a Samsung SM-A356B (Android 16, API 36), debug build 0.4.0 over an existing 0.2.0 install
+  (2026-10-20): the upgrade kept the cabinet and its data; the Expiring tab showed the real expired box
+  (month and year, status as text + icon) and a live badge while on the Scan tab; the permission prompt
+  appeared only after **Turn on**; an inexact `DIGEST` alarm (1 h window) was pending for 2026-11-01 09:00;
+  with the alarm receiver started in a fresh process (via `run-as`, October marked not yet delivered) a
+  notification "Your medicine cabinet — 1 box expired" was posted on the `expiry_reminders` channel,
+  lock-screen visibility private, October recorded as delivered, the next alarm re-armed; tapping it opened the
+  Expiring tab; a reinstall over the running app left one alarm pending, armed before the app was opened.
+  **Not done:** the real alarm firing on the 1st (the phone clock was deliberately not changed), a digest on a
+  real iPhone (only simulators were available), and the 1 000-box list scroll on a device (no such cabinet was
+  created on a personal phone). Results beyond this are not claimed.
 - [x] **T20 — Versions and gate** `[shared]` (X7)
   Next minor on both apps from what `develop` holds (0.3.0 / build and versionCode +1 if #12
   shipped 0.2.0), changelog entries; `bash scripts/local-ci.sh` green; close delivered child
