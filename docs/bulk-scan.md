@@ -27,6 +27,29 @@ fixtures (see below).
 7. **No camera?** Permission denied, restricted, no camera, camera failing to start: the screen says so and
    **Add without scanning** always works (name, optional barcode, expiry, location).
 
+## Remove mode (taking boxes out by scanning)
+
+Spec: [`specs/cabinet-inventory/`](../specs/cabinet-inventory/) (requirements R1–R9, issue #21). The same Scan tab
+has an **Add / Remove** switch. The screen **always opens in Add** (also at launch and every time the tab is opened);
+Remove is never remembered, so a scan meant as an intake can never take a box out.
+
+- **Remove says so** in its title ("Removing boxes", with a minus icon and a red tint, not colour alone) and
+  VoiceOver / TalkBack announce "Remove mode" / "Add mode" on each change.
+- **Reason.** *Used up* or *Thrown away*, one tap on the chip next to the title, applied to the boxes removed
+  afterwards. It is remembered between sessions (preference `scan.removalReason`; Used up until one is chosen).
+- **A scan** goes through the same camera, debouncing, parsing and permission states as Add. The match rule is the
+  shared `ScanRemoval` core (`fixtures/scan-removal.json`): a serial match is removed (or reported *Already removed*),
+  otherwise the boxes in the cabinet with that code are the candidates (earliest expiry first, same expiry as the
+  scan before that); one candidate is removed, none says *Not in the cabinet* — Remove never offers to add the box.
+- **Several candidates** open a picker (expiry, location, *Opened*; the first is pre-selected). **Remove** removes the
+  selected box, **Cancel** nothing; scans are ignored while it is open.
+- **Feedback.** A removal gives a different haptic than an addition (and the tone when sound is on) and a card with
+  the name, expiry, location and reason, with **Undo** (puts the box back exactly as it was). A non-removal uses the
+  "not added" haptic and style.
+- **Session.** The list shows the boxes removed since switching to Remove, newest first, each with **Undo**.
+  **Done** summarises boxes used up and thrown away; switching back to Add ends the session. Removals are saved at
+  once, so leaving without Done loses nothing.
+
 A product is named, and categorised, from the bundled medicines database ([`reference-data.md`](reference-data.md)),
 else from the last box with the same code (keeping a category the user set), else the user types the name. Boxes
 whose product is not in the database stay *uncategorized*.
@@ -39,6 +62,7 @@ whose product is not in the database stay *uncategorized*.
 | One box, one scan (1 s re-scan gap) | `fixtures/scan-debounce.json` | `ScanDebouncer` |
 | Add / complete / confirm another / refuse | `fixtures/scan-intake.json` | `IntakePolicy` |
 | Product name and category | `fixtures/product-resolution.json` | `ProductResolver` |
+| Remove by scan: which box | `fixtures/scan-removal.json` | `RemovalPolicy`, `ScanRemoval` |
 
 Parsing facts worth knowing: the expiry is AI `17` (`YYMMDD`, year `2000 + YY`); day `00` means *end of that
 month*; an impossible date is reported **invalid** (never clamped) and a missing one **missing**; AI `15`/`16` are
@@ -60,10 +84,10 @@ Schema v2 (`fixtures/schema-v2.sql`): `box.deletedAt` (tombstone of a box added 
 
 ## Privacy and permissions
 
-- iOS: `NSCameraUsageDescription` (French and English) — requested only from the Scan tab's own button; two UI
-  preferences in `UserDefaults` (last location, sound), declared in `PrivacyInfo.xcprivacy`.
+- iOS: `NSCameraUsageDescription` (French and English) — requested only from the Scan tab's own button; three UI
+  preferences in `UserDefaults` (last location, sound, last removal reason), declared in `PrivacyInfo.xcprivacy`.
 - Android: the `CAMERA` runtime permission (hardware not required, so the app installs on camera-less devices) and
-  two preferences in `SharedPreferences`. The merged manifest has no other permission (`ACCESS_NETWORK_STATE`
+  three preferences in `SharedPreferences`. The merged manifest has no other permission (`ACCESS_NETWORK_STATE`
   pulled in by CameraX's `media3-common` is removed) and no `INTERNET`.
 - No payload, lot, serial or product name is ever logged; frames are never stored. The debug payload-capture view
   (Settings → Debug, debug builds only) shows the *shape* of a payload — never a lot or serial value.

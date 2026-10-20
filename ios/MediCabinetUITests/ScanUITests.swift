@@ -19,13 +19,13 @@ final class ScanUITests: XCTestCase {
     }
 
     private func launch(
-        access: String, scans: [String] = [], products: String? = nil, extra: [String] = []
+        access: String, scans: [String] = [], products: String? = nil, extra: [String] = [], interval: Int = 1200
     ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-UITestingTemporaryStorage", "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
                                "-UITestCameraAccess", access] + extra
         app.launchEnvironment["MEDICABINET_UI_TEST_SCANS"] = scans.joined(separator: "|")
-        app.launchEnvironment["MEDICABINET_UI_TEST_SCAN_INTERVAL_MS"] = "1200"
+        app.launchEnvironment["MEDICABINET_UI_TEST_SCAN_INTERVAL_MS"] = String(interval)
         if let products { app.launchEnvironment["MEDICABINET_UI_TEST_PRODUCTS"] = products }
         app.launch()
         return app
@@ -158,6 +158,97 @@ final class ScanUITests: XCTestCase {
         XCTAssertFalse(app.buttons["completion.add"].isEnabled)
         app.buttons["completion.cancel"].tap()
         XCTAssertEqual(count(app), "Boxes added: 0")
+    }
+
+    // MARK: remove mode
+
+    private func selectMode(_ app: XCUIApplication, _ title: String) {
+        let segment = app.segmentedControls.buttons[title]
+        XCTAssertTrue(segment.waitForExistence(timeout: 10))
+        segment.tap()
+    }
+
+    private func waitForCount(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 30) {
+        expectation(for: NSPredicate(format: "value == %@", text), evaluatedWith: app.buttons["scan.count"])
+        waitForExpectations(timeout: timeout)
+    }
+
+    func testTheScannerAlwaysOpensInAddModeAndRemoveSaysSoInTextAndIcon() {
+        let app = launch(access: "authorized")
+        XCTAssertTrue(app.segmentedControls.buttons["Add"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.segmentedControls.buttons["Add"].isSelected)
+        XCTAssertFalse(app.staticTexts["scan.remove.title"].exists)
+        selectMode(app, "Remove")
+        XCTAssertTrue(app.staticTexts["Removing boxes"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["scan.removal.reason"].exists)
+        XCTAssertEqual(app.buttons["scan.removal.reason"].value as? String, "Used up")
+        XCTAssertEqual(count(app), "Boxes removed: 0")
+        // Leaving the tab and coming back resets to Add.
+        app.tabBars.buttons.element(boundBy: 3).tap()
+        app.tabBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.segmentedControls.buttons["Add"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.segmentedControls.buttons["Add"].isSelected)
+    }
+
+    func testScanningAKnownBoxInRemoveModeTakesItOutAndUndoPutsItBack() {
+        // First scan: added in Add mode. Second scan (same box, 9 s later): removed once the mode is Remove.
+        let app = launch(
+            access: "authorized", scans: [payload(doliprane, serial: "S1"), payload(doliprane, serial: "S1")],
+            products: "\(doliprane)=DOLIPRANE", interval: 7000
+        )
+        waitForCount(app, "Boxes added: 1")
+        selectMode(app, "Remove")
+        XCTAssertTrue(app.staticTexts["Box removed: used up"].waitForExistence(timeout: 30))
+        XCTAssertEqual(count(app), "Boxes removed: 1")
+        app.buttons["scan.notice.undoRemoval"].tap()
+        waitForCount(app, "Boxes removed: 0", timeout: 10)
+    }
+
+    func testABoxThatIsNotInTheCabinetIsReportedAndNeverAdded() {
+        // The first scan is consumed in Add mode; the second (another product) arrives once the mode is Remove.
+        let app = launch(
+            access: "authorized", scans: [payload(doliprane, serial: "S1"), payload(spasfon, serial: "S9")],
+            products: "\(doliprane)=DOLIPRANE|\(spasfon)=SPASFON", interval: 7000
+        )
+        waitForCount(app, "Boxes added: 1")
+        selectMode(app, "Remove")
+        XCTAssertTrue(app.staticTexts["Not in the cabinet"].waitForExistence(timeout: 30))
+        XCTAssertEqual(count(app), "Boxes removed: 0")
+        XCTAssertFalse(app.buttons["completion.add"].exists)
+    }
+
+    func testSeveralMatchingBoxesAskWhichOneToRemove() {
+        let app = launch(
+            access: "authorized",
+            scans: [payload(doliprane, expiry: "270331"), payload(doliprane, expiry: "280331"), payload(doliprane, expiry: nil)],
+            products: "\(doliprane)=DOLIPRANE", interval: 6000
+        )
+        waitForCount(app, "Boxes added: 1")
+        let another = app.buttons["scan.another.add"]
+        XCTAssertTrue(another.waitForExistence(timeout: 30))
+        another.tap()
+        waitForCount(app, "Boxes added: 2", timeout: 10)
+        selectMode(app, "Remove")
+        let remove = app.buttons["candidate.remove"]
+        XCTAssertTrue(remove.waitForExistence(timeout: 30))
+        XCTAssertEqual(app.buttons.matching(identifier: "candidate.row").count, 2)
+        remove.tap()
+        XCTAssertTrue(app.staticTexts["Box removed: used up"].waitForExistence(timeout: 10))
+        XCTAssertEqual(count(app), "Boxes removed: 1")
+    }
+
+    func testDoneInRemoveModeSummarisesWhatWasTakenOut() {
+        let app = launch(
+            access: "authorized", scans: [payload(doliprane, serial: "S1"), payload(doliprane, serial: "S1")],
+            products: "\(doliprane)=DOLIPRANE", interval: 7000
+        )
+        waitForCount(app, "Boxes added: 1")
+        selectMode(app, "Remove")
+        XCTAssertTrue(app.staticTexts["Box removed: used up"].waitForExistence(timeout: 30))
+        app.buttons["scan.done"].tap()
+        XCTAssertTrue(app.staticTexts["summary.usedUp"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["summary.usedUp"].label, "1 box used up")
+        XCTAssertEqual(app.staticTexts["summary.thrownAway"].label, "0 boxes thrown away")
     }
 
     func testTheScannerRemainsUsableAtTheLargestTextSizeInDarkMode() {

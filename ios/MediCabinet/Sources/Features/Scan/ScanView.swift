@@ -13,6 +13,7 @@ struct ScanView: View {
 
     var body: some View {
         content
+            .onAppear { model.resetMode() }
             .task(id: Lifecycle(attempt: model.attempt, active: scenePhase == .active)) {
                 guard scenePhase == .active else { return }
                 await model.run()
@@ -23,6 +24,9 @@ struct ScanView: View {
                     onConfirm: { name, expiry in Task { await model.confirmCompletion(name: name, expiry: expiry) } },
                     onCancel: { model.cancelCompletion() }
                 )
+            }
+            .sheet(item: $model.candidates) { candidates in
+                RemovalCandidatesSheet(candidates: candidates, model: model)
             }
             .sheet(isPresented: $model.showsSessionList) { SessionListView(model: model) }
             .sheet(isPresented: $model.showsManualEntry) { ManualEntryView(model: model) }
@@ -69,8 +73,9 @@ private struct ScannerScreen: View {
             if let scanner = model.scanner {
                 scanner.preview.ignoresSafeArea()
             }
-            Viewfinder()
+            Viewfinder(removing: model.mode == .remove)
             VStack(spacing: 12) {
+                modePicker
                 topBar
                 Spacer()
                 Text("scan.camera.hint")
@@ -85,7 +90,52 @@ private struct ScannerScreen: View {
         }
     }
 
-    private var topBar: some View {
+    private var modePicker: some View {
+        Picker(selection: Binding(get: { model.mode }, set: { model.setMode($0) })) {
+            Text("scan.mode.add").tag(ScanMode.add)
+            Text("scan.mode.remove").tag(ScanMode.remove)
+        } label: {
+            Text("scan.mode.picker")
+        }
+        .pickerStyle(.segmented)
+        .frame(minHeight: 44)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .accessibilityIdentifier("scan.mode")
+    }
+
+    @ViewBuilder private var topBar: some View {
+        if model.mode == .remove { removeBar } else { addBar }
+    }
+
+    /// Remove mode says so in text and icon (and tint), and carries the session reason (R2, R3).
+    private var removeBar: some View {
+        HStack(spacing: 8) {
+            Label("scan.remove.title", systemImage: "minus.circle.fill")
+                .font(.headline)
+                .foregroundStyle(.red)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("scan.remove.title")
+            Spacer()
+            RemovalReasonChip(model: model)
+            soundButton
+        }
+        .padding(.horizontal, 12)
+        .background(.regularMaterial, in: Capsule())
+        .overlay(Capsule().strokeBorder(.red, lineWidth: 2))
+    }
+
+    private var soundButton: some View {
+        Button {
+            model.soundEnabled.toggle()
+        } label: {
+            Image(systemName: model.soundEnabled ? "speaker.wave.2.fill" : "speaker.slash")
+                .frame(minWidth: 44, minHeight: 44)
+        }
+        .accessibilityLabel(Text(model.soundEnabled ? "scan.sound.on" : "scan.sound.off"))
+        .accessibilityIdentifier("scan.sound")
+    }
+
+    private var addBar: some View {
         HStack(spacing: 8) {
             Menu {
                 ForEach(model.locations) { location in
@@ -103,14 +153,7 @@ private struct ScannerScreen: View {
             .accessibilityValue(Text(verbatim: model.sessionLocation?.name ?? ""))
             .accessibilityIdentifier("scan.location")
             Spacer()
-            Button {
-                model.soundEnabled.toggle()
-            } label: {
-                Image(systemName: model.soundEnabled ? "speaker.wave.2.fill" : "speaker.slash")
-                    .frame(minWidth: 44, minHeight: 44)
-            }
-            .accessibilityLabel(Text(model.soundEnabled ? "scan.sound.on" : "scan.sound.off"))
-            .accessibilityIdentifier("scan.sound")
+            soundButton
             Button {
                 model.showsManualEntry = true
             } label: {
@@ -124,17 +167,23 @@ private struct ScannerScreen: View {
         .background(.regularMaterial, in: Capsule())
     }
 
+    private var countText: String {
+        model.mode == .remove
+            ? ScanText.format("scan.removal.count", model.removalSession.count)
+            : ScanText.format("scan.count", model.session.count)
+    }
+
     private var bottomBar: some View {
         HStack {
             Button {
                 model.showsSessionList = true
             } label: {
-                Text(verbatim: ScanText.format("scan.count", model.session.count))
+                Text(verbatim: countText)
                     .frame(minHeight: 44)
             }
             .buttonStyle(.bordered)
             .accessibilityLabel(Text("scan.session.open"))
-            .accessibilityValue(Text(verbatim: ScanText.format("scan.count", model.session.count)))
+            .accessibilityValue(Text(verbatim: countText))
             .accessibilityIdentifier("scan.count")
             Spacer()
             Button("scan.done") { model.finish() }
@@ -146,9 +195,14 @@ private struct ScannerScreen: View {
 }
 
 private struct Viewfinder: View {
+    let removing: Bool
+
     var body: some View {
         RoundedRectangle(cornerRadius: 24)
-            .strokeBorder(.white.opacity(0.8), style: StrokeStyle(lineWidth: 3, dash: [14, 10]))
+            .strokeBorder(
+                removing ? AnyShapeStyle(.red) : AnyShapeStyle(.white.opacity(0.8)),
+                style: StrokeStyle(lineWidth: 3, dash: [14, 10])
+            )
             .frame(width: 260, height: 260)
             .accessibilityHidden(true)
     }

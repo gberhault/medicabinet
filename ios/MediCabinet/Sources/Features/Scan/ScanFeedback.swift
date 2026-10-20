@@ -4,6 +4,8 @@ import UIKit
 enum FeedbackEvent: Equatable {
     /// A box was added.
     case added
+    /// A box was taken out of the cabinet (Remove mode): a firmer, different haptic than an addition.
+    case removed
     /// A scan was refused or failed (duplicate, unreadable code, error).
     case rejected
     /// The user is asked something (completion, another box).
@@ -19,6 +21,7 @@ protocol ScanFeedback {
 @MainActor
 final class SystemScanFeedback: ScanFeedback {
     private let haptics = UINotificationFeedbackGenerator()
+    private let removalHaptics = UIImpactFeedbackGenerator(style: .rigid)
     private var soundID: SystemSoundID = 0
 
     init(bundle: Bundle = .main) {
@@ -32,7 +35,8 @@ final class SystemScanFeedback: ScanFeedback {
         case .added: haptics.notificationOccurred(.success)
         case .rejected: haptics.notificationOccurred(.error)
         case .attention: haptics.notificationOccurred(.warning)
+        case .removed: removalHaptics.impactOccurred()
         }
-        if sound, event == .added, soundID != 0 { AudioServicesPlaySystemSound(soundID) }
+        if sound, event == .added || event == .removed, soundID != 0 { AudioServicesPlaySystemSound(soundID) }
     }
 }

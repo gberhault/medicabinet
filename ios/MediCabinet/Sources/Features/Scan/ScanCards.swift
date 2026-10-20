@@ -47,6 +47,27 @@ struct NoticeCard: View {
             Image(systemName: "trash.circle.fill").accessibilityHidden(true)
             Text("scan.session.deleted")
             action("scan.undo", id: "scan.notice.undoDelete") { await model.undoDelete(box) }
+        case let .removed(box, reason):
+            Image(systemName: "minus.circle.fill").foregroundStyle(.red).accessibilityHidden(true)
+            VStack(alignment: .leading) {
+                Text(verbatim: box.product.name).font(.headline)
+                Text(verbatim: ScanText.format(
+                    reason == .usedUp ? "scan.removal.removed.usedUp" : "scan.removal.removed.thrownAway"
+                )).font(.footnote)
+                Label(ScanText.expiry(box.expiry), systemImage: box.expiry == nil ? "exclamationmark.triangle" : "calendar")
+                    .font(.footnote)
+                Label(model.locationName(box.locationID), systemImage: "mappin.and.ellipse").font(.footnote)
+            }
+            action("scan.undo", id: "scan.notice.undoRemoval") { await model.undoRemoval(box) }
+        case let .alreadyRemoved(box):
+            Image(systemName: "exclamationmark.circle.fill").foregroundStyle(.orange).accessibilityHidden(true)
+            VStack(alignment: .leading) {
+                Text(verbatim: box.product.name).font(.headline)
+                Text("scan.removal.alreadyRemoved").font(.footnote)
+            }
+        case .notInCabinet:
+            Image(systemName: "exclamationmark.circle.fill").foregroundStyle(.orange).accessibilityHidden(true)
+            Text("scan.removal.notInCabinet")
         case .unrecognized:
             Image(systemName: "questionmark.circle.fill").foregroundStyle(.orange).accessibilityHidden(true)
             Text("scan.unrecognized")

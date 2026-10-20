@@ -119,7 +119,7 @@ iOS and Android UI blocks of each section are independent of each other.
 
 ## 6. Remove by scanning (#21)
 
-- [ ] **T24 — iOS remove mode** `[ios]` [#21] (R1–R4, R6–R9; §1.6, §5, §7.6–7.8)
+- [x] **T24 — iOS remove mode** `[ios]` [#21] (R1–R4, R6–R9; §1.6, §5, §7.6–7.8)
   `ScanMode`, mode picker, `RemovalReasonChip`, `scan.removalReason` preference,
   `RemovalCandidatesSheet`, removal feedback, session list and summary in remove mode.
   *Tests:* `ScanViewModelTests` (mode resets to Add on appear and launch, reason remembered,

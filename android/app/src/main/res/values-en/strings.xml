@@ -86,6 +86,11 @@
     <string name="scan_location_label">Location: %1$s</string>
     <string name="scan_location_picker_title">Storage location</string>
     <string name="scan_manual_open">Add without scanning</string>
+    <string name="scan_mode_add">Add</string>
+    <string name="scan_mode_announcement_add">Add mode</string>
+    <string name="scan_mode_announcement_remove">Remove mode</string>
+    <string name="scan_mode_picker">Mode</string>
+    <string name="scan_mode_remove">Remove</string>
     <string name="scan_permission_allow">Allow camera</string>
     <string name="scan_permission_denied_message">Allow the camera in Settings to scan your boxes, or add them without scanning.</string>
     <string name="scan_permission_denied_title">Camera turned off</string>
@@ -93,6 +98,33 @@
     <string name="scan_permission_settings">Open Settings</string>
     <string name="scan_permission_title">Allow the camera</string>
     <string name="scan_putBack_done">Put back in the cabinet</string>
+    <string name="scan_removal_alreadyRemoved">Already removed</string>
+    <string name="scan_removal_announcement">Removed: %1$s</string>
+    <string name="scan_removal_choose_cancel">Cancel</string>
+    <string name="scan_removal_choose_message">Several boxes match. Choose the one to remove.</string>
+    <string name="scan_removal_choose_opened">Opened</string>
+    <string name="scan_removal_choose_remove">Remove</string>
+    <string name="scan_removal_choose_title">Which box?</string>
+    <string name="scan_removal_count">Boxes removed: %1$d</string>
+    <string name="scan_removal_notInCabinet">Not in the cabinet</string>
+    <string name="scan_removal_reason">Reason</string>
+    <string name="scan_removal_removed_thrownAway">Box removed: thrown away</string>
+    <string name="scan_removal_removed_usedUp">Box removed: used up</string>
+    <string name="scan_removal_session_empty">No box removed yet</string>
+    <string name="scan_removal_session_title">Boxes removed</string>
+    <string name="scan_removal_summary_message">The boxes you removed are already saved.</string>
+    <plurals name="scan_removal_summary_thrownAway">
+        <item quantity="one">%1$d box thrown away</item>
+        <item quantity="other">%1$d boxes thrown away</item>
+    </plurals>
+    <string name="scan_removal_summary_title">Removal finished</string>
+    <plurals name="scan_removal_summary_usedUp">
+        <item quantity="one">%1$d box used up</item>
+        <item quantity="other">%1$d boxes used up</item>
+    </plurals>
+    <string name="scan_removal_thrownAway">Thrown away</string>
+    <string name="scan_removal_usedUp">Used up</string>
+    <string name="scan_remove_title">Removing boxes</string>
     <string name="scan_session_close">Close</string>
     <string name="scan_session_delete">Delete</string>
     <string name="scan_session_deleted">Box deleted</string>
