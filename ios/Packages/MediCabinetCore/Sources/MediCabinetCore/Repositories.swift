@@ -65,6 +65,9 @@ public protocol BoxRepository: Sendable {
     func box(gtin: String, serial: String) async throws -> Box?
     /// Most recently created non-deleted box with this GTIN.
     func latestBox(gtin: String) async throws -> Box?
+    /// The newest non-deleted box (removed ones included) of every GTIN, ordered by `createdAt` then id, newest first,
+    /// in one query. Boxes without a GTIN are not returned. For the one-time fill of the named products.
+    func latestBoxPerGTIN() async throws -> [Box]
     /// Boxes in the cabinet (not removed, not deleted) with this GTIN, oldest first (`createdAt`, then id).
     func cabinetBoxes(gtin: String) async throws -> [Box]
     /// The boxes in the cabinet (as `activeBoxes()`) now, then after every change.
@@ -83,4 +86,31 @@ public protocol BoxRepository: Sendable {
     func delete(id: Box.ID) async throws
     /// Throws `.notFound` when the box is unknown or not deleted, `.duplicateSerial` when its serial was taken meanwhile.
     func undoDelete(id: Box.ID) async throws
+}
+
+/// The names and categories the household gave to codes the reference database does not name. A *forgotten*
+/// product is tombstoned and invisible to every operation below except `undoForget`.
+public protocol NamedProductRepository: Sendable {
+    /// The live named product of a GTIN.
+    func namedProduct(gtin: String) async throws -> NamedProduct?
+    /// Creates or updates the live named product of `gtin`; no write when name, category and flag are equal.
+    func remember(gtin: String, name: String, category: CategoryID, categoryOverridden: Bool) async throws
+    /// Live named products with their in-cabinet box counts (in `NamedProductOrder`), one query, re-emitted on every
+    /// change of either table.
+    func observeSummaries() -> AsyncThrowingStream<[NamedProductSummary], any Error>
+    /// Renames the product and every non-deleted box with its GTIN, in one transaction. Throws `.notFound`.
+    func rename(id: NamedProduct.ID, to name: String) async throws
+    /// Sets the category and flag of the product and of every non-deleted box with its GTIN, in one transaction.
+    /// Throws `.notFound`.
+    func setCategory(id: NamedProduct.ID, _ category: CategoryID, overridden: Bool) async throws
+    /// Tombstones the product; its boxes are untouched. Throws `.notFound`.
+    func forget(id: NamedProduct.ID) async throws
+    /// Throws `.notFound` when the product is not forgotten, `.duplicate` when another live named product holds
+    /// the GTIN.
+    func undoForget(id: NamedProduct.ID) async throws
+    /// The one-time fill after the upgrade to schema v4 has not run yet.
+    func backfillPending() async throws -> Bool
+    /// Inserts the products that have no live product for their GTIN yet and clears the pending mark, in one
+    /// transaction.
+    func completeBackfill(_ products: [NamedProduct]) async throws
 }

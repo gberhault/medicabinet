@@ -24,7 +24,7 @@ private const val WAIT_MS = 5_000L
 private const val MAX_NAME = 51
 
 /** Latest value of an observation flow, with a bounded wait for a condition. */
-private class Observed<T : Any>(private val latest: MutableStateFlow<T?>) {
+internal class Observed<T : Any>(private val latest: MutableStateFlow<T?>) {
     suspend fun until(what: String, condition: (T) -> Boolean) {
         val found = withTimeoutOrNull(WAIT_MS) { latest.first { it != null && condition(it) } }
         if (found == null) throw ContractFailure("timed out waiting for: $what")
@@ -32,7 +32,7 @@ private class Observed<T : Any>(private val latest: MutableStateFlow<T?>) {
 }
 
 /** Keeps one collection of [flow] alive while [body] writes, so pushed updates (not fresh reads) are checked. */
-private suspend fun <T : Any> observing(flow: Flow<T>, body: suspend (Observed<T>) -> Unit) = coroutineScope {
+internal suspend fun <T : Any> observing(flow: Flow<T>, body: suspend (Observed<T>) -> Unit) = coroutineScope {
     val latest = MutableStateFlow<T?>(null)
     val job: Job = launch { flow.collect { latest.value = it } }
     try {

@@ -7,7 +7,7 @@ import MediCabinetCoreTestSupport
     func fakeSatisfiesContract(check: RepositoryContract.Check) async throws {
         try await check.run { clock in
             let store = InMemoryCabinetStore(clock: clock)
-            return (store, store)
+            return RepositoryContract.Stores(locations: store, boxes: store, named: store.named)
         }
     }
 

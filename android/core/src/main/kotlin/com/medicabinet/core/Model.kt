@@ -75,3 +75,22 @@ data class Box(
 
     val isInCabinet: Boolean get() = removal == null
 }
+
+/**
+ * The name and category the household gave a code the reference database does not name: one live product per GTIN.
+ * A box keeps its own copy of the name (a forgotten product leaves its boxes alone). `deletedAt` exists only on the
+ * archive and record types, as for [Location].
+ */
+data class NamedProduct(
+    val id: UUID = UUID.randomUUID(),
+    /** 14 digits. */
+    val gtin: String,
+    val name: String,
+    val category: CategoryID = CategoryID.UNCATEGORIZED,
+    val categoryOverridden: Boolean = false,
+    val createdAt: Instant,
+    val updatedAt: Instant = createdAt
+)
+
+/** One row of the *Products you named* list: a named product and the boxes of its code still in the cabinet. */
+data class NamedProductSummary(val product: NamedProduct, val boxesInCabinet: Int)

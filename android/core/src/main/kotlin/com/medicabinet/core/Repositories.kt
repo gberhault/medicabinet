@@ -106,6 +106,12 @@ interface BoxLookups {
     /** Most recently created non-deleted box with this GTIN. */
     suspend fun latestBox(gtin: String): Box?
 
+    /**
+     * The newest non-deleted box (`createdAt`, then id) of every GTIN, themselves ordered newest first
+     * (`createdAt DESC, id DESC`). Boxes without a GTIN are left out. Feeds the one-time named-product fill.
+     */
+    suspend fun latestBoxPerGTIN(): List<Box>
+
     /** Boxes in the cabinet (not removed, not deleted) with this GTIN, oldest first (`createdAt`, then id). */
     suspend fun cabinetBoxes(gtin: String): List<Box>
 
@@ -146,4 +152,58 @@ interface BoxRepository : BoxLookups {
      * when its serial was taken meanwhile.
      */
     suspend fun undoDelete(id: UUID)
+}
+
+/**
+ * What the household does with a named product: rename, recategorise, forget and undo. A role interface of
+ * [NamedProductRepository] (the detekt limit on functions per interface). A *forgotten* product keeps its row
+ * (tombstone) and is invisible to every operation except [undoForget]; its boxes are never touched by forgetting.
+ */
+interface NamedProductEditing {
+    /**
+     * Renames the product and, in the same transaction, every box with its GTIN that is not deleted (in the cabinet
+     * or removed). Throws [RepositoryError.NOT_FOUND] for an unknown or forgotten product.
+     */
+    suspend fun rename(id: UUID, name: String)
+
+    /**
+     * Sets the category and its user-chosen flag of the product and, in the same transaction, of every box with its
+     * GTIN that is not deleted. Throws [RepositoryError.NOT_FOUND] for an unknown or forgotten product.
+     */
+    suspend fun setCategory(id: UUID, category: CategoryID, overridden: Boolean)
+
+    /** Throws [RepositoryError.NOT_FOUND] when the product is unknown or already forgotten. */
+    suspend fun forget(id: UUID)
+
+    /**
+     * Throws [RepositoryError.NOT_FOUND] when the product is not forgotten and [RepositoryError.DUPLICATE] when
+     * another live named product holds its GTIN meanwhile.
+     */
+    suspend fun undoForget(id: UUID)
+}
+
+interface NamedProductRepository : NamedProductEditing {
+    /** The live named product of [gtin]. */
+    suspend fun namedProduct(gtin: String): NamedProduct?
+
+    /**
+     * Creates or updates the live named product of [gtin]; no write (so `updatedAt` stays) when name, category and
+     * flag are equal.
+     */
+    suspend fun remember(gtin: String, name: String, category: CategoryID, categoryOverridden: Boolean)
+
+    /**
+     * Live named products with their boxes in the cabinet, ordered by normalized name then GTIN
+     * ([com.medicabinet.core.named.NamedProductOrdering]); now, then after every change of either table.
+     */
+    fun observeSummaries(): Flow<List<NamedProductSummary>>
+
+    /** `true` until the one-time fill from the boxes after the schema v4 upgrade is complete. */
+    suspend fun backfillPending(): Boolean
+
+    /**
+     * Inserts [products] and clears the pending marker in one transaction. A GTIN that already has a live named
+     * product is skipped: what was created meanwhile wins.
+     */
+    suspend fun completeBackfill(products: List<NamedProduct>)
 }

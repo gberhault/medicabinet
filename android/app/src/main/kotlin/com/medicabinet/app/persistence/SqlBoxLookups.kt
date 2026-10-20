@@ -36,6 +36,15 @@ internal class SqlBoxLookups(private val cabinet: CabinetDatabase, private val i
         ).mapRows { toBox() }.firstOrNull()
     }
 
+    // A correlated subquery rather than a window function: Android 8 ships SQLite 3.18, before window functions.
+    override suspend fun latestBoxPerGTIN(): List<Box> = withContext(io) {
+        cabinet.database.query(
+            "SELECT ${Columns.BOX} FROM box AS newest WHERE newest.deletedAt IS NULL AND newest.gtin IS NOT NULL " +
+                "AND newest.id = (SELECT id FROM box WHERE gtin = newest.gtin AND deletedAt IS NULL " +
+                "ORDER BY createdAt DESC, id DESC LIMIT 1) ORDER BY newest.createdAt DESC, newest.id DESC"
+        ).mapRows { toBox() }
+    }
+
     override suspend fun cabinetBoxes(gtin: String): List<Box> = withContext(io) {
         cabinet.database.query(
             "SELECT ${Columns.BOX} FROM box WHERE gtin = ? AND removedAt IS NULL AND deletedAt IS NULL " +

@@ -1,15 +1,21 @@
 import Foundation
 import MediCabinetCore
 
-/// In-memory fake implementing both ports; also documents the expected behaviour.
+/// In-memory fake implementing the location and box ports; also documents the expected behaviour. The named-product
+/// port is `named` (`InMemoryCabinetStore+NamedProducts.swift`): it shares this state, but is a separate value
+/// because `LocationRepository.rename(id:to:)` and `NamedProductRepository.rename(id:to:)` have the same signature.
 public actor InMemoryCabinetStore: LocationRepository, BoxRepository {
     private var locations: [Location.ID: Location] = [:]
     private var deletedLocations: Set<Location.ID> = []
-    private var boxes: [Box.ID: Box] = [:]
-    private var deleted: Set<Box.ID> = []
-    private let clock: any Clock
+    var boxes: [Box.ID: Box] = [:]
+    var deleted: Set<Box.ID> = []
+    let clock: any Clock
     private var locationObservers: [UUID: AsyncThrowingStream<[Location], any Error>.Continuation] = [:]
     private var boxObservers: [UUID: AsyncThrowingStream<[Box], any Error>.Continuation] = [:]
+    var namedProducts: [NamedProduct.ID: NamedProduct] = [:]
+    var forgottenProducts: Set<NamedProduct.ID> = []
+    var backfillIsPending = true
+    var summaryObservers: [UUID: AsyncThrowingStream<[NamedProductSummary], any Error>.Continuation] = [:]
 
     public init(clock: any Clock) {
         self.clock = clock
@@ -142,6 +148,18 @@ public actor InMemoryCabinetStore: LocationRepository, BoxRepository {
             .max { ($0.createdAt, $0.id.uuidString) < ($1.createdAt, $1.id.uuidString) }
     }
 
+    public func latestBoxPerGTIN() async throws -> [Box] {
+        var newest: [String: Box] = [:]
+        for box in boxes.values where !deleted.contains(box.id) {
+            guard let gtin = box.product.gtin else { continue }
+            if let current = newest[gtin], (current.createdAt, current.id.uuidString) >= (box.createdAt, box.id.uuidString) {
+                continue
+            }
+            newest[gtin] = box
+        }
+        return newest.values.sorted { ($0.createdAt, $0.id.uuidString) > ($1.createdAt, $1.id.uuidString) }
+    }
+
     public func cabinetBoxes(gtin: String) async throws -> [Box] {
         boxes.values.filter { $0.isInCabinet && !deleted.contains($0.id) && $0.product.gtin == gtin }
             .sorted { ($0.createdAt, $0.id.uuidString) < ($1.createdAt, $1.id.uuidString) }
@@ -221,7 +239,7 @@ public actor InMemoryCabinetStore: LocationRepository, BoxRepository {
             .sorted { ($0.sortOrder, $0.name) < ($1.sortOrder, $1.name) }
     }
 
-    private func currentActiveBoxes() -> [Box] {
+    func currentActiveBoxes() -> [Box] {
         boxes.values.filter { $0.isInCabinet && !deleted.contains($0.id) }.sorted { $0.createdAt < $1.createdAt }
     }
 
@@ -255,16 +273,21 @@ public actor InMemoryCabinetStore: LocationRepository, BoxRepository {
         continuation.yield(currentActiveBoxes())
     }
 
-    private func removeObserver(_ token: UUID) {
+    func removeObserver(_ token: UUID) {
         locationObservers[token] = nil
         boxObservers[token] = nil
+        summaryObservers[token] = nil
     }
 
     /// Tells the observers after every write.
-    private func notify() {
+    func notify() {
         let currentLocations = liveLocations()
         let currentBoxes = currentActiveBoxes()
         for continuation in locationObservers.values { continuation.yield(currentLocations) }
         for continuation in boxObservers.values { continuation.yield(currentBoxes) }
+        if !summaryObservers.isEmpty {
+            let summaries = currentSummaries()
+            for continuation in summaryObservers.values { continuation.yield(summaries) }
+        }
     }
 }
