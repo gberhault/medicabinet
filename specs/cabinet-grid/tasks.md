@@ -24,7 +24,7 @@ change would otherwise break the other platform's suite.
     `testFixtures`), and switch `rowOrder` in both cores.
   - Fix any app test that relied on the old urgency order, in the same commit.
   - Run the full unit suites of both apps. *(N1, N2, K3)*
-- [ ] **T4** `[shared]` Extend `scripts/tests/test-shared-fixtures-break.sh` with a broken `short-names` case and a
+- [x] **T4** `[shared]` Extend `scripts/tests/test-shared-fixtures-break.sh` with a broken `short-names` case and a
   broken `category-order` case. Both suites must fail on them. *(fixture contract)*
 
 ## iOS
