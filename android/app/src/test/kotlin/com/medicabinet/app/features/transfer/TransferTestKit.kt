@@ -28,6 +28,8 @@ class TransferTestKit(cabinet: CabinetContents = sampleCabinet()) {
         /** Two locations, three boxes in the cabinet. */
         fun sampleCabinet(): CabinetContents =
             ArchiveDecoder.decode(SyntheticArchive.json(locations = 2, boxes = 3).toByteArray()).cabinet
+                // As a store snapshot holds it: the fill marker is the store's, not the cabinet's.
+                .copy(namedProductsNeedFill = false)
     }
 }
 

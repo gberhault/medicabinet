@@ -70,6 +70,7 @@ import com.medicabinet.app.features.settings.SettingsScreen
 import com.medicabinet.app.features.settings.locations.LocationsRoute
 import com.medicabinet.app.features.settings.namedproducts.NamedProductsRoute
 import com.medicabinet.app.features.transfer.ImportCoordinator
+import com.medicabinet.app.features.transfer.LocalAfterCabinetReplaced
 import com.medicabinet.app.features.transfer.LocalImportCoordinator
 import com.medicabinet.app.features.transfer.OpenIncomingImport
 import com.medicabinet.app.features.transfer.PendingImportBanner
@@ -117,7 +118,9 @@ fun MainScaffold(
     scanServices: ScanServices = ScanServices.live(LocalContext.current, environment.reference),
     reminderServices: ReminderServices = LocalContext.current.reminderServices(),
     tabRouter: TabRouter = remember { TabRouter() },
-    importCoordinator: ImportCoordinator? = null
+    importCoordinator: ImportCoordinator? = null,
+    /** Runs after an import or a restore replaced the cabinet (the named-products fill). */
+    afterCabinetReplaced: () -> Unit = {}
 ) {
     val aboutViewModel = remember(appInfo, environment.reference) { AboutViewModel(appInfo, environment.reference) }
     val navController = rememberNavController()
@@ -162,7 +165,8 @@ fun MainScaffold(
     }
     CompositionLocalProvider(
         LocalUndoController provides undoController,
-        LocalImportCoordinator provides importCoordinator
+        LocalImportCoordinator provides importCoordinator,
+        LocalAfterCabinetReplaced provides afterCabinetReplaced
     ) {
         MainContent(
             navController,

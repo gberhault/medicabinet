@@ -29,7 +29,12 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) route(intent)
         setContent {
             MediCabinetTheme {
-                RootScreen(viewModel, tabRouter = app.tabRouter, importCoordinator = app.importCoordinator)
+                RootScreen(
+                    viewModel,
+                    tabRouter = app.tabRouter,
+                    importCoordinator = app.importCoordinator,
+                    afterCabinetReplaced = app::startNamedProductBackfill
+                )
             }
         }
     }

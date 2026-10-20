@@ -54,14 +54,16 @@ sealed interface ImportState {
 
 /**
  * The import flow (I1–I10, B5, design flows 3–6, 8): read, check, preview, explicit confirmation, then the backup and
- * the replace in one transaction. [onReplaced] tells every screen the cabinet changed (the environment's revision).
+ * the replace in one transaction. [onReplaced] tells every screen the cabinet changed (the environment's revision);
+ * [afterReplace] then starts the fill of the named products (a version 1 file brought none and left the fill pending).
  * Nothing is written before the confirmation; a refused file changes nothing.
  */
 class ImportViewModel(
     private val transfer: CabinetTransfer,
     val request: ImportRequest,
     private val onReplaced: () -> Unit,
-    private val io: CoroutineDispatcher
+    private val io: CoroutineDispatcher,
+    private val afterReplace: () -> Unit = {}
 ) : ViewModel() {
     private val mutableState = MutableStateFlow<ImportState>(ImportState.Reading)
     val state: StateFlow<ImportState> = mutableState.asStateFlow()
@@ -133,6 +135,7 @@ class ImportViewModel(
                 try {
                     val result = withContext(io) { transfer.apply(previewed, request.reason) }
                     onReplaced()
+                    afterReplace()
                     if (result.pruneFailed) AppLog.transferFailed("prune", null)
                     ImportState.Done(result)
                 } catch (@Suppress("TooGenericExceptionCaught") error: Exception) {

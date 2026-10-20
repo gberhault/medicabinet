@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.WarningAmber
@@ -190,6 +191,21 @@ private fun FileFacts(preview: ImportPreview, zone: ZoneId) {
         SummaryCounts(preview.file)
         val unknown = preview.file.unknownExpiry
         if (unknown > 0) Text(pluralStringResource(R.plurals.transfer_import_preview_unknownExpiry, unknown, unknown))
+        // Only a version 2 file that holds some: a version 1 file has none, its products are filled after the import.
+        if (preview.file.namedProducts > 0) NamedProductsLine(preview.file.namedProducts)
+    }
+}
+
+/** "Products you named: N", with a decorative tag icon (the text carries the meaning). */
+@Composable
+private fun NamedProductsLine(count: Int) {
+    Row(
+        Modifier.semantics(mergeDescendants = true) {}.testTag("transfer.import.preview.namedProducts"),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.AutoMirrored.Outlined.Label, contentDescription = null)
+        Text(stringResource(R.string.transfer_import_preview_namedProducts, count))
     }
 }
 

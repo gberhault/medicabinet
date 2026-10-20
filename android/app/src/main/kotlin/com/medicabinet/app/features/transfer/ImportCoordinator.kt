@@ -175,6 +175,12 @@ class ImportCoordinator(
 /** Set by the main scaffold; `null` outside it (isolated tests), where nothing waits for forms. */
 val LocalImportCoordinator = staticCompositionLocalOf<ImportCoordinator?> { null }
 
+/**
+ * Run once the cabinet was replaced by an import or a restore: starts the fill of the named products (the app layer
+ * sets it; a no-op outside the main scaffold, in isolated tests).
+ */
+val LocalAfterCabinetReplaced = staticCompositionLocalOf<() -> Unit> { {} }
+
 /** While [active], an incoming file waits instead of interrupting this form (O4). */
 @Composable
 fun HoldsUnsavedInput(active: Boolean) {

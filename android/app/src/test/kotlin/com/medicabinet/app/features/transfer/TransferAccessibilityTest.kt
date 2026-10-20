@@ -156,8 +156,9 @@ class TransferFrenchTest {
             ImportViewModel(kit.transfer, ImportRequest.File(Incoming.Ready(golden)), {}, Dispatchers.Unconfined)
         compose.setContent { MediCabinetTheme { ImportScreen(model, onClose = {}, zone = ZoneOffset.UTC) } }
         compose.onNodeWithText("Dans le fichier").assertIsDisplayed()
-        compose.onNodeWithText("Par MediCabinet 0.3.0 (iOS)").assertIsDisplayed()
-        compose.onNodeWithText("3 boîtes dans l'armoire").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Par MediCabinet 0.7.0 (iOS)").assertIsDisplayed()
+        compose.onNodeWithText("10 boîtes dans l'armoire").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Produits nommés par vous : 2").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Remplacer mon armoire").performScrollTo().assertIsDisplayed()
     }
 

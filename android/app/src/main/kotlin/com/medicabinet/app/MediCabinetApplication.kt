@@ -1,6 +1,7 @@
 package com.medicabinet.app
 
 import android.app.Application
+import com.medicabinet.app.app.AppEnvironment
 import com.medicabinet.app.app.BootstrapState
 import com.medicabinet.app.app.ExpiryPreferences
 import com.medicabinet.app.app.NamedProductBackfillLauncher
@@ -44,6 +45,11 @@ class MediCabinetApplication : Application() {
 
     /** Fills the named products once after the upgrade, in the background (never on the launch path). */
     private val namedProductBackfill by lazy { NamedProductBackfillLauncher(MainScope(), Dispatchers.IO) }
+
+    /** After an import or a restore: a version 1 file or an old backup left the fill pending, so run it again. */
+    fun startNamedProductBackfill(environment: AppEnvironment) {
+        namedProductBackfill.start(environment)
+    }
 
     private val openLock = Mutex()
     private var opened: BootstrapState.Ready? = null
