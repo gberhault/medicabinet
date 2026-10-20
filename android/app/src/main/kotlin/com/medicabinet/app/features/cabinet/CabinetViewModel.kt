@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.medicabinet.app.app.AppEnvironment
 import com.medicabinet.app.app.AppLog
 import com.medicabinet.core.Box
+import com.medicabinet.core.CategoryID
 import com.medicabinet.core.ExpiryStatus
 import com.medicabinet.core.Location
 import com.medicabinet.core.cabinet.CabinetFilter
@@ -12,6 +13,7 @@ import com.medicabinet.core.cabinet.CabinetRows
 import com.medicabinet.core.cabinet.CabinetSnapshot
 import com.medicabinet.core.expiry.CalendarDay
 import com.medicabinet.core.expiry.ExpiryWindow
+import com.medicabinet.core.reference.Taxonomy
 import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +51,10 @@ sealed interface CabinetUiState {
         val today: CalendarDay,
         /** The "expiring soon" window they were evaluated with: a new window is a new state. */
         val window: ExpiryWindow
-    ) : CabinetUiState
+    ) : CabinetUiState {
+        /** How many of the location and status filters are on; the search text has its own clear button. */
+        val activeFilterCount: Int get() = listOf(filter.locationId, filter.status).count { it != null }
+    }
 
     data object Failed : CabinetUiState
 }
@@ -74,6 +79,9 @@ class CabinetViewModel(
     private val attempt = MutableStateFlow(0)
     private val foreground = MutableStateFlow(0)
 
+    /** The category cards' order, A–Z by the localized labels; the screen sets it, the taxonomy's order until then. */
+    private val categoryOrder = MutableStateFlow(Taxonomy.ordered)
+
     /** The text in the search field, as typed (the list follows it 150 ms later). */
     val query: StateFlow<String> = queryInput.asStateFlow()
 
@@ -96,6 +104,10 @@ class CabinetViewModel(
         statusFilter.value = status
     }
 
+    fun setCategoryOrder(order: List<CategoryID>) {
+        categoryOrder.value = order
+    }
+
     fun clearFilters() {
         queryInput.value = ""
         locationFilter.value = null
@@ -116,7 +128,8 @@ class CabinetViewModel(
         val boxes: List<Box>,
         val locations: List<Location>,
         val filter: CabinetFilter,
-        val today: CalendarDay
+        val today: CalendarDay,
+        val categoryOrder: List<CategoryID>
     )
 
     private fun load(attempt: Int): Flow<CabinetUiState> {
@@ -130,7 +143,7 @@ class CabinetViewModel(
         ) { today, _ -> today }
         val boxes = environment.boxes.observeCabinet()
         val locations = environment.locations.observeAll()
-        return combine(boxes, locations, filters, days, ::Source)
+        return combine(boxes, locations, filters, days, categoryOrder, ::Source)
             .mapLatest(::build)
             .onStart { if (attempt > 0) emit(CabinetUiState.Loading) }
             .catch { error ->
@@ -148,7 +161,7 @@ class CabinetViewModel(
         val known = source.filter.locationId?.takeIf { id -> source.locations.any { it.id == id } }
         if (known != source.filter.locationId) locationFilter.compareAndSet(source.filter.locationId, null)
         val filter = source.filter.copy(locationId = known)
-        val snapshot = CabinetRows.build(source.boxes, filter, environment.categoryOrder) { box ->
+        val snapshot = CabinetRows.build(source.boxes, filter, source.categoryOrder) { box ->
             environment.expiryStatus(box.expiry, source.today)
         }
         return CabinetUiState.Loaded(
