@@ -49,6 +49,17 @@ class CabinetDatabase(
         return result
     }
 
+    /** Runs [block] in one read transaction, so it sees one consistent state of the cabinet. Announces no change. */
+    fun <T> read(block: (SupportSQLiteDatabase) -> T): T {
+        val db = database
+        db.beginTransactionReadOnly()
+        try {
+            return block(db).also { db.setTransactionSuccessful() }
+        } finally {
+            db.endTransaction()
+        }
+    }
+
     override fun close() = helper.close()
 }
 

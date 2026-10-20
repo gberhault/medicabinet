@@ -76,9 +76,12 @@ independent of each other.
   on GRDB; integration round trip (every field variant → export → apply on a fresh database
   → equal snapshot); rollback when an insert fails; backup-store tests (pre-migration files
   untouched); performance `exportArchive` / `apply` ≤ 600 ms (§9).
-- [ ] **T10 — Android store and backup files** `[android]` [#29] (same)
+- [x] **T10 — Android store and backup files** `[android]` [#29] (same)
   `SqlCabinetArchiveStore`, `FileArchiveBackupStore` in `persistence/`; the same tests
   (Robolectric SQLite), including the performance budgets.
+  Done: measured (best of 5, Robolectric SQLite, 1 000 boxes) `exportArchive` ≈ 27 ms, `apply` with its backup
+  ≈ 390 ms (budget 600 ms). The store also refuses two live boxes with the same GTIN and serial
+  (`duplicateSerial`) before the hook, so no backup file is written for a cabinet the database would refuse.
 
 ## 4. iOS app (#28, #29)
 
