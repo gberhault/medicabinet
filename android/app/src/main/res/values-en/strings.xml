@@ -216,11 +216,16 @@
     <string name="cabinet_error_message">Your data has not been changed.</string>
     <string name="cabinet_error_retry">Retry</string>
     <string name="cabinet_error_title">Can\'t read the cabinet</string>
-    <string name="cabinet_filter_active">Filters: %1$s</string>
+    <plurals name="cabinet_filter_activeCount">
+        <item quantity="one">%1$d active filter</item>
+        <item quantity="other">%1$d active filters</item>
+    </plurals>
     <string name="cabinet_filter_all">All</string>
     <string name="cabinet_filter_allLocations">All locations</string>
+    <string name="cabinet_filter_button">Filters</string>
     <string name="cabinet_filter_clear">Clear filters</string>
     <string name="cabinet_filter_location">Location</string>
+    <string name="cabinet_filter_remove">Remove filter %1$s</string>
     <string name="cabinet_filter_status">Expiry</string>
     <string name="cabinet_loading">Loading the cabinet…</string>
     <string name="cabinet_noResults_clear">Clear search and filters</string>
@@ -230,6 +235,7 @@
         <item quantity="one">%1$d box</item>
         <item quantity="other">%1$d boxes</item>
     </plurals>
+    <string name="cabinet_search_clear">Clear search</string>
     <string name="cabinet_search_prompt">Search medicines</string>
     <string name="cabinet_title">Cabinet</string>
     <string name="expiry_status_expired">Expired</string>

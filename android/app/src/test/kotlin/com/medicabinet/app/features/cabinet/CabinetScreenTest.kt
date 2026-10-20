@@ -1,16 +1,23 @@
 package com.medicabinet.app.features.cabinet
 
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.unit.dp
 import com.medicabinet.app.app.AppEnvironment
 import com.medicabinet.app.ui.theme.MediCabinetTheme
 import com.medicabinet.core.CategoryID
@@ -127,7 +134,6 @@ class CabinetScreenTest {
         compose.onNodeWithTag("cabinet.count").assertTextEquals("1 box")
         compose.onNodeWithText("EFFÉRALGAN 500").assertIsDisplayed()
         assertEquals(0, compose.onAllNodesWithTextCount("Pansements"))
-        compose.onNodeWithText("Filters: efferalgan").assertIsDisplayed()
     }
 
     @Test
@@ -145,29 +151,86 @@ class CabinetScreenTest {
     }
 
     @Test
-    fun theLocationMenuFiltersAndTheActiveFilterIsShownAsTextWithAClear() {
+    fun theLocationMenuFiltersAndAChipShowsItAndClearsOnlyThatFilter() {
         val kitchen = seed()
         show()
-        compose.onNodeWithTag("cabinet.filter.location").performClick()
+        compose.onNodeWithTag("cabinet.filter.button").performClick()
         compose.onNodeWithTag("cabinet.filter.location.${kitchen.id}").performClick()
         settle()
         compose.onNodeWithTag("cabinet.count").assertTextEquals("2 boxes")
-        compose.onNodeWithText("Filters: Kitchen").assertIsDisplayed()
-        compose.onNodeWithTag("cabinet.filter.clear").assertHasClickAction().performClick()
+        compose.onNodeWithContentDescription("Remove filter Kitchen").assertHasClickAction()
+
+        compose.onNodeWithTag("cabinet.filter.button").performClick()
+        compose.onNodeWithTag("cabinet.filter.status.expiringSoon").performClick()
         settle()
-        compose.onNodeWithTag("cabinet.count").assertTextEquals("4 boxes")
-        assertEquals(0, compose.onAllNodesWithTextCount("Filters: Kitchen"))
+        compose.onNodeWithTag("cabinet.count").assertTextEquals("1 box")
+        compose.onNodeWithContentDescription("Remove filter Expiring soon").assertIsDisplayed()
+
+        compose.onNodeWithContentDescription("Remove filter Kitchen").performClick()
+        settle()
+        assertEquals(0, compose.onAllNodesWithTextCount("Kitchen"))
+        compose.onNodeWithContentDescription("Remove filter Expiring soon").assertIsDisplayed()
+        compose.onNodeWithTag("cabinet.count").assertTextEquals("1 box")
     }
 
     @Test
     fun theStatusMenuKeepsRowsWithABoxInThatStatus() {
         seed()
         show()
-        compose.onNodeWithTag("cabinet.filter.status").performClick()
+        compose.onNodeWithTag("cabinet.filter.button").performClick()
         compose.onNodeWithTag("cabinet.filter.status.expired").performClick()
         settle()
         compose.onNodeWithTag("cabinet.count").assertTextEquals("1 box")
-        compose.onNodeWithText("Filters: Expired").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Remove filter Expired").assertIsDisplayed()
+    }
+
+    @Test
+    fun clearFiltersInTheMenuClearsLocationAndStatusButKeepsTheSearch() {
+        val kitchen = seed()
+        show()
+        compose.onNodeWithTag("cabinet.search").performTextInput("a")
+        compose.onNodeWithTag("cabinet.filter.button").performClick()
+        compose.onNodeWithTag("cabinet.filter.location.${kitchen.id}").performClick()
+        settle()
+        compose.onNodeWithContentDescription("Remove filter Kitchen").assertIsDisplayed()
+
+        compose.onNodeWithTag("cabinet.filter.button").performClick()
+        compose.onNodeWithTag("cabinet.filter.clear").performClick()
+        settle()
+        assertEquals(0, compose.onAllNodesWithTextCount("Kitchen"))
+        compose.onNodeWithTag("cabinet.search").assertTextContains("a")
+    }
+
+    @Test
+    fun noFilterMenuChipsAreShownWhileNoFilterIsOn() {
+        seed()
+        show()
+        assertEquals(0, compose.onAllNodesWithTag("cabinet.filter.chip").fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun theSearchFieldAndTheFilterButtonShareOneRowAndTheButtonIsOnTheRight() {
+        seed()
+        show()
+        val search = compose.onNodeWithTag("cabinet.search").getBoundsInRoot()
+        val button = compose.onNodeWithTag("cabinet.filter.button").getBoundsInRoot()
+        assert(button.left >= search.right - 1.dp) { "the button sits right of the field" }
+        assert(kotlin.math.abs((button.top + button.bottom).value - (search.top + search.bottom).value) < 8f) {
+            "on the same line"
+        }
+    }
+
+    @Test
+    fun theFilterButtonSaysHowManyFiltersAreOn() {
+        val kitchen = seed()
+        show()
+        compose.onNodeWithTag("cabinet.filter.button")
+            .assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.StateDescription))
+        compose.onNodeWithTag("cabinet.filter.button").performClick()
+        compose.onNodeWithTag("cabinet.filter.location.${kitchen.id}").performClick()
+        settle()
+        compose.onNodeWithTag("cabinet.filter.button")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "1 active filter"))
     }
 
     @Test
@@ -177,7 +240,7 @@ class CabinetScreenTest {
         compose.onNodeWithTag("cabinet.search").performTextInput("zzzz")
         settle()
         compose.onNodeWithText("No results").assertIsDisplayed()
-        compose.onNodeWithContentDescription("Clear search and filters").performClick()
+        compose.onNodeWithContentDescription("Clear search").performClick()
         settle()
         compose.onNodeWithTag("cabinet.count").assertTextEquals("4 boxes")
     }
@@ -218,7 +281,7 @@ class CabinetScreenTest {
         RuntimeEnvironment.setFontScale(2f)
         show(dark = true)
         compose.onNodeWithText("Pain and fever").assertIsDisplayed()
-        compose.onNodeWithTag("cabinet.filter.location").assertIsDisplayed().assertHasClickAction()
+        compose.onNodeWithTag("cabinet.filter.button").assertIsDisplayed().assertHasClickAction()
         compose.onNodeWithTag("cabinet.list").performScrollToNode(hasText("Pansements"))
         compose.onNodeWithText("Pansements").assertIsDisplayed().assertHasClickAction()
         compose.onNodeWithText("Expiry unknown").assertIsDisplayed()

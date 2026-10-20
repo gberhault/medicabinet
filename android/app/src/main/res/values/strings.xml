@@ -216,11 +216,16 @@
     <string name="cabinet_error_message">Vos données n\'ont pas été modifiées.</string>
     <string name="cabinet_error_retry">Réessayer</string>
     <string name="cabinet_error_title">Impossible de lire l\'armoire</string>
-    <string name="cabinet_filter_active">Filtres : %1$s</string>
+    <plurals name="cabinet_filter_activeCount">
+        <item quantity="one">%1$d filtre actif</item>
+        <item quantity="other">%1$d filtres actifs</item>
+    </plurals>
     <string name="cabinet_filter_all">Toutes</string>
     <string name="cabinet_filter_allLocations">Tous les lieux</string>
+    <string name="cabinet_filter_button">Filtres</string>
     <string name="cabinet_filter_clear">Effacer les filtres</string>
     <string name="cabinet_filter_location">Lieu</string>
+    <string name="cabinet_filter_remove">Retirer le filtre %1$s</string>
     <string name="cabinet_filter_status">Péremption</string>
     <string name="cabinet_loading">Chargement de l\'armoire…</string>
     <string name="cabinet_noResults_clear">Effacer la recherche et les filtres</string>
@@ -230,6 +235,7 @@
         <item quantity="one">%1$d boîte</item>
         <item quantity="other">%1$d boîtes</item>
     </plurals>
+    <string name="cabinet_search_clear">Effacer la recherche</string>
     <string name="cabinet_search_prompt">Rechercher un médicament</string>
     <string name="cabinet_title">Armoire</string>
     <string name="expiry_status_expired">Périmé</string>

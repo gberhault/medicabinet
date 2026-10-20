@@ -28,7 +28,8 @@ fun expiryStatusText(status: ExpiryStatus): Int = when (status) {
     ExpiryStatus.UNKNOWN -> R.string.expiry_status_unknown
 }
 
-private fun icon(status: ExpiryStatus): ImageVector = when (status) {
+/** The icon of a status: a different shape for each, so the status never relies on colour. */
+internal fun expiryStatusIcon(status: ExpiryStatus): ImageVector = when (status) {
     ExpiryStatus.EXPIRED -> Icons.Outlined.EventBusy
     ExpiryStatus.EXPIRING_SOON -> Icons.Outlined.Schedule
     ExpiryStatus.OK -> Icons.Outlined.CheckCircle
@@ -51,7 +52,7 @@ private fun tint(status: ExpiryStatus): Color = when (status) {
 fun ExpiryStatusLabel(status: ExpiryStatus, modifier: Modifier = Modifier, expiresToday: Boolean = false) {
     val words = if (expiresToday) R.string.expiry_status_expiresToday else expiryStatusText(status)
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Icon(icon(status), contentDescription = null, tint = tint(status))
+        Icon(expiryStatusIcon(status), contentDescription = null, tint = tint(status))
         Text(stringResource(words), style = MaterialTheme.typography.bodyMedium)
     }
 }

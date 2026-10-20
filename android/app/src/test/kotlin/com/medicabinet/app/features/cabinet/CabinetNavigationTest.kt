@@ -144,10 +144,10 @@ class CabinetNavigationTest {
         }
         open()
         waitFor("cabinet.row")
-        compose.onNodeWithTag("cabinet.filter.location").performClick()
+        compose.onNodeWithTag("cabinet.filter.button").performClick()
         waitForText("Kitchen")
         compose.onAllNodesWithText("Kitchen")[0].performClick()
-        waitForText("Filters: Kitchen")
+        waitFor("cabinet.filter.chip")
         compose.onNodeWithTag("cabinet.row").performClick()
         waitFor("product.box", 2)
         assertEquals(2, compose.onAllNodesWithTag("product.box").fetchSemanticsNodes().size)
