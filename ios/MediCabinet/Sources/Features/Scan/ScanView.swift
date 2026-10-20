@@ -109,19 +109,23 @@ private struct ScannerScreen: View {
 
     /// Remove mode says so in text and icon (and tint), and carries the session reason (R2, R3).
     private var removeBar: some View {
-        HStack(spacing: 8) {
+        // Two rows so that nothing is pushed out of the bar at the largest text sizes.
+        VStack(alignment: .leading, spacing: 0) {
             Label("scan.remove.title", systemImage: "minus.circle.fill")
                 .font(.headline)
                 .foregroundStyle(.red)
+                .padding(.top, 8)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("scan.remove.title")
-            Spacer()
-            RemovalReasonChip(model: model)
-            soundButton
+            HStack(spacing: 8) {
+                RemovalReasonChip(model: model)
+                Spacer()
+                soundButton
+            }
         }
         .padding(.horizontal, 12)
-        .background(.regularMaterial, in: Capsule())
-        .overlay(Capsule().strokeBorder(.red, lineWidth: 2))
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
+        .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(.red, lineWidth: 2))
     }
 
     private var soundButton: some View {

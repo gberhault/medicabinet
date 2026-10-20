@@ -186,15 +186,21 @@ class ScanFeedbackPlayerTest {
         assertEquals(HapticFeedbackConstants.CONFIRM, ScanFeedbackPlayer.constant(FeedbackEvent.ADDED))
         assertEquals(HapticFeedbackConstants.REJECT, ScanFeedbackPlayer.constant(FeedbackEvent.REJECTED))
         assertEquals(HapticFeedbackConstants.LONG_PRESS, ScanFeedbackPlayer.constant(FeedbackEvent.ATTENTION))
+        assertEquals(HapticFeedbackConstants.CONTEXT_CLICK, ScanFeedbackPlayer.constant(FeedbackEvent.REMOVED))
     }
 
     @Config(sdk = [Build.VERSION_CODES.O])
     @Test
     fun olderAndroidFallsBackToTheStandardHaptics() {
-        FeedbackEvent.entries.filter { it != FeedbackEvent.ATTENTION }.forEach {
+        listOf(FeedbackEvent.ADDED, FeedbackEvent.REJECTED).forEach {
             assertEquals(HapticFeedbackConstants.KEYBOARD_TAP, ScanFeedbackPlayer.constant(it))
         }
         assertNotEquals(HapticFeedbackConstants.KEYBOARD_TAP, ScanFeedbackPlayer.constant(FeedbackEvent.ATTENTION))
+        // Removing a box feels different from adding one, on every version.
+        assertNotEquals(
+            ScanFeedbackPlayer.constant(FeedbackEvent.ADDED),
+            ScanFeedbackPlayer.constant(FeedbackEvent.REMOVED)
+        )
     }
 
     @Test
@@ -203,6 +209,7 @@ class ScanFeedbackPlayerTest {
         val view = View(context)
         player.play(view, FeedbackRequest(FeedbackEvent.ADDED, sound = true))
         player.play(view, FeedbackRequest(FeedbackEvent.REJECTED, sound = false))
+        player.play(view, FeedbackRequest(FeedbackEvent.REMOVED, sound = true))
         player.close()
     }
 }

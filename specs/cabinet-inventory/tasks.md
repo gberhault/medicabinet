@@ -125,7 +125,7 @@ iOS and Android UI blocks of each section are independent of each other.
   *Tests:* `ScanViewModelTests` (mode resets to Add on appear and launch, reason remembered,
   feedback per outcome, sheet blocks recognitions, Undo per row); `ScanUITests` with injected
   payloads in remove mode; perf `handle` ≤ 100 ms on 1 000 boxes (§8).
-- [ ] **T25 — Android remove mode** `[android]` [#21] (as T24; §6)
+- [x] **T25 — Android remove mode** `[android]` [#21] (as T24; §6)
 
 ## 7. Finish
 

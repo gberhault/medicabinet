@@ -6,8 +6,11 @@ import com.medicabinet.app.features.scan.camera.VisibleCodes
 import com.medicabinet.core.Box
 import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.Location
+import com.medicabinet.core.RemovalReason
 import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
+import com.medicabinet.core.cabinet.RemovalOutcome
+import com.medicabinet.core.cabinet.ScanRemoval
 import com.medicabinet.core.scan.BoxDraft
 import com.medicabinet.core.scan.GS1Parser
 import com.medicabinet.core.scan.IntakeError
@@ -44,6 +47,9 @@ enum class FeedbackEvent {
     /** A box was added. */
     ADDED,
 
+    /** A box was taken out of the cabinet (Remove mode): a different haptic than an addition. */
+    REMOVED,
+
     /** A scan was refused or failed (duplicate, unreadable code, error). */
     REJECTED,
 
@@ -76,12 +82,28 @@ sealed interface Notice {
 
     data class Deleted(val box: Box) : Notice
 
+    /** Remove mode: the box is out of the cabinet (stock movement written), with Undo. */
+    data class Removed(val box: Box, val reason: RemovalReason, val locationName: String) : Notice
+
+    data class AlreadyRemoved(val box: Box) : Notice
+
+    data object NotInCabinet : Notice
+
     data object Unrecognized : Notice
 
     data object Failed : Notice
 }
 
-data class Summary(val added: Int, val unknownExpiry: Int)
+data class Summary(
+    val added: Int,
+    val unknownExpiry: Int,
+    val mode: ScanMode = ScanMode.ADD,
+    val usedUp: Int = 0,
+    val thrownAway: Int = 0
+)
+
+/** Several boxes match a scan in Remove mode: the user picks one. Ordered: the first is pre-selected. */
+data class Candidates(val boxes: List<Box>, val id: UUID = UUID.randomUUID())
 
 enum class ManualError { INVALID_CODE, INVALID_NAME, FAILED }
 
@@ -94,6 +116,11 @@ data class ScanUiState(
     val another: Another? = null,
     val completion: Completion? = null,
     val summary: Summary? = null,
+    val mode: ScanMode = ScanMode.ADD,
+    val removalReason: RemovalReason = RemovalReason.USED_UP,
+    /** The boxes taken out in the current Remove session (cleared by Done and by switching back to Add). */
+    val removalSession: ScanSession = ScanSession(),
+    val candidates: Candidates? = null,
     val soundEnabled: Boolean = false,
     /** Bumped by Retry; the camera view is rebuilt when it changes. */
     val attempt: Int = 0
@@ -106,12 +133,18 @@ data class ScanUiState(
 @Suppress("TooManyFunctions") // one entry point per user action of the scan screen
 class ScanViewModel(environment: AppEnvironment, private val services: ScanServices) : ViewModel() {
     private val intake = ScanIntake(environment.boxes, services.lookup, environment.clock)
+    private val removal = ScanRemoval(environment.boxes, environment.clock)
     private val locationRepository = environment.locations
     private val boxes = environment.boxes
     private var debouncer = ScanDebouncer()
     private val reportedUnrecognized = mutableSetOf<String>()
 
-    private val mutableState = MutableStateFlow(ScanUiState(soundEnabled = services.preferences.soundEnabled))
+    private val mutableState = MutableStateFlow(
+        ScanUiState(
+            soundEnabled = services.preferences.soundEnabled,
+            removalReason = services.preferences.removalReason
+        )
+    )
     val state: StateFlow<ScanUiState> = mutableState.asStateFlow()
 
     private val mutableFeedback = MutableSharedFlow<FeedbackRequest>(
@@ -199,7 +232,8 @@ class ScanViewModel(environment: AppEnvironment, private val services: ScanServi
         // camera is not counted again when the prompt closes.
         val scans = debouncer.observe(snapshot.payloads, snapshot.instant)
         for (payload in scans) {
-            if (state.value.completion != null || state.value.summary != null) return
+            val current = state.value
+            if (current.completion != null || current.candidates != null || current.summary != null) return
             process(payload)
         }
     }
@@ -207,6 +241,10 @@ class ScanViewModel(environment: AppEnvironment, private val services: ScanServi
     private suspend fun process(payload: String) {
         mutableState.update { it.copy(another = null) }
         val code = parse(payload) ?: return
+        if (state.value.mode == ScanMode.REMOVE) {
+            processRemoval(code)
+            return
+        }
         try {
             apply(intake.evaluate(code, state.value.session.gtins))
         } catch (cancelled: CancellationException) {
@@ -395,16 +433,107 @@ class ScanViewModel(environment: AppEnvironment, private val services: ScanServi
 
     // endregion
 
+    // region Remove mode
+
+    /** The tab was opened: Remove is never remembered (R1). */
+    fun resetMode() = setMode(ScanMode.ADD)
+
+    fun setMode(mode: ScanMode) = mutableState.update {
+        if (mode == it.mode && it.candidates == null) {
+            it
+        } else {
+            it.copy(
+                mode = mode,
+                candidates = null,
+                another = null,
+                notice = null,
+                // Leaving Remove ends the Remove session; what was removed stays removed.
+                removalSession = if (mode == ScanMode.ADD) ScanSession() else it.removalSession
+            )
+        }
+    }
+
+    fun setRemovalReason(reason: RemovalReason) {
+        services.preferences.removalReason = reason
+        mutableState.update { it.copy(removalReason = reason) }
+    }
+
+    private suspend fun processRemoval(code: ScannedCode) {
+        try {
+            when (val outcome = removal.handle(code, state.value.removalReason)) {
+                is RemovalOutcome.Removed -> confirmRemoval(outcome.box)
+                is RemovalOutcome.Choose -> {
+                    mutableState.update { it.copy(candidates = Candidates(outcome.candidates)) }
+                    play(FeedbackEvent.ATTENTION)
+                }
+                is RemovalOutcome.AlreadyRemoved -> show(Notice.AlreadyRemoved(outcome.box), FeedbackEvent.REJECTED)
+                RemovalOutcome.NotInCabinet -> show(Notice.NotInCabinet, FeedbackEvent.REJECTED)
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (@Suppress("TooGenericExceptionCaught", "SwallowedException") failure: Exception) {
+            fail()
+        }
+    }
+
+    /** The user picked one of the candidates. */
+    suspend fun removeCandidate(id: UUID) {
+        mutableState.update { it.copy(candidates = null) }
+        try {
+            confirmRemoval(removal.remove(id, state.value.removalReason))
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (@Suppress("TooGenericExceptionCaught", "SwallowedException") failure: Exception) {
+            fail()
+        }
+    }
+
+    fun cancelCandidates() = mutableState.update { it.copy(candidates = null) }
+
+    suspend fun undoRemoval(box: Box) {
+        try {
+            removal.undo(box.id)
+            mutableState.update { it.copy(removalSession = it.removalSession.remove(box.id), notice = null) }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (@Suppress("TooGenericExceptionCaught", "SwallowedException") failure: Exception) {
+            fail()
+        }
+    }
+
+    private fun confirmRemoval(box: Box) {
+        val reason = box.removal?.reason ?: state.value.removalReason
+        mutableState.update { it.copy(removalSession = it.removalSession.add(box)) }
+        show(Notice.Removed(box, reason, locationName(box.locationId)), FeedbackEvent.REMOVED)
+    }
+
+    // endregion
+
     // region Done
 
     fun finish() = mutableState.update {
-        it.copy(summary = Summary(it.session.count, it.session.unknownExpiryCount))
+        val removed = it.removalSession.boxes
+        it.copy(
+            summary = Summary(
+                added = it.session.count,
+                unknownExpiry = it.session.unknownExpiryCount,
+                mode = it.mode,
+                usedUp = removed.count { box -> box.removal?.reason == RemovalReason.USED_UP },
+                thrownAway = removed.count { box -> box.removal?.reason == RemovalReason.THROWN_AWAY }
+            )
+        )
     }
 
     fun closeSummary() {
         debouncer = ScanDebouncer()
         reportedUnrecognized.clear()
-        mutableState.update { it.copy(summary = null, session = ScanSession(), notice = null, another = null) }
+        mutableState.update {
+            if (it.summary?.mode == ScanMode.REMOVE) {
+                it.copy(summary = null, removalSession = ScanSession(), notice = null, another = null)
+            } else {
+                it.copy(summary = null, session = ScanSession(), notice = null, another = null)
+            }
+        }
     }
 
     // endregion

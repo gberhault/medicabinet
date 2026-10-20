@@ -14,6 +14,8 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -35,6 +37,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.medicabinet.app.R
 import com.medicabinet.core.Box
+import com.medicabinet.core.RemovalReason
 import kotlinx.coroutines.delay
 
 private const val NOTICE_MILLIS = 6_000L
@@ -44,6 +47,7 @@ class NoticeActions(
     val onUndoAdd: (Box) -> Unit,
     val onPutBack: (Box) -> Unit,
     val onUndoDelete: (Box) -> Unit,
+    val onUndoRemoval: (Box) -> Unit,
     val onDismiss: () -> Unit
 )
 
@@ -113,6 +117,8 @@ private fun androidx.compose.foundation.layout.RowScope.NoticeContent(notice: No
             Text(stringResource(R.string.scan_session_deleted), Modifier.weight(1f))
             CardAction(R.string.scan_undo, "scan.notice.undoDelete") { actions.onUndoDelete(notice.box) }
         }
+        is Notice.Removed -> RemovedContent(notice, actions)
+        is Notice.AlreadyRemoved, Notice.NotInCabinet -> RemovalRefusedContent(notice)
         Notice.Unrecognized -> {
             Icon(Icons.Outlined.HelpOutline, contentDescription = null)
             Text(stringResource(R.string.scan_unrecognized), Modifier.weight(1f))
@@ -122,6 +128,47 @@ private fun androidx.compose.foundation.layout.RowScope.NoticeContent(notice: No
             Text(stringResource(R.string.scan_error_generic), Modifier.weight(1f))
         }
     }
+}
+
+/** A scan in Remove mode that changed nothing: the "not added" style, with the reason in words. */
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.RemovalRefusedContent(notice: Notice) {
+    Icon(Icons.Outlined.Info, contentDescription = null)
+    if (notice is Notice.AlreadyRemoved) {
+        Column(Modifier.weight(1f)) {
+            Text(notice.box.product.name, style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.scan_removal_alreadyRemoved), style = MaterialTheme.typography.bodySmall)
+        }
+    } else {
+        Text(stringResource(R.string.scan_removal_notInCabinet), Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.RemovedContent(notice: Notice.Removed, actions: NoticeActions) {
+    val context = LocalContext.current
+    Icon(Icons.Outlined.RemoveCircleOutline, contentDescription = null)
+    Column(Modifier.weight(1f)) {
+        Text(notice.box.product.name, style = MaterialTheme.typography.titleMedium)
+        val reason = if (notice.reason == RemovalReason.USED_UP) {
+            R.string.scan_removal_removed_usedUp
+        } else {
+            R.string.scan_removal_removed_thrownAway
+        }
+        Text(stringResource(reason), style = MaterialTheme.typography.bodySmall)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Icon(
+                if (notice.box.expiry == null) Icons.Outlined.Warning else Icons.Outlined.CalendarMonth,
+                contentDescription = null
+            )
+            Text(ScanText.expiry(context, notice.box.expiry), style = MaterialTheme.typography.bodySmall)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Icon(Icons.Outlined.Place, contentDescription = null)
+            Text(notice.locationName, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+    CardAction(R.string.scan_undo, "scan.notice.undoRemoval") { actions.onUndoRemoval(notice.box) }
 }
 
 @Composable
