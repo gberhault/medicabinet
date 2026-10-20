@@ -104,13 +104,16 @@ each other once T2 and T4 are done.
   - `CLAUDE.md`: add `design/` to Project Structure and a Common Task Map row "Change the
     app icon".
   - *Test:* the links resolve, and `local-ci.sh shared` is green (CLAUDE.md changed).
-- [ ] **T9 — Visual check on devices** `[ios]` `[android]` (A3–A6, I3–I5; §9)
+- [x] **T9 — Visual check on devices** `[ios]` `[android]` (A3–A6, I3–I5; §9)
   - Android, on `emulator-5554` only, never an unnamed device: API 26, then API 33+ with
     themed icons on, in circle and squircle shapes.
   - iOS simulators: iOS 17, then iOS 18+ in light, dark and tinted.
   - Screenshots go in the PR body, not committed. No commit unless a fix is needed; a fix
     goes back through the source and `build`.
   - Also run `build` twice and check that `git status` stays clean (R4).
+  - *Done 2026-10-20.* `build` twice leaves the tree unchanged (R4).
+    - Android 17 emulator (`emulator-5554`, the only image installed): the adaptive icon renders in the circular mask with the M and capsule fully inside it. The monochrome layer could not be seen: the launcher did not apply themed icons here, so it is covered by `AppIconTest` (API 33, non-null layer) and the generated file. API 26 has no image installed, so it is covered by the Robolectric test only.
+    - iOS 18.6 simulator (the only runtime installed, so iOS 17 is not checked visually): the light, dark and tinted icons each appear when selected in Home Screen → Customize.
 
 ## 5. Release
 
