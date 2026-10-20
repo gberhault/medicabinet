@@ -34,7 +34,11 @@ struct BoxEditView: View {
                     }
                     .accessibilityIdentifier("box.edit.location")
                 }
-                categorySection
+                CategoryPickerSection(
+                    category: model.category, isSetByUser: model.isCategorySetByUser,
+                    identifierPrefix: "box.edit.category", choose: { model.choose($0) },
+                    resetToAutomatic: { Task { await model.resetToAutomatic() } }
+                )
             }
             .navigationTitle("box.edit.title")
             .navigationBarTitleDisplayMode(.inline)
@@ -57,39 +61,6 @@ struct BoxEditView: View {
         }
         .interactiveDismissDisabled(model.isSaving)
         .importBusy()
-    }
-
-    /// B4: pick a category from the taxonomy, or give it back to the classifier.
-    private var categorySection: some View {
-        Section {
-            Picker("box.category.choose", selection: Binding(
-                get: { model.category }, set: { model.choose($0) }
-            )) {
-                if model.category == .uncategorized {
-                    Text(LocalizedStringKey(CategoryLabel.key(for: .uncategorized))).tag(CategoryID.uncategorized)
-                }
-                ForEach(Taxonomy.userSelectable, id: \.self) { category in
-                    Text(LocalizedStringKey(CategoryLabel.key(for: category))).tag(category)
-                }
-            }
-            .frame(minHeight: 44)
-            .accessibilityIdentifier("box.edit.category")
-            Button { Task { await model.resetToAutomatic() } } label: {
-                Label("box.category.automatic", systemImage: "wand.and.stars")
-            }
-            .frame(minHeight: 44)
-            .accessibilityIdentifier("box.edit.category.automatic")
-            if model.isCategorySetByUser {
-                Label("box.category.manual", systemImage: "person.fill.checkmark")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .accessibilityIdentifier("box.edit.category.manual")
-            }
-        } header: {
-            Text("box.category")
-        } footer: {
-            Text("box.category.note")
-        }
     }
 
     private func problemText(_ problem: BoxEditError) -> LocalizedStringKey {
