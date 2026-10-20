@@ -85,7 +85,7 @@ change would otherwise break the other platform's suite.
   - Put the title and count in the `TopAppBar`, and delete `CabinetFilterBar.kt`.
   - Strings (`values` + `values-en`): the same keys and wording as iOS T9. Remove the unused keys.
   - Robolectric tests mirroring iOS T9. Run `check-string-parity.py`. *(F1–F6, X1)*
-- [ ] **T16** `[android]` **Cards and pills.**
+- [x] **T16** `[android]` **Cards and pills.**
   - Add `CategoryCard` (`FlowRow`) and `ProductPill`, and turn `CabinetScreen`'s `LazyColumn` into one item per
     card. Resolve the labels in the composable and call `setCategoryOrder`.
   - Pill strings, as in iOS T10.
