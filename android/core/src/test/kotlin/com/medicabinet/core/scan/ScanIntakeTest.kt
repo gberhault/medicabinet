@@ -1,8 +1,10 @@
 package com.medicabinet.core.scan
 
+import com.medicabinet.core.Box
 import com.medicabinet.core.CategoryID
 import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.Location
+import com.medicabinet.core.ProductRef
 import com.medicabinet.core.RemovalReason
 import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
@@ -143,16 +145,21 @@ class ScanIntakeTest {
         assertEquals(setOf(IntakeField.NAME), assertIs<IntakeOutcome.NeedsCompletion>(outcome).missing)
     }
 
-    // Regression #57: a used-up box that carries a test name must not name the next scan of the code.
+    // Regression #57: a used-up box that carries a test name must not name the next scan of the code. The box
+    // is written straight to the store: it predates the named products (or was saved while nothing was remembered).
     @Test
     fun aUsedUpBoxWithATestNameNoLongerNamesTheNextScan() = test { location ->
-        val service = intake()
-        val box = service.add(
-            BoxDraft(gtin, "Test", CategoryID("pain-fever"), categoryOverridden = true, serial = "OLD"),
-            location.id
+        val box = Box(
+            product = ProductRef(gtin, "Test"),
+            category = CategoryID("pain-fever"),
+            categoryOverridden = true,
+            locationId = location.id,
+            serial = "OLD",
+            createdAt = clock.now()
         )
+        store.insert(box)
         store.markRemoved(box.id, RemovalReason.USED_UP, clock.now())
-        val outcome = assertIs<IntakeOutcome.NeedsCompletion>(service.evaluate(code(), emptySet()))
+        val outcome = assertIs<IntakeOutcome.NeedsCompletion>(intake().evaluate(code(), emptySet()))
         assertNull(outcome.draft.name)
         assertEquals(setOf(IntakeField.NAME), outcome.missing)
         assertEquals(CategoryID.UNCATEGORIZED, outcome.draft.category)

@@ -8,8 +8,10 @@ import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.ProductRef
 import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
+import com.medicabinet.core.named.MemoryEvent
 import com.medicabinet.core.named.ProductMemory
 import java.util.UUID
+import kotlin.coroutines.cancellation.CancellationException
 
 /** What will become a box. The completion step, the session list and manual entry edit it before [ScanIntake.add]. */
 data class BoxDraft(
@@ -56,7 +58,13 @@ class IntakeException(val error: IntakeError) : Exception(error.kind)
  * Turns scans and typed entries into boxes. Stateless: the scan session (GTINs added so far, the review list)
  * lives in the view model.
  */
-class ScanIntake(private val boxes: BoxRepository, private val memory: ProductMemory, private val clock: Clock) {
+class ScanIntake(
+    private val boxes: BoxRepository,
+    private val memory: ProductMemory,
+    private val clock: Clock,
+    /** Told when remembering the name failed. The box is already saved: the failure never reaches the caller. */
+    private val onMemoryFailure: (Exception) -> Unit = {}
+) {
     suspend fun evaluate(code: ScannedCode, sessionGtins: Set<String>): IntakeOutcome {
         val match = code.serial?.let { boxes.box(code.gtin, it) }
         val resolved = resolve(code.gtin)
@@ -119,6 +127,7 @@ class ScanIntake(private val boxes: BoxRepository, private val memory: ProductMe
             createdAt = clock.now()
         )
         boxes.insert(box)
+        remember(MemoryEvent.Added(box))
         return box
     }
 
@@ -134,6 +143,17 @@ class ScanIntake(private val boxes: BoxRepository, private val memory: ProductMe
     suspend fun delete(id: UUID) = boxes.delete(id)
 
     suspend fun undoDelete(id: UUID) = boxes.undoDelete(id)
+
+    /** The box is the household's data, the memory a convenience: a failing write is reported, not rethrown. */
+    private suspend fun remember(event: MemoryEvent) {
+        try {
+            memory.record(event)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (@Suppress("TooGenericExceptionCaught") failure: Exception) {
+            onMemoryFailure(failure)
+        }
+    }
 
     /** Reference data, else the product the household named, else unknown. A previous box only carries a category. */
     private suspend fun resolve(gtin: String): ResolvedProduct = memory.resolve(gtin, boxes.latestBox(gtin))

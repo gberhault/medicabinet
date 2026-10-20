@@ -2,6 +2,7 @@ package com.medicabinet.app.features.scan
 
 import androidx.lifecycle.ViewModel
 import com.medicabinet.app.app.AppEnvironment
+import com.medicabinet.app.app.AppLog
 import com.medicabinet.app.features.scan.camera.VisibleCodes
 import com.medicabinet.core.Box
 import com.medicabinet.core.ExpiryDate
@@ -12,6 +13,7 @@ import com.medicabinet.core.RepositoryException
 import com.medicabinet.core.cabinet.RemovalOutcome
 import com.medicabinet.core.cabinet.ScanRemoval
 import com.medicabinet.core.named.ProductMemory
+import com.medicabinet.core.reference.ReferenceStatus
 import com.medicabinet.core.scan.BoxDraft
 import com.medicabinet.core.scan.GS1Parser
 import com.medicabinet.core.scan.IntakeError
@@ -133,8 +135,10 @@ data class ScanUiState(
  */
 @Suppress("TooManyFunctions") // one entry point per user action of the scan screen
 class ScanViewModel(environment: AppEnvironment, private val services: ScanServices) : ViewModel() {
-    private val intake =
-        ScanIntake(environment.boxes, ProductMemory(environment.named, services.lookup), environment.clock)
+    private val memory = ProductMemory(environment.named, services.lookup) {
+        environment.reference.status() is ReferenceStatus.Available
+    }
+    private val intake = ScanIntake(environment.boxes, memory, environment.clock) { AppLog.memoryFailed(it) }
     private val removal = ScanRemoval(environment.boxes, environment.clock)
     private val locationRepository = environment.locations
     private val boxes = environment.boxes

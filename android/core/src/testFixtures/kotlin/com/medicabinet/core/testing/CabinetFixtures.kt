@@ -161,3 +161,63 @@ fun SharedFixtures.scanRemoval(): CabinetCaseList<ScanRemovalCase> =
 fun SharedFixtures.schemaV3(): SchemaSnapshot = cabinetFixtureJson.decodeFromString(text("schema-v3.json"))
 
 fun SharedFixtures.schemaV4(): SchemaSnapshot = cabinetFixtureJson.decodeFromString(text("schema-v4.json"))
+
+/** A box as the memory and backfill fixtures state it: only what the rules read. */
+@Serializable
+data class FixtureNamedBox(
+    val gtin: String? = null,
+    val name: String,
+    val category: String,
+    val categoryOverridden: Boolean
+)
+
+/** One case of `fixtures/product-memory.json`. */
+@Serializable
+data class ProductMemoryCase(
+    val name: String,
+    val event: Event,
+    /** `true` = the reference names the code, `false` = it does not, `null` = cannot tell. */
+    val codeKnown: Boolean? = null,
+    val current: Current? = null,
+    val expect: Expect
+) {
+    @Serializable
+    data class Event(
+        /** `added` | `changed` | `sessionCorrected` */
+        val kind: String,
+        val before: FixtureNamedBox? = null,
+        val after: FixtureNamedBox
+    )
+
+    @Serializable
+    data class Current(val name: String, val category: String, val categoryOverridden: Boolean)
+
+    @Serializable
+    data class Expect(
+        /** `none` | `remember` */
+        val action: String,
+        val name: String? = null,
+        val category: String? = null,
+        val categoryOverridden: Boolean? = null
+    )
+
+    override fun toString(): String = name
+}
+
+/** One case of `fixtures/named-product-backfill.json`. */
+@Serializable
+data class NamedProductBackfillCase(
+    val name: String,
+    /** The codes the reference names. */
+    val known: List<String>,
+    val latest: List<FixtureNamedBox>,
+    val expect: List<FixtureNamedBox>
+) {
+    override fun toString(): String = name
+}
+
+fun SharedFixtures.productMemory(): CabinetCaseList<ProductMemoryCase> =
+    cabinetFixtureJson.decodeFromString(text("product-memory.json"))
+
+fun SharedFixtures.namedProductBackfill(): CabinetCaseList<NamedProductBackfillCase> =
+    cabinetFixtureJson.decodeFromString(text("named-product-backfill.json"))

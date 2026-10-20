@@ -31,6 +31,11 @@ object AppLog {
         Log.e(TAG, "cabinet $what failed: ${error::class.java.simpleName}")
     }
 
+    /** Remembering the name of a saved box failed. The box is saved; only the exception class is logged. */
+    fun memoryFailed(error: Throwable) {
+        Log.e(TAG, "named product remember failed: ${error::class.java.simpleName}")
+    }
+
     /** A step of the monthly digest failed; [what] is a fixed word such as `read` or `notify`. */
     fun reminderFailed(what: String, error: Throwable) {
         Log.e(TAG, "reminder $what failed: ${error::class.java.simpleName}")
