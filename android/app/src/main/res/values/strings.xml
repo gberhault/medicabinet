@@ -31,8 +31,6 @@
     <string name="category_uncategorized">Non classé</string>
     <string name="category_vitamins_minerals">Vitamines et minéraux</string>
     <string name="location_default_name">Armoire à pharmacie</string>
-    <string name="placeholder_cabinet_message">Vos médicaments, classés par catégorie et par lieu, apparaîtront ici.</string>
-    <string name="placeholder_cabinet_title">L\'armoire arrive bientôt</string>
     <string name="placeholder_expiring_message">Les médicaments périmés ou bientôt périmés seront listés ici.</string>
     <string name="placeholder_expiring_title">Le suivi des péremptions arrive bientôt</string>
     <string name="placeholder_scan_message">Vous pourrez bientôt scanner vos boîtes de médicaments les unes après les autres.</string>

@@ -31,8 +31,6 @@
     <string name="category_uncategorized">Uncategorized</string>
     <string name="category_vitamins_minerals">Vitamins and minerals</string>
     <string name="location_default_name">Medicine cabinet</string>
-    <string name="placeholder_cabinet_message">Your medicines, sorted by category and location, will appear here.</string>
-    <string name="placeholder_cabinet_title">Your cabinet is coming soon</string>
     <string name="placeholder_expiring_message">Expired and soon-to-expire medicines will be listed here.</string>
     <string name="placeholder_expiring_title">Expiry tracking is coming soon</string>
     <string name="placeholder_scan_message">Soon you will be able to scan your medicine boxes one after the other.</string>

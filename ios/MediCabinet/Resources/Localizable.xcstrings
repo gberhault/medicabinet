@@ -2009,38 +2009,6 @@
         }
       }
     },
-    "placeholder.cabinet.message": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your medicines, sorted by category and location, will appear here."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vos médicaments, classés par catégorie et par lieu, apparaîtront ici."
-          }
-        }
-      }
-    },
-    "placeholder.cabinet.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your cabinet is coming soon"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "L'armoire arrive bientôt"
-          }
-        }
-      }
-    },
     "placeholder.expiring.message": {
       "localizations": {
         "en": {
