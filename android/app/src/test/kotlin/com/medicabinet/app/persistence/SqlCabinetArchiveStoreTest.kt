@@ -3,17 +3,21 @@ package com.medicabinet.app.persistence
 import android.database.sqlite.SQLiteConstraintException
 import androidx.test.core.app.ApplicationProvider
 import com.medicabinet.core.Box
+import com.medicabinet.core.NamedProduct
 import com.medicabinet.core.ProductRef
 import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
 import com.medicabinet.core.archive.ArchiveApp
 import com.medicabinet.core.archive.ArchiveDecoder
 import com.medicabinet.core.archive.ArchivedBox
+import com.medicabinet.core.archive.ArchivedNamedProduct
 import com.medicabinet.core.archive.BackupReason
+import com.medicabinet.core.archive.CabinetArchiveStore
 import com.medicabinet.core.archive.CabinetContents
 import com.medicabinet.core.archive.CabinetTransfer
 import com.medicabinet.core.testing.ArchiveFixtureFiles
 import com.medicabinet.core.testing.ArchiveStoreContract
+import com.medicabinet.core.testing.ArchiveStoreUnderContract
 import com.medicabinet.core.testing.MutableClock
 import com.medicabinet.core.testing.SyntheticArchive
 import java.io.File
@@ -42,8 +46,18 @@ private fun newCabinet() =
 /** Stores return rows in their own order; comparisons are on contents. */
 private fun normalized(contents: CabinetContents) = CabinetContents(
     contents.locations.sortedBy { it.location.id.toString() },
-    contents.boxes.sortedBy { it.box.id.toString() }
+    contents.boxes.sortedBy { it.box.id.toString() },
+    contents.namedProducts.sortedBy { it.product.id.toString() }
 )
+
+/** The contract reads the backfill marker through the real named-product repository. */
+private class ContractedSqlStore(cabinet: CabinetDatabase, private val store: SqlCabinetArchiveStore) :
+    ArchiveStoreUnderContract,
+    CabinetArchiveStore by store {
+    private val named = SqlNamedProductRepository(cabinet, MutableClock(Instant.ofEpochSecond(1_800_000_000)))
+
+    override suspend fun backfillPending(): Boolean = named.backfillPending()
+}
 
 /** The shared store contract (`fixtures/archive-store-contract.json`) on plain SQLite. */
 @RunWith(ParameterizedRobolectricTestRunner::class)
@@ -56,7 +70,7 @@ class SqlCabinetArchiveStoreContractTest(private val check: ArchiveStoreContract
 
     @Test
     fun sqlStoreSatisfiesTheContract() = runBlocking {
-        newCabinet().use { cabinet -> check.run { SqlCabinetArchiveStore(cabinet) } }
+        newCabinet().use { cabinet -> check.run { ContractedSqlStore(cabinet, SqlCabinetArchiveStore(cabinet)) } }
     }
 
     @Test
@@ -165,7 +179,7 @@ class SqlCabinetArchiveStoreTest {
             locationId = location.location.id,
             createdAt = clock.now()
         )
-        val bad = CabinetContents(golden.locations, golden.boxes + ArchivedBox(tooLong))
+        val bad = golden.copy(boxes = golden.boxes + ArchivedBox(tooLong))
         var hookCalled = false
 
         assertFailsWith<SQLiteConstraintException> { store.replace(bad) { hookCalled = true } }
@@ -187,6 +201,94 @@ class SqlCabinetArchiveStoreTest {
         assertEquals(RepositoryError.DUPLICATE_SERIAL, error.error)
         assertFalse(hookCalled)
     }
+
+    // region Named products
+
+    private fun namedProducts(cabinet: CabinetDatabase) = SqlNamedProductRepository(cabinet, clock)
+
+    /**
+     * The golden file carries a live and a forgotten product with one GTIN, and a live one with a user category: all of
+     * them reach the table, and the repository sees only the live ones.
+     */
+    @Test
+    fun namedProductsOfTheGoldenFileLandInTheTableAndTheRepositoryShowsTheLiveOnes() = runBlocking {
+        val cabinet = cabinet()
+        val named = namedProducts(cabinet)
+        SqlCabinetArchiveStore(cabinet).replace(golden) { }
+
+        val rows = SqlProbe.query(cabinet.database, "SELECT COUNT(*) FROM namedProduct") { it.getInt(0) }
+        assertEquals(listOf(3), rows)
+        val shown = named.namedProduct("03400936404571")
+        assertEquals("Produit 2", shown?.name)
+        val chosen = named.namedProduct("03401234567890")
+        assertEquals("skin-wound", chosen?.category?.rawValue)
+        assertTrue(chosen?.categoryOverridden == true)
+        assertFalse(named.backfillPending())
+    }
+
+    /**
+     * A version 1 file has no named products: the import leaves the table empty and the fill pending, and the snapshot
+     * still reports no fill (the marker is the store's, not the cabinet's).
+     */
+    @Test
+    fun aVersionOneImportSetsTheMarkerAndClearsTheTable() = runBlocking {
+        val old = ArchiveDecoder.decode(ArchiveFixtureFiles.goldenArchive(1)).cabinet
+        assertTrue(old.namedProductsNeedFill)
+        val cabinet = cabinet()
+        val named = namedProducts(cabinet)
+        val store = SqlCabinetArchiveStore(cabinet)
+        store.replace(golden) { }
+        assertFalse(named.backfillPending())
+
+        store.replace(old) { }
+
+        val snapshot = store.snapshot()
+        assertTrue(snapshot.namedProducts.isEmpty())
+        assertFalse(snapshot.namedProductsNeedFill)
+        assertTrue(named.backfillPending())
+    }
+
+    /** The same GTIN live twice is refused before anything is touched, with the table and the marker untouched. */
+    @Test
+    fun twoLiveProductsWithOneGtinAreARepositoryErrorAndChangeNothing() = runBlocking {
+        val cabinet = cabinet()
+        val store = SqlCabinetArchiveStore(cabinet)
+        store.replace(golden) { }
+        val before = store.snapshot()
+        val twins = (1..2).map {
+            ArchivedNamedProduct(NamedProduct(gtin = "03401234567890", name = "Twin $it", createdAt = clock.now()))
+        }
+        var hookCalled = false
+
+        val error = assertFailsWith<RepositoryException> {
+            store.replace(golden.copy(namedProducts = twins, namedProductsNeedFill = true)) { hookCalled = true }
+        }
+
+        assertEquals(RepositoryError.DUPLICATE, error.error)
+        assertFalse(hookCalled)
+        assertEquals(before, store.snapshot())
+        assertFalse(namedProducts(cabinet).backfillPending())
+    }
+
+    /** A row the table refuses (the CHECK on the name length) fails the transaction and rolls the marker back too. */
+    @Test
+    fun aNamedProductInsertFailingMidwayRollsTheWholeReplaceBack() = runBlocking {
+        val cabinet = cabinet()
+        val store = SqlCabinetArchiveStore(cabinet)
+        store.replace(golden) { }
+        val before = store.snapshot()
+        val first = golden.namedProducts.first()
+        val tooLong = first.copy(product = first.product.copy(name = "n".repeat(201)))
+        val products = listOf(tooLong) + golden.namedProducts.drop(1)
+        val bad = golden.copy(namedProducts = products, namedProductsNeedFill = true)
+
+        assertFailsWith<SQLiteConstraintException> { store.replace(bad) { } }
+
+        assertEquals(before, store.snapshot())
+        assertFalse(namedProducts(cabinet).backfillPending())
+    }
+
+    // endregion
 
     @Test
     fun aSuccessfulReplaceIsAnnouncedToTheObservers() = runBlocking {

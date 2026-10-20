@@ -74,8 +74,15 @@ internal object NamedProductSql {
     fun pending(db: SupportSQLiteDatabase): Boolean =
         db.query("SELECT 1 FROM cabinetMeta WHERE key = ?", arrayOf(BACKFILL_KEY)).use { it.moveToFirst() }
 
+    /** Marks the fill as still to do (an import of a version 1 file); the same row the v4 migration writes. */
+    fun setBackfillMarker(db: SupportSQLiteDatabase) = db.execSQL(
+        "INSERT OR REPLACE INTO cabinetMeta (key, value) VALUES (?, ?)",
+        arrayOf(BACKFILL_KEY, BACKFILL_PENDING)
+    )
+
     fun clearBackfillMarker(db: SupportSQLiteDatabase) =
         db.execSQL("DELETE FROM cabinetMeta WHERE key = ?", arrayOf(BACKFILL_KEY))
 
     const val BACKFILL_KEY = "namedProductBackfill"
+    private const val BACKFILL_PENDING = "pending"
 }

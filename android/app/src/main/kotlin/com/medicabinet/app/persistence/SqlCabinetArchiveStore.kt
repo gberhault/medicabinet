@@ -2,13 +2,11 @@ package com.medicabinet.app.persistence
 
 import android.database.Cursor
 import androidx.sqlite.db.SupportSQLiteDatabase
-import androidx.sqlite.db.SupportSQLiteStatement
-import com.medicabinet.core.Box
-import com.medicabinet.core.Location
 import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
 import com.medicabinet.core.archive.ArchivedBox
 import com.medicabinet.core.archive.ArchivedLocation
+import com.medicabinet.core.archive.ArchivedNamedProduct
 import com.medicabinet.core.archive.CabinetArchiveStore
 import com.medicabinet.core.archive.CabinetContents
 import java.time.Instant
@@ -17,8 +15,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * The whole cabinet for export and import (design §5.1): every location and every box, deleted ones included, read in
- * one transaction; replaced in one write transaction with the automatic backup taken inside it (§1.2).
+ * The whole cabinet for export and import (design §5.1): every location, box and named product, deleted and forgotten
+ * ones included, read in one transaction; replaced in one write transaction with the automatic backup taken inside it
+ * (§1.2).
  */
 class SqlCabinetArchiveStore(
     private val cabinet: CabinetDatabase,
@@ -32,11 +31,15 @@ class SqlCabinetArchiveStore(
             requireHoldable(snapshot)
             cabinet.transaction { db ->
                 beforeReplacing(contentsOf(db))
-                // Boxes first: location rows are referenced with ON DELETE RESTRICT.
+                // Boxes before locations: location rows are referenced with ON DELETE RESTRICT. Named products point at
+                // nothing.
+                db.execSQL("DELETE FROM namedProduct")
                 db.execSQL("DELETE FROM box")
                 db.execSQL("DELETE FROM location")
-                insertLocations(db, snapshot.locations)
-                insertBoxes(db, snapshot.boxes)
+                ArchiveRowWriter.locations(db, snapshot.locations)
+                ArchiveRowWriter.boxes(db, snapshot.boxes)
+                ArchiveRowWriter.namedProducts(db, snapshot.namedProducts)
+                writeBackfillMarker(db, pending = snapshot.namedProductsNeedFill)
             }
         }
     }
@@ -48,7 +51,19 @@ class SqlCabinetArchiveStore(
         val boxes = db.query("SELECT ${Columns.BOX}, deletedAt FROM box ORDER BY createdAt, id").mapRows {
             ArchivedBox(toBox(), deletedAt("box"))
         }
-        return CabinetContents(locations, boxes)
+        val products = db.query(
+            "SELECT ${Columns.NAMED_PRODUCT}, deletedAt FROM namedProduct ORDER BY createdAt, id"
+        ).mapRows { ArchivedNamedProduct(toNamedProduct(), deletedAt("namedProduct")) }
+        return CabinetContents(locations, boxes, products)
+    }
+
+    /**
+     * The backfill marker is state of the cabinet database (`cabinetMeta`), so it is replaced in the same transaction
+     * as the rows: pending when the archive came from a version 1 file (the products are filled from the boxes after
+     * the import), absent otherwise (the file's products are the household's).
+     */
+    private fun writeBackfillMarker(db: SupportSQLiteDatabase, pending: Boolean) {
+        if (pending) NamedProductSql.setBackfillMarker(db) else NamedProductSql.clearBackfillMarker(db)
     }
 
     private fun Cursor.deletedAt(table: String): Instant? = strOrNull("deletedAt")?.let { StoredDate.read(it, table) }
@@ -59,73 +74,18 @@ class SqlCabinetArchiveStore(
         val liveSerials = snapshot.boxes
             .filter { it.deletedAt == null && it.box.product.gtin != null && it.box.serial != null }
             .map { it.box.product.gtin to it.box.serial }
+        val liveGtins = snapshot.namedProducts.filter { it.deletedAt == null }.map { it.product.gtin }
         val problem = when {
             locationIds.size != snapshot.locations.size -> RepositoryError.DUPLICATE
             snapshot.boxes.map { it.box.id }.toSet().size != snapshot.boxes.size -> RepositoryError.DUPLICATE
+            snapshot.namedProducts.map { it.product.id }.toSet().size != snapshot.namedProducts.size ->
+                RepositoryError.DUPLICATE
+            liveGtins.toSet().size != liveGtins.size -> RepositoryError.DUPLICATE
             snapshot.locations.count { it.location.isDefault } > 1 -> RepositoryError.DUPLICATE_DEFAULT
             snapshot.boxes.any { it.box.locationId !in locationIds } -> RepositoryError.UNKNOWN_LOCATION
             liveSerials.toSet().size != liveSerials.size -> RepositoryError.DUPLICATE_SERIAL
             else -> null
         }
         if (problem != null) throw RepositoryException(problem)
-    }
-
-    private fun insertLocations(db: SupportSQLiteDatabase, locations: List<ArchivedLocation>) {
-        db.compileStatement("INSERT INTO location (${Columns.LOCATION}, deletedAt) VALUES (?, ?, ?, ?, ?, ?, ?)").use {
-            for (archived in locations) it.insert(archived.location, archived.deletedAt)
-        }
-    }
-
-    private fun insertBoxes(db: SupportSQLiteDatabase, boxes: List<ArchivedBox>) {
-        db.compileStatement(
-            "INSERT INTO box (${Columns.BOX}, deletedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).use {
-            for (archived in boxes) it.insert(archived.box, archived.deletedAt)
-        }
-    }
-
-    private fun SupportSQLiteStatement.insert(location: Location, deletedAt: Instant?) = insertRow(
-        location.id.stored(),
-        location.name,
-        location.isDefault.stored(),
-        location.sortOrder.toLong(),
-        StoredDate.write(location.createdAt),
-        StoredDate.write(location.updatedAt),
-        deletedAt?.let(StoredDate::write)
-    )
-
-    /** Ids, fields and dates as given; the expiry sort key is derived, so it is computed here (F5). */
-    private fun SupportSQLiteStatement.insert(box: Box, deletedAt: Instant?) = insertRow(
-        box.id.stored(),
-        box.product.gtin,
-        box.product.name,
-        box.category.rawValue,
-        box.categoryOverridden.stored(),
-        box.locationId.stored(),
-        box.expiry?.year?.toLong(),
-        box.expiry?.month?.toLong(),
-        box.expiry?.day?.toLong(),
-        box.expiry?.sortKey,
-        box.lot,
-        box.serial,
-        box.isOpened.stored(),
-        box.removal?.reason?.rawValue,
-        box.removal?.date?.let(StoredDate::write),
-        StoredDate.write(box.createdAt),
-        StoredDate.write(box.updatedAt),
-        deletedAt?.let(StoredDate::write)
-    )
-
-    /** Binds [values] to the statement's placeholders, in order, and runs it. */
-    private fun SupportSQLiteStatement.insertRow(vararg values: Any?) {
-        clearBindings()
-        values.forEachIndexed { index, value ->
-            when (value) {
-                null -> bindNull(index + 1)
-                is Long -> bindLong(index + 1, value)
-                else -> bindString(index + 1, value.toString())
-            }
-        }
-        executeInsert()
     }
 }
