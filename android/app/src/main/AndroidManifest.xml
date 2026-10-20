@@ -36,6 +36,19 @@
             </intent-filter>
         </activity>
 
+        <!-- Hands one shared archive (cache/export/ only) to the app the user picked in the share sheet, with a
+             one-time read grant. Not exported: no other app can open it by itself. The authority follows the
+             applicationId so the side-by-side perf build can be installed too. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.export"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/export_paths" />
+        </provider>
+
         <!-- The digest alarm. No intent filter: only this app's own PendingIntent reaches it. -->
         <receiver
             android:name=".reminders.DigestAlarmReceiver"

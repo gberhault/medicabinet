@@ -285,4 +285,31 @@
         <item quantity="other">%1$d boîtes périment dans les %2$d jours</item>
     </plurals>
     <string name="reminder_digest_body_both">%1$s · %2$s</string>
+    <string name="transfer_export_action">Exporter l\'armoire</string>
+    <string name="transfer_export_cancel">Annuler</string>
+    <string name="transfer_export_continue">Continuer</string>
+    <string name="transfer_export_failed">Le fichier n\'a pas pu être créé. Votre armoire n\'a pas été modifiée.</string>
+    <string name="transfer_export_loading">Préparation de l\'export…</string>
+    <string name="transfer_export_retry">Réessayer</string>
+    <string name="transfer_export_saveToFile">Enregistrer dans un fichier</string>
+    <string name="transfer_export_saved">Fichier enregistré</string>
+    <string name="transfer_export_share">Partager</string>
+    <plurals name="transfer_export_summary_boxes">
+        <item quantity="one">%1$d boîte dans l\'armoire</item>
+        <item quantity="other">%1$d boîtes dans l\'armoire</item>
+    </plurals>
+    <string name="transfer_export_summary_empty">L\'armoire ne contient aucune boîte. Le fichier contiendra seulement les lieux.</string>
+    <plurals name="transfer_export_summary_locations">
+        <item quantity="one">%1$d lieu</item>
+        <item quantity="other">%1$d lieux</item>
+    </plurals>
+    <plurals name="transfer_export_summary_removed">
+        <item quantity="one">%1$d boîte retirée (historique)</item>
+        <item quantity="other">%1$d boîtes retirées (historique)</item>
+    </plurals>
+    <string name="transfer_export_title">Exporter l\'armoire</string>
+    <string name="transfer_export_warning">Ce fichier contient des données de santé (vos médicaments). Il n\'est pas chiffré : toute personne qui l\'obtient peut le lire. Ne le partagez qu\'avec des personnes de confiance.</string>
+    <string name="transfer_export_writing">Création du fichier…</string>
+    <string name="transfer_section_footer">Un fichier .medicabinet contient toute l\'armoire. Il sert de sauvegarde ou à passer sur un autre téléphone, iPhone ou Android.</string>
+    <string name="transfer_section_title">Sauvegarde et transfert</string>
 </resources>

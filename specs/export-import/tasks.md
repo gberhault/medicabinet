@@ -125,13 +125,17 @@ independent of each other.
   cleanup of `cache/export`; the scan session ends on a revision change. *Tests:* as T11.
   Done: the scan view model checks the revision each time the Scan tab loads (the tab is never on screen during an
   import, which runs from Settings), so it needs no coroutine of its own.
-- [ ] **T18 — Export: save and share** `[android]` [#28] (E1–E9, X1; §7.1, flows 1–2)
+- [x] **T18 — Export: save and share** `[android]` [#28] (E1–E9, X1; §7.1, flows 1–2)
   `TransferSection`, `ExportViewModel`, `ExportSummarySheet`; **Save to file**
   (`CreateDocument`, delete on failure) and **Share** (`FileProvider`, `export_paths.xml`,
   chooser); architecture rule + fixture (§7.4). Strings (fr + en, same wording as iOS).
   *Tests:* view-model (Turbine); Robolectric: CreateDocument result → bytes written, failure
   → document deleted, share intent grants read on the provider URI only; manifest test
   (provider not exported); `PrivacyTest` unchanged.
+  Done: the summary sheet offers **Save to file** and **Share** directly (Android has no
+  separate Continue step; `transfer_export_continue` exists for parity only). The provider
+  authority is `${applicationId}.export` (= `com.medicabinet.app.export` in the shipped app),
+  so the side-by-side `.perf` build can be installed too (design §7.1 amended).
 - [ ] **T19 — Open-with filters and coordinator** `[android]` [#28, #29] (O2, O4, O5; §7.3)
   The §7.3 intent filters, `singleTop`, `onNewIntent`, `ImportCoordinator` (immediate capped
   read, gating like iOS); busy registration in the scan sheets. *Tests:* manifest test (the

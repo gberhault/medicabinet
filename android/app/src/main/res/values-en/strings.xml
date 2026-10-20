@@ -285,4 +285,31 @@
         <item quantity="other">%1$d boxes expire within %2$d days</item>
     </plurals>
     <string name="reminder_digest_body_both">%1$s · %2$s</string>
+    <string name="transfer_export_action">Export the cabinet</string>
+    <string name="transfer_export_cancel">Cancel</string>
+    <string name="transfer_export_continue">Continue</string>
+    <string name="transfer_export_failed">The file could not be created. Your cabinet was not changed.</string>
+    <string name="transfer_export_loading">Preparing the export…</string>
+    <string name="transfer_export_retry">Try again</string>
+    <string name="transfer_export_saveToFile">Save to file</string>
+    <string name="transfer_export_saved">File saved</string>
+    <string name="transfer_export_share">Share</string>
+    <plurals name="transfer_export_summary_boxes">
+        <item quantity="one">%1$d box in the cabinet</item>
+        <item quantity="other">%1$d boxes in the cabinet</item>
+    </plurals>
+    <string name="transfer_export_summary_empty">The cabinet has no box. The file will hold the locations only.</string>
+    <plurals name="transfer_export_summary_locations">
+        <item quantity="one">%1$d location</item>
+        <item quantity="other">%1$d locations</item>
+    </plurals>
+    <plurals name="transfer_export_summary_removed">
+        <item quantity="one">%1$d removed box (history)</item>
+        <item quantity="other">%1$d removed boxes (history)</item>
+    </plurals>
+    <string name="transfer_export_title">Export the cabinet</string>
+    <string name="transfer_export_warning">This file contains health data (your medicines). It is not encrypted: anyone who gets it can read it. Share it only with people you trust.</string>
+    <string name="transfer_export_writing">Creating the file…</string>
+    <string name="transfer_section_footer">A .medicabinet file holds the whole cabinet. Use it as a backup or to move to another phone, iPhone or Android.</string>
+    <string name="transfer_section_title">Backup and transfer</string>
 </resources>

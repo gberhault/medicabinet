@@ -18,6 +18,10 @@ Rules
                                 NotificationManagerCompat only under app/.../reminders/
   views_not_persistence         features/cabinet and features/settings/locations import no persistence package
                                 (views -> view models -> repository ports only)
+  sharing_confined_to_transfer  FileProvider, DocumentsContract and openOutputStream only under
+                                app/.../features/transfer/ (the exported health data leaves the app in one place)
+  file_writes_confined          java.io file writes (FileOutputStream, writeBytes, ...) only under
+                                app/.../features/transfer/ and app/.../persistence/
 """
 import argparse
 import pathlib
@@ -78,6 +82,20 @@ RULES = [
         "pattern": re.compile(IMPORT + r"com\.medicabinet\.app\.persistence"),
         "applies": lambda p: "/android/app/src/main/" in p and p.endswith(".kt")
         and ("/features/cabinet/" in p or "/features/settings/locations/" in p),
+    },
+    {
+        "id": "sharing_confined_to_transfer",
+        "message": "FileProvider, DocumentsContract and openOutputStream may only be used under .../features/transfer/",
+        "pattern": re.compile(r"\b(FileProvider|DocumentsContract)\b|\.openOutputStream\("),
+        "applies": lambda p: "/android/app/src/main/" in p and p.endswith(".kt") and "/features/transfer/" not in p,
+    },
+    {
+        "id": "file_writes_confined",
+        "message": "files may only be written under .../features/transfer/ and .../persistence/",
+        "pattern": re.compile(r"\b(FileOutputStream|FileWriter|RandomAccessFile|PrintWriter)\b|"
+                              r"\.(writeBytes|writeText|appendBytes|appendText|outputStream|bufferedWriter|printWriter)\("),
+        "applies": lambda p: "/android/app/src/main/" in p and p.endswith(".kt")
+        and "/features/transfer/" not in p and "/persistence/" not in p,
     },
     {
         "id": "log_through_applog",

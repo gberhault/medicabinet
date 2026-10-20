@@ -67,6 +67,7 @@ import com.medicabinet.app.features.settings.ExpirySettingsSection
 import com.medicabinet.app.features.settings.PackageAppInfo
 import com.medicabinet.app.features.settings.SettingsScreen
 import com.medicabinet.app.features.settings.locations.LocationsRoute
+import com.medicabinet.app.features.transfer.TransferSettings
 import com.medicabinet.app.reminders.ReminderModel
 import com.medicabinet.app.reminders.ReminderServices
 import com.medicabinet.app.reminders.reminderServices
@@ -251,6 +252,7 @@ private fun MainNavHost(
                     expirySection = {
                         ExpirySettingsSection(environment.expiryPreferences, models.reminder, models.reminderActions)
                     },
+                    transferSection = { TransferSettings(environment) },
                     extraRows = { DebugSettingsRow { navController.navigate(DEBUG_ROUTE) } }
                 )
             }

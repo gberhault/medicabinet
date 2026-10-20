@@ -42,6 +42,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     onOpenLocations: () -> Unit = {},
     expirySection: @Composable () -> Unit = {},
+    transferSection: @Composable () -> Unit = {},
     extraRows: @Composable () -> Unit = {}
 ) {
     Scaffold(
@@ -55,6 +56,7 @@ fun SettingsScreen(
                 modifier = Modifier.clickable(onClick = onOpenLocations).testTag("settings.locations")
             )
             expirySection()
+            transferSection()
             ListItem(
                 headlineContent = { Text(stringResource(R.string.settings_about)) },
                 leadingContent = { Icon(Icons.Outlined.Info, contentDescription = null) },

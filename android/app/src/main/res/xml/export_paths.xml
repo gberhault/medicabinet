@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The only folder the export FileProvider can hand out: cache/export/, where a shared archive waits until the next
+     export or the next launch (design §7.1). Nothing else of the app's storage is reachable through it. -->
+<paths>
+    <cache-path name="export" path="export/" />
+</paths>

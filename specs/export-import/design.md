@@ -493,9 +493,11 @@ android/app/src/main/kotlin/com/medicabinet/app/features/transfer/
   `Intent.createChooser`. `cacheDir/export/` is emptied at the next export and at launch
   (E6 amended).
 - Manifest: `<provider android:name="androidx.core.content.FileProvider"
-  android:authorities="com.medicabinet.app.export" android:exported="false"
+  android:authorities="${applicationId}.export" android:exported="false"
   android:grantUriPermissions="true">` with `res/xml/export_paths.xml` →
-  `<cache-path name="export" path="export/" />` only.
+  `<cache-path name="export" path="export/" />` only. *(Amended in T18: the authority follows the
+  `applicationId`, which is `com.medicabinet.app.export` in the shipped app; a fixed authority would
+  stop the side-by-side `.perf` debug build from installing, since two apps cannot declare the same one.)*
 
 ### 7.2 Import
 
