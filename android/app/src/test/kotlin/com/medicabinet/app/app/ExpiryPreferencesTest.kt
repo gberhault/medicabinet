@@ -134,21 +134,24 @@ class ExpiryPreferencesTest {
     }
 
     @Test
-    fun theTimeZoneAndClockBroadcastsEmitWhileCollected() = runTest {
+    fun theTimeZoneClockAndDateBroadcastsEmitWhileCollected() = runTest {
+        val application = context as android.app.Application
+        val before = shadowOf(application).registeredReceivers.size
         systemTimeChanges(context).test {
+            // One runtime receiver while collected (the manifest ones were already there).
+            assertEquals(before + 1, shadowOf(application).registeredReceivers.size)
             context.sendBroadcast(Intent(Intent.ACTION_TIMEZONE_CHANGED))
             shadowOf(android.os.Looper.getMainLooper()).idle()
             awaitItem()
             context.sendBroadcast(Intent(Intent.ACTION_TIME_CHANGED))
             shadowOf(android.os.Looper.getMainLooper()).idle()
             awaitItem()
+            context.sendBroadcast(Intent(Intent.ACTION_DATE_CHANGED))
+            shadowOf(android.os.Looper.getMainLooper()).idle()
+            awaitItem()
             cancelAndIgnoreRemainingEvents()
         }
-        // Unregistered once collection stops: a later broadcast reaches nobody.
-        assertTrue(
-            shadowOf(context as android.app.Application).registeredReceivers.none {
-                it.intentFilter.hasAction(Intent.ACTION_TIMEZONE_CHANGED)
-            }
-        )
+        // Unregistered once collection stops.
+        assertEquals(before, shadowOf(application).registeredReceivers.size)
     }
 }

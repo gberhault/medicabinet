@@ -5,6 +5,7 @@ import com.medicabinet.app.app.ExpiryPreferences
 import com.medicabinet.core.Clock
 import com.medicabinet.core.expiry.CalendarDay
 import com.medicabinet.core.expiry.ExpiryDigest
+import java.time.Instant
 import java.time.ZoneId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,8 +46,12 @@ enum class TurnOnResult {
 }
 
 /** Arms (or cancels) the platform alarm of the next digest; the scheduler re-reads the preferences each time. */
-fun interface ReminderScheduling {
-    fun arm()
+interface ReminderScheduling {
+    /**
+     * Sets the one alarm to the next digest (a missed digest of this month: now), or cancels it while the reminder is
+     * not on. [notBefore] pushes it later: a failed delivery is retried then, never in a tight loop.
+     */
+    fun arm(notBefore: Instant? = null)
 }
 
 /**

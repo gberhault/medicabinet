@@ -16,10 +16,12 @@ import com.medicabinet.app.app.TabRouter
 import com.medicabinet.app.features.cabinet.CabinetTestKit
 import com.medicabinet.app.features.scan.testEnvironment
 import com.medicabinet.app.features.scan.testScanServices
+import com.medicabinet.app.reminders.DeliveryKit
 import com.medicabinet.app.reminders.ReminderServices
 import com.medicabinet.app.reminders.ReminderTestKit
 import com.medicabinet.app.ui.theme.MediCabinetTheme
 import com.medicabinet.core.RemovalReason
+import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -93,6 +95,23 @@ class MainScaffoldTest {
         assertEquals(0, described.fetchSemanticsNodes().size)
     }
 
+    private fun services(kit: ReminderTestKit) = ReminderServices(
+        kit.access,
+        kit.scheduling,
+        DeliveryKit(Instant.parse("2027-01-15T12:00:00Z")).delivery
+    )
+
+    @Test
+    fun comingToTheForegroundArmsTheDigestAlarmAgain() {
+        val kit = ReminderTestKit()
+        compose.setContent {
+            MediCabinetTheme {
+                MainScaffold(testEnvironment(), scanServices = testScanServices(), reminderServices = services(kit))
+            }
+        }
+        compose.waitUntil(WAIT_MS) { kit.scheduling.arms >= 1 }
+    }
+
     @Test
     fun theExpiringTabOffersTheMonthlyReminderAndNotNowRemembersIt() {
         val kit = ReminderTestKit()
@@ -102,7 +121,7 @@ class MainScaffoldTest {
                 MainScaffold(
                     environment,
                     scanServices = testScanServices(),
-                    reminderServices = ReminderServices(kit.access, kit.scheduling)
+                    reminderServices = services(kit)
                 )
             }
         }

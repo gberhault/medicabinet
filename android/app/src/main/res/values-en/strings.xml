@@ -267,4 +267,14 @@
     <string name="reminder_settings_openSettings">Open Settings</string>
     <string name="reminder_channel_name">Monthly reminder</string>
     <string name="reminder_channel_description">Monthly summary of expired or soon-to-expire boxes</string>
+    <string name="reminder_digest_title">Your medicine cabinet</string>
+    <plurals name="reminder_digest_body_expired">
+        <item quantity="one">%1$d box expired</item>
+        <item quantity="other">%1$d boxes expired</item>
+    </plurals>
+    <plurals name="reminder_digest_body_soon">
+        <item quantity="one">%1$d box expires within %2$d days</item>
+        <item quantity="other">%1$d boxes expire within %2$d days</item>
+    </plurals>
+    <string name="reminder_digest_body_both">%1$s · %2$s</string>
 </resources>

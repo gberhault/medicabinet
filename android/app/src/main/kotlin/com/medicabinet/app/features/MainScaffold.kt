@@ -69,6 +69,10 @@ import com.medicabinet.app.features.settings.SettingsScreen
 import com.medicabinet.app.features.settings.locations.LocationsRoute
 import com.medicabinet.app.reminders.ReminderModel
 import com.medicabinet.app.reminders.ReminderServices
+import com.medicabinet.app.reminders.reminderServices
+import java.time.ZoneId
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 private const val SETTINGS_HOME = "settings/home"
 private const val SETTINGS_ABOUT = "settings/about"
@@ -101,7 +105,7 @@ fun MainScaffold(
     modifier: Modifier = Modifier,
     appInfo: AppInfo = PackageAppInfo(LocalContext.current),
     scanServices: ScanServices = ScanServices.live(LocalContext.current, environment.reference),
-    reminderServices: ReminderServices = ReminderServices.live(LocalContext.current),
+    reminderServices: ReminderServices = LocalContext.current.reminderServices(),
     tabRouter: TabRouter = remember { TabRouter() }
 ) {
     val aboutViewModel = remember(appInfo, environment.reference) { AboutViewModel(appInfo, environment.reference) }
@@ -116,10 +120,14 @@ fun MainScaffold(
             reminderServices.access,
             reminderServices.scheduling,
             environment.clock
-        ) { environment.zone }
+        ) { ZoneId.systemDefault() }
     }
     // The system may have changed what is allowed while the app was away (notification settings).
-    LifecycleEventEffect(Lifecycle.Event.ON_START) { reminderModel.refresh() }
+    LifecycleEventEffect(Lifecycle.Event.ON_START) {
+        reminderModel.refresh()
+        // Re-arm the digest alarm: it may have been lost (OEM task killers) or the zone or clock may have changed.
+        scope.launch(Dispatchers.IO) { reminderServices.scheduling.arm() }
+    }
     val models = MainModels(
         expiring = viewModel { ExpiringViewModel(environment) },
         reminder = reminderModel,

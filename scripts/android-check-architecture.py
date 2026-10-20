@@ -13,6 +13,9 @@ Rules
   no_network                    no network API imports and no INTERNET permission
   log_through_applog            android.util.Log only inside AppLog.kt
   camera_confined_to_scan_camera androidx.camera / zxingcpp only under app/.../features/scan/camera/
+  alarms_and_notifications_confined_to_reminders
+                                AlarmManager / NotificationManager / NotificationChannel / NotificationCompat /
+                                NotificationManagerCompat only under app/.../reminders/
   views_not_persistence         features/cabinet and features/settings/locations import no persistence package
                                 (views -> view models -> repository ports only)
 """
@@ -60,6 +63,14 @@ RULES = [
         "message": "androidx.camera and zxingcpp may only be used under .../features/scan/camera/",
         "pattern": re.compile(IMPORT + r"(androidx\.camera|zxingcpp)"),
         "applies": lambda p: "/android/app/src/" in p and p.endswith(".kt") and "/features/scan/camera/" not in p,
+    },
+    {
+        "id": "alarms_and_notifications_confined_to_reminders",
+        "message": "AlarmManager and the notification APIs may only be used under .../reminders/",
+        "pattern": re.compile(IMPORT + r"(android\.app\.(AlarmManager|NotificationManager|NotificationChannel)\b|"
+                              r"androidx\.core\.app\.(NotificationCompat|NotificationManagerCompat|"
+                              r"NotificationChannelCompat)\b)"),
+        "applies": lambda p: "/android/app/src/main/" in p and p.endswith(".kt") and "/reminders/" not in p,
     },
     {
         "id": "views_not_persistence",
