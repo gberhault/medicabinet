@@ -39,6 +39,8 @@ Every file is JSON with:
 | `schema-v2.json` | the tables, columns and indexes of a database migrated to v2 (`schema-v1.json` is the v1-only state) |
 | `schema-v3.sql` | the exact v3 migration step (location tombstone `deletedAt`), run after v2 on both platforms |
 | `schema-v3.json` | the tables, columns and indexes of a database migrated to v3 (`schema-v1.json` / `schema-v2.json` are the earlier states) |
+| `schema-v4.sql` | the exact v4 migration step (`namedProduct`, `cabinetMeta` and the backfill marker), run after v3 on both platforms |
+| `schema-v4.json` | the tables, columns and indexes of a fully migrated database (v4); `schema-v1.json` … `schema-v3.json` are the earlier states |
 | `schema-v1.json` | the tables, columns and indexes every platform's database v1 must have |
 | `archive-store-contract.json` | names of the `CabinetArchiveStore` contract checks both platforms run (the checks themselves are code) |
 | `repository-contract.json` | names of the repository contract checks both platforms run (the checks themselves are code) |

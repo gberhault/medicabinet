@@ -90,5 +90,33 @@ object Migrations {
         """.trimIndent()
     )
 
-    val all: List<Migration> = listOf(v1, v2, v3)
+    /**
+     * `namedProduct` is the name and category the household gave a code the reference database does not name (one live
+     * row per GTIN, a forgotten one keeps its tombstone); `cabinetMeta` marks the one-time fill of it from the boxes.
+     * The text of `fixtures/schema-v4.sql`, checked by SchemaTest.
+     */
+    val v4 = Migration(
+        name = "v4",
+        sql = """
+            CREATE TABLE namedProduct (
+              id                 TEXT PRIMARY KEY NOT NULL,
+              gtin               TEXT NOT NULL CHECK (length(gtin) = 14),
+              name               TEXT NOT NULL CHECK (length(name) BETWEEN 1 AND 200),
+              category           TEXT NOT NULL DEFAULT 'uncategorized',
+              categoryOverridden INTEGER NOT NULL DEFAULT 0,
+              createdAt          DATETIME NOT NULL,
+              updatedAt          DATETIME NOT NULL,
+              deletedAt          DATETIME
+            );
+            CREATE UNIQUE INDEX namedProduct_gtin ON namedProduct(gtin) WHERE deletedAt IS NULL;
+
+            CREATE TABLE cabinetMeta (
+              key   TEXT PRIMARY KEY NOT NULL,
+              value TEXT NOT NULL
+            ) WITHOUT ROWID;
+            INSERT INTO cabinetMeta (key, value) VALUES ('namedProductBackfill', 'pending');
+        """.trimIndent()
+    )
+
+    val all: List<Migration> = listOf(v1, v2, v3, v4)
 }

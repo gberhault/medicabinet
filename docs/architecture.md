@@ -83,6 +83,7 @@ Android refuses a downgrade.
 | v1 | `location`, `box`, their indexes | `schema-v1.sql`, `schema-v1.json` |
 | v2 | `box.deletedAt` (a box added by mistake), unique serial among boxes that are not deleted | `schema-v2.sql`, `schema-v2.json` |
 | v3 | `location.deletedAt` (a location the user deleted; removed and deleted boxes keep pointing at it) | `schema-v3.sql`, `schema-v3.json` |
+| v4 | `namedProduct` (the name and category the household gave a code the reference database does not name; one live row per GTIN, a forgotten one keeps its `deletedAt`), `cabinetMeta` (the `namedProductBackfill` marker: the one-time fill of `namedProduct` from the boxes, which needs the reference data, so it runs in the app after the upgrade) | `schema-v4.sql`, `schema-v4.json` |
 
 `*.sql` is the migration step both platforms run (compared as text); `*.json` is the full schema a freshly
 migrated database must have (compared by introspection).

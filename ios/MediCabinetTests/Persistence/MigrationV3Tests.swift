@@ -23,7 +23,7 @@ import Testing
 
     @Test func theIdentifiersListEveryRegisteredMigrationInOrder() {
         #expect(Migrations.migrator.migrations == Migrations.identifiers)
-        #expect(Migrations.identifiers.last == Migrations.schemaV3)
+        #expect(Migrations.identifiers.contains(Migrations.schemaV3))
     }
 
     @Test func v3AddsANullableDeletedAtColumnToLocations() throws {

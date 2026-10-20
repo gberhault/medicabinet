@@ -15,15 +15,15 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class MigrationsTest {
     private val context: Context get() = ApplicationProvider.getApplicationContext()
-    private val v4 = Migration("v4", "CREATE TABLE later (id INTEGER NOT NULL); CREATE INDEX later_id ON later(id)")
+    private val v5 = Migration("v5", "CREATE TABLE later (id INTEGER NOT NULL); CREATE INDEX later_id ON later(id)")
     private fun uniqueName() = "migration-${UUID.randomUUID()}.db"
 
     private fun CabinetDatabase.userVersion() = SqlProbe.long(database, "PRAGMA user_version")
 
     @Test
     fun aNewDatabaseRunsEveryMigrationAndRecordsTheVersion() {
-        CabinetDatabase(context, uniqueName(), Migrations.all + v4).use { cabinet ->
-            assertEquals(4L, cabinet.userVersion())
+        CabinetDatabase(context, uniqueName(), Migrations.all + v5).use { cabinet ->
+            assertEquals(5L, cabinet.userVersion())
             assertTrue(SqlProbe.snapshot(cabinet.database).tables.containsKey("later"))
         }
     }
@@ -32,8 +32,8 @@ class MigrationsTest {
     fun upgradingStepByStepGivesTheSameSchemaAsAFreshInstall() {
         val name = uniqueName()
         CabinetDatabase(context, name, Migrations.all).use { it.userVersion() }
-        val upgraded = CabinetDatabase(context, name, Migrations.all + v4).use { SqlProbe.snapshot(it.database) }
-        val fresh = CabinetDatabase(context, uniqueName(), Migrations.all + v4).use {
+        val upgraded = CabinetDatabase(context, name, Migrations.all + v5).use { SqlProbe.snapshot(it.database) }
+        val fresh = CabinetDatabase(context, uniqueName(), Migrations.all + v5).use {
             SqlProbe.snapshot(it.database)
         }
         assertEquals(fresh, upgraded)
@@ -48,7 +48,7 @@ class MigrationsTest {
                     "VALUES ('L', 'Kept', 0, 0, '2027-01-01 00:00:00.000', '2027-01-01 00:00:00.000')"
             )
         }
-        CabinetDatabase(context, name, Migrations.all + v4).use {
+        CabinetDatabase(context, name, Migrations.all + v5).use {
             assertEquals("Kept", SqlProbe.string(it.database, "SELECT name FROM location"))
         }
     }
@@ -56,7 +56,7 @@ class MigrationsTest {
     @Test
     fun aDatabaseNewerThanTheAppIsRefusedNotDowngraded() {
         val name = uniqueName()
-        CabinetDatabase(context, name, Migrations.all + v4).use { it.userVersion() }
+        CabinetDatabase(context, name, Migrations.all + v5).use { it.userVersion() }
         assertFailsWith<IllegalStateException> {
             CabinetDatabase(context, name, Migrations.all).use { it.database }
         }
@@ -66,13 +66,13 @@ class MigrationsTest {
     fun aFailingMigrationLeavesTheDatabaseExactlyAsItWas() {
         val name = uniqueName()
         CabinetDatabase(context, name, Migrations.all).use { it.userVersion() }
-        val broken = Migration("v4", "CREATE TABLE half_done (id INTEGER); THIS IS NOT SQL")
+        val broken = Migration("v5", "CREATE TABLE half_done (id INTEGER); THIS IS NOT SQL")
         assertFailsWith<SQLiteException> {
             CabinetDatabase(context, name, Migrations.all + broken).use { it.database }
         }
 
         CabinetDatabase(context, name, Migrations.all).use { cabinet ->
-            assertEquals(3L, cabinet.userVersion())
+            assertEquals(Migrations.all.size.toLong(), cabinet.userVersion())
             assertNull(SqlProbe.string(cabinet.database, "SELECT name FROM sqlite_master WHERE name = 'half_done'"))
         }
     }
@@ -89,8 +89,9 @@ class MigrationsTest {
                 },
                 "; in a comment"
             )
+            // A `;` inside a literal would split a statement in two, leaving an odd number of quotes in a piece.
             assertTrue(
-                !Regex("'[^']*;[^']*'").containsMatchIn(withoutTerminators),
+                migration.statements.all { it.count { char -> char == '\'' } % 2 == 0 },
                 "${migration.name}: ; inside a string literal"
             )
         }
@@ -98,7 +99,7 @@ class MigrationsTest {
 
     @Test
     fun migrationNamesAreUniqueAndOrdered() {
-        assertEquals(listOf("v1", "v2", "v3"), Migrations.all.map { it.name })
+        assertEquals(listOf("v1", "v2", "v3", "v4"), Migrations.all.map { it.name })
         assertEquals(Migrations.all.map { it.name }.toSet().size, Migrations.all.size)
     }
 

@@ -13,7 +13,7 @@ if #55 is still open, stop and ask the user.
 
 ## Schema and port (shared, both apps)
 
-- [ ] **T1** `[shared]` `[ios]` `[android]` **Schema v4.** Add `fixtures/schema-v4.sql` / `.json` (design §2.1) and
+- [x] **T1** `[shared]` `[ios]` `[android]` **Schema v4.** Add `fixtures/schema-v4.sql` / `.json` (design §2.1) and
   their README rows. Append the v4 migration on iOS (`Migrations.swift`) and Android (`Migrations.kt`). Update the
   schema fixture tests (table set, v4 snapshot, SQL equality). Add `MigrationV4Tests` / `SchemaV4Test`: a v3 cabinet
   upgrades keeping every row; the table is empty; the marker is `pending`; step-by-step equals fresh install.

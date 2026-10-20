@@ -43,7 +43,7 @@ import Testing
     }
 
     @Test func v1CreatesTablesAndIndexes() throws {
-        #expect(try names(of: "table") == ["location", "box", "grdb_migrations"])
+        #expect(try names(of: "table") == ["location", "box", "namedProduct", "cabinetMeta", "grdb_migrations"])
         #expect(try names(of: "index").isSuperset(of: [
             "location_single_default", "box_gtin", "box_location", "box_expiry", "box_active", "box_serial"
         ]))
