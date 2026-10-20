@@ -70,12 +70,16 @@ independent of each other.
 
 ## 3. Persistence (#29)
 
-- [ ] **T9 — iOS store and backup files** `[ios]` [#29] (F7, I4–I6, B1–B2, B4, B6; §1.2, §1.3, §5)
+- [x] **T9 — iOS store and backup files** `[ios]` [#29] (F7, I4–I6, B1–B2, B4, B6; §1.2, §1.3, §5)
   `GRDBCabinetArchiveStore`, `FileArchiveBackupStore` (names, `.partial` → decode → rename,
   protection class, unreadable entries, keep 3 over both prefixes). *Tests:* contract checks
   on GRDB; integration round trip (every field variant → export → apply on a fresh database
   → equal snapshot); rollback when an insert fails; backup-store tests (pre-migration files
   untouched); performance `exportArchive` / `apply` ≤ 600 ms (§9).
+  Done 2026-10-20: the golden file goes through SQLite and comes back byte for byte. GRDB reads a
+  millisecond date back through a calendar, a hair off the exact value, so the store's snapshot rounds
+  dates to the exact millisecond (the database precision). Measured on the simulator (debug build),
+  best of 5: export 47 ms, apply with backup 165 ms.
 - [ ] **T10 — Android store and backup files** `[android]` [#29] (same)
   `SqlCabinetArchiveStore`, `FileArchiveBackupStore` in `persistence/`; the same tests
   (Robolectric SQLite), including the performance budgets.
