@@ -289,3 +289,39 @@ extension SharedFixtures {
         (try? productMemory().cases) ?? []
     }
 }
+
+/// One case of `fixtures/named-product-backfill.json`: `NamedProductBackfill.products`.
+public struct BackfillCase: Decodable, Sendable, CustomStringConvertible {
+    public struct FixtureBox: Decodable, Sendable {
+        public let gtin: String?
+        public let name: String
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
+    public struct Product: Decodable, Sendable {
+        public let gtin: String
+        public let name: String
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
+    public let name: String
+    /// The GTINs the reference names.
+    public let known: [String]
+    public let latest: [FixtureBox]
+    public let expect: [Product]
+
+    public var description: String { name }
+}
+
+extension SharedFixtures {
+    public static func namedProductBackfill() throws -> (formatVersion: Int, cases: [BackfillCase]) {
+        let list = try JSONDecoder().decode(CabinetCaseList<BackfillCase>.self, from: data("named-product-backfill.json"))
+        return (list.formatVersion, list.cases)
+    }
+
+    public static func namedProductBackfillCases() -> [BackfillCase] {
+        (try? namedProductBackfill().cases) ?? []
+    }
+}
