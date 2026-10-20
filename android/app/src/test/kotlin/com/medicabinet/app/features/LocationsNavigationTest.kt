@@ -12,7 +12,10 @@ import com.medicabinet.app.app.AppEnvironment
 import com.medicabinet.app.features.scan.testScanServices
 import com.medicabinet.app.ui.theme.MediCabinetTheme
 import com.medicabinet.core.FixedClock
+import com.medicabinet.core.reference.ReferenceStatus
+import com.medicabinet.core.reference.ReferenceUnavailableReason
 import com.medicabinet.core.testing.InMemoryCabinetStore
+import com.medicabinet.core.testing.InMemoryReferenceData
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -36,7 +39,15 @@ class LocationsNavigationTest {
         runBlocking { store.ensureDefault("Medicine cabinet") }
         compose.setContent {
             MediCabinetTheme {
-                MainScaffold(AppEnvironment(store, store, clock), scanServices = testScanServices())
+                MainScaffold(
+                    AppEnvironment(
+                        store,
+                        store,
+                        clock,
+                        InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING))
+                    ),
+                    scanServices = testScanServices()
+                )
             }
         }
         compose.onNodeWithText("Settings").performClick()
