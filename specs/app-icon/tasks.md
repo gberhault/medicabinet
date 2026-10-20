@@ -13,7 +13,7 @@ each other once T2 and T4 are done.
 
 ## 1. Source and script
 
-- [ ] **T1 — Source art and SVG subset validator** `[shared]` (R1, R6; §1.1, §2)
+- [x] **T1 — Source art and SVG subset validator** `[shared]` (R1, R6; §1.1, §2)
   - Add `design/app-icon/medicabinet-icon.svg`: corrected D2 (94% scale, valley at y = 55) in
     `background` / `foreground`, plus the `wordmark` lockup.
   - Delete the untracked proposals (A–C, D variants, `preview.html`, the old `generate.py`
