@@ -59,13 +59,13 @@ if #55 is still open, stop and ask the user.
 
 ## Archive version 2 (shared, both apps)
 
-- [ ] **T11** `[shared]` `[ios]` `[android]` **Format v2 in the cores.** Add `fixtures/archive/v2/golden.medicabinet`
+- [x] **T11** `[shared]` `[ios]` `[android]` **Format v2 in the cores.** Add `fixtures/archive/v2/golden.medicabinet`
   and the v2 cases in `archive-cases.json` (design §7.2). Add the `namedProducts: 0` expectation to the v1 cases and
   the `duplicateNamedProduct` kind to `fixtures/README.md`. Add `ArchivedNamedProduct`, the `CabinetContents` /
   `CabinetSummary` fields, `ArchiveV2Reader`, the encoder at v2, the validator rules and
   `ArchiveLimits.maxNamedProducts`, on both cores. The v1 golden still decodes; the v2 golden round-trips byte for
   byte. Update `docs/export-format.md`. *(A1–A3, A5)*
-- [ ] **T12** `[shared]` `[ios]` `[android]` **Stores and import.** Extend `fixtures/archive-store-contract.json`.
+- [x] **T12** `[shared]` `[ios]` `[android]` **Stores and import.** Extend `fixtures/archive-store-contract.json`.
   `GRDBCabinetArchiveStore` / `SqlCabinetArchiveStore` snapshot and replace named products and write the marker.
   After an import, the app runs the backfill runner. `CabinetTransferTests` on both cores: a v1 import sets the
   marker and the runner fills from the imported boxes. The import preview shows the named-product count
@@ -97,10 +97,10 @@ if #55 is still open, stop and ask the user.
 
 ## Docs and release
 
-- [ ] **T19** `[shared]` **Docs.** `docs/named-products.md` (new) and its `docs/README.md` row. Check
+- [x] **T19** `[shared]` **Docs.** `docs/named-products.md` (new) and its `docs/README.md` row. Check
   `docs/bulk-scan.md`, `docs/export-format.md` and `docs/architecture.md`, which were updated in their tasks.
   *(X5)*
-- [ ] **T20** `[ios]` `[android]` **Versions.** One minor bump of both apps for the whole branch (leaflet link + named products), one changelog entry each;
+- [x] **T20** `[ios]` `[android]` **Versions.** One minor bump of both apps for the whole branch (leaflet link + named products), one changelog entry each;
   `check-version.sh ios` and `android`. If the leaflet-link branch (#56) merged first, take the next minor after
   it. *(X6)*
 - [ ] **T21** `[shared]` **Gate.** `bash scripts/local-ci.sh`: full run, targeted reruns of failed steps, one final
