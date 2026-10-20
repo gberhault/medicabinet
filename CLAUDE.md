@@ -372,6 +372,24 @@ Never regenerate a lint/detekt baseline or lower a threshold to hide a new findi
   lines**, core and app) → string checks → version vs `android/CHANGELOG.md` → instrumented
   tests compile.
 
+**Run the gate once, fix what failed, rerun only that, then run it once more.** The full gate is
+slow (the iOS UI suite and the Android build dominate), so do not re-run it after every fix:
+
+1. **First run: the full gate** (`bash scripts/local-ci.sh`, or the single product's script when only one is
+   touched). Read the whole log: one run can show several failures.
+2. **On failures: fix them, then rerun only the failed step(s)**, not the gate:
+   - iOS unit / core test: `swift test --package-path ios/Packages/MediCabinetCore --filter <name>` or
+     `xcodebuild test -only-testing:<Target>/<Suite>/<test>` on your own simulator;
+   - Android test: `./gradlew :core:test --tests '<class>'` / `:app:testDebugUnitTest --tests '<class>'`;
+   - a gate step (`ios-lint.sh`, `ios-check-strings.sh`, `check-version.sh <product>`, `check-fixtures.py`,
+     `check-string-parity.py`, detekt / ktlint, the architecture check) by running that script alone.
+   Several fixes can be batched before one targeted rerun. A targeted rerun never replaces the final full run.
+3. **When every failed step is green, run the full gate once more.** That run is the proof a PR needs (coverage
+   and the cross-checks only count there). If it fails again, go back to step 2: targeted reruns, then one full
+   run. Never loop on full runs.
+4. Changing only docs, specs or `tasks.md` after a green full run does not require another full run; any change
+   to code, fixtures, scripts, versions or strings does.
+
 ---
 
 ## Spec-Driven Development
@@ -471,7 +489,8 @@ For every task:
 7. Verify coverage meets requirements (state % in PR; do not commit coverage output).
 8. Bump the version of each product the branch ships (see Version Management) as the last
    commit on the branch.
-9. Run `bash scripts/local-ci.sh` and fix failures (mandatory).
+9. Run `bash scripts/local-ci.sh` and fix failures (mandatory): full run, targeted reruns of the failed steps,
+   one final full run (see Local CI).
 10. Open the PR **only when the user asks** — the version bump and the `specs/<feature-name>/`
     directory must be included.
 11. **After the PR merges into `develop`:** if it bumped the version, **immediately** tag
