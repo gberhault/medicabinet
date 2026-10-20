@@ -231,6 +231,8 @@
     <string name="cabinet_noResults_clear">Clear search and filters</string>
     <string name="cabinet_noResults_message">No box matches your search or filters.</string>
     <string name="cabinet_noResults_title">No results</string>
+    <string name="cabinet_pill_label">%1$s, %2$s</string>
+    <string name="cabinet_pill_labelStatus">%1$s, %2$s, %3$s</string>
     <plurals name="cabinet_row_boxes">
         <item quantity="one">%1$d box</item>
         <item quantity="other">%1$d boxes</item>

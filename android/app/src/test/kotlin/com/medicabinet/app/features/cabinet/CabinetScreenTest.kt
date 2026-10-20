@@ -7,7 +7,11 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.assertTouchHeightIsEqualTo
+import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -98,31 +102,57 @@ class CabinetScreenTest {
         return kitchen
     }
 
+    private fun pill(name: String) = compose.onNode(
+        hasTestTag("cabinet.pill") and hasContentDescription(name, substring = true)
+    )
+
+    private fun pillCount(name: String) = compose.onAllNodes(
+        hasTestTag("cabinet.pill") and hasContentDescription(name, substring = true)
+    ).fetchSemanticsNodes().size
+
+    private fun androidx.compose.ui.test.junit4.ComposeContentTestRule.onAllNodesWithTextCount(text: String) =
+        onAllNodes(hasText(text, substring = true)).fetchSemanticsNodes().size
+
     @Test
-    fun rowsAreGroupedUnderCategoriesWithCountsAndStatusTextAndIcon() {
+    fun cardsShowCategoryTotalsAndPillsMarkOnlyAlertStatuses() {
         seed()
         show()
         compose.onNodeWithText("Pain and fever").assertIsDisplayed()
         compose.onNodeWithText("Uncategorized").assertIsDisplayed()
         compose.onNodeWithTag("cabinet.count").assertTextEquals("4 boxes")
-        compose.onNodeWithText("2 boxes").assertIsDisplayed()
-        compose.onNodeWithText("Doliprane 1000").assertIsDisplayed()
-        compose.onNodeWithText("Expired").assertIsDisplayed()
-        compose.onNodeWithText("Expiring soon").assertIsDisplayed()
-        // The unknown-expiry row says so in words, and is never shown as OK.
-        compose.onNodeWithText("Expiry unknown").assertIsDisplayed()
+        compose.onNodeWithText("3 boxes").assertIsDisplayed()
+        // The spoken label has the full name, the count and, for an alert, the status; an ok pill says nothing more.
+        pill("Doliprane 1000, 2 boxes, Expired").assertIsDisplayed()
+        pill("EFFÉRALGAN 500, 1 box, Expiring soon").assertIsDisplayed()
+        pill("Pansements, 1 box, Expiry unknown").assertIsDisplayed()
+        // No date and no OK anywhere in the list.
         assertEquals(0, compose.onAllNodesWithTextCount("OK"))
+        assertEquals(0, compose.onAllNodesWithTextCount("Expires"))
     }
 
-    private fun androidx.compose.ui.test.junit4.ComposeContentTestRule.onAllNodesWithTextCount(text: String) =
-        onAllNodes(hasText(text)).fetchSemanticsNodes().size
+    @Test
+    fun anOkPillSaysNothingMoreThanItsNameAndCount() {
+        runBlocking {
+            kit.open()
+            kit.box("Aspirine", CabinetTestKit.DOLIPRANE, CabinetTestKit.FINE, category = CategoryID.PAIN_FEVER)
+        }
+        show()
+        pill("Aspirine").assert(hasContentDescription("Aspirine, 1 box"))
+    }
 
     @Test
-    fun tappingARowOpensIt() {
+    fun tappingAPillOpensIt() {
         seed()
         show()
-        compose.onNodeWithText("Pansements").assertHasClickAction().performClick()
+        pill("Pansements").assertHasClickAction().performClick()
         assertEquals("Pansements", assertNotNull(opened).name)
+    }
+
+    @Test
+    fun aPillTakesTapsOver48Dp() {
+        seed()
+        show()
+        pill("Pansements").assertTouchHeightIsEqualTo(48.dp).assertWidthIsAtLeast(48.dp)
     }
 
     @Test
@@ -132,8 +162,8 @@ class CabinetScreenTest {
         compose.onNodeWithTag("cabinet.search").performTextInput("efferalgan")
         settle()
         compose.onNodeWithTag("cabinet.count").assertTextEquals("1 box")
-        compose.onNodeWithText("EFFÉRALGAN 500").assertIsDisplayed()
-        assertEquals(0, compose.onAllNodesWithTextCount("Pansements"))
+        pill("EFFÉRALGAN 500").assertIsDisplayed()
+        assertEquals(0, pillCount("Pansements"))
     }
 
     @Test
@@ -245,6 +275,54 @@ class CabinetScreenTest {
         compose.onNodeWithTag("cabinet.count").assertTextEquals("4 boxes")
     }
 
+    private fun categoryLabelsTopToBottom(): List<String> = compose.onAllNodes(hasTestTag("cabinet.category"))
+        .fetchSemanticsNodes()
+        .sortedBy { it.boundsInRoot.top }
+        .map { it.config[SemanticsProperties.Text].joinToString(" ") }
+
+    @Test
+    fun theCardsAreAToZByTheEnglishLabelsWithUncategorizedLast() {
+        runBlocking {
+            kit.open()
+            kit.box("Yeux gouttes", "03400930000014", CabinetTestKit.FINE, category = CategoryID.EYES)
+            kit.box("Gaviscon", "03400930000021", CabinetTestKit.FINE, category = CategoryID.DIGESTION)
+            kit.box("Doliprane", "03400930000038", CabinetTestKit.FINE, category = CategoryID.PAIN_FEVER)
+            kit.box("Divers", "03400930000045", CabinetTestKit.FINE, category = CategoryID.OTHER)
+            kit.box("Mystery", expiry = CabinetTestKit.FINE)
+        }
+        show()
+        settle()
+        val labels = categoryLabelsTopToBottom().map { it.substringBefore(" 1 box") }
+        assertEquals(listOf("Digestion", "Eyes", "Pain and fever", "Other", "Uncategorized"), labels)
+    }
+
+    @Test
+    fun aThousandBoxesInOneCategoryStillShowTheirPills() {
+        runBlocking {
+            kit.open()
+            repeat(PRODUCTS) { index ->
+                repeat(BOXES_PER_PRODUCT) {
+                    kit.box(
+                        "Medicine " + index,
+                        "0340093" + index.toString().padStart(GTIN_PAD, '0'),
+                        CabinetTestKit.FINE,
+                        category = CategoryID.PAIN_FEVER
+                    )
+                }
+            }
+        }
+        show()
+        settle()
+        compose.onNodeWithTag("cabinet.count").assertTextEquals((PRODUCTS * BOXES_PER_PRODUCT).toString() + " boxes")
+        pill("Medicine 0, 4 boxes").assertExists()
+    }
+
+    private companion object {
+        const val PRODUCTS = 250
+        const val BOXES_PER_PRODUCT = 4
+        const val GTIN_PAD = 7
+    }
+
     @Test
     fun anEmptyCabinetExplainsHowToAddBoxesAndOpensTheScanTab() {
         runBlocking { kit.open() }
@@ -282,9 +360,8 @@ class CabinetScreenTest {
         show(dark = true)
         compose.onNodeWithText("Pain and fever").assertIsDisplayed()
         compose.onNodeWithTag("cabinet.filter.button").assertIsDisplayed().assertHasClickAction()
-        compose.onNodeWithTag("cabinet.list").performScrollToNode(hasText("Pansements"))
-        compose.onNodeWithText("Pansements").assertIsDisplayed().assertHasClickAction()
-        compose.onNodeWithText("Expiry unknown").assertIsDisplayed()
+        compose.onNodeWithTag("cabinet.list").performScrollToNode(hasText("Uncategorized"))
+        pill("Pansements, 1 box, Expiry unknown").assertIsDisplayed().assertHasClickAction()
     }
 }
 
@@ -317,10 +394,9 @@ class CabinetScreenFrenchTest {
             MediCabinetTheme { CabinetScreen(viewModel, onOpenProduct = {}, onOpenScan = {}) }
         }
         compose.onNodeWithTag("cabinet.count").assertTextEquals("3 boîtes")
-        compose.onNodeWithText("2 boîtes").assertIsDisplayed()
         compose.onNodeWithText("Non classé").assertIsDisplayed()
-        compose.onNodeWithText("Périmé").assertIsDisplayed()
-        compose.onNodeWithText("Péremption inconnue").assertIsDisplayed()
+        compose.onNode(hasContentDescription("Doliprane, 2 boîtes, Périmé")).assertIsDisplayed()
+        compose.onNode(hasContentDescription("Pansements, 1 boîte, Péremption inconnue")).assertIsDisplayed()
         compose.onNodeWithText("Rechercher un médicament").assertIsDisplayed()
     }
 }
