@@ -20,7 +20,7 @@ Language-neutral test vectors that both test suites run (see [`fixtures/README.m
 | `categories.json` | the twelve categories, in display order, are identical in both cores and the reference build |
 | `reference-lookup.json` + `reference-sample.sqlite` | GTIN → CIP13 and the product lookup answer identically on both platforms |
 | `text-normalization.json`, `location-names.json` | search matching and location-name rules are identical |
-| `archive-cases.json`, `archive/v1/golden.medicabinet`, `archive-code-points.json`, `archive-store-contract.json` | the export archive is read, refused and written identically (the golden file is reproduced byte for byte), and every cabinet store passes the same contract; format in [`export-format.md`](export-format.md) |
+| `archive-cases.json`, `archive/v1/golden.medicabinet`, `archive/v2/golden.medicabinet`, `archive-code-points.json`, `archive-store-contract.json` | the export archive is read, refused and written identically (the golden file is reproduced byte for byte), and every cabinet store passes the same contract; format in [`export-format.md`](export-format.md) |
 | `cabinet-rows.json`, `scan-removal.json` | the Cabinet list (grouping, status, order, filters) and removal by scan decide identically |
 | `README.md` | the cross-platform names (error kinds, enum raw values) — both suites assert the code matches |
 

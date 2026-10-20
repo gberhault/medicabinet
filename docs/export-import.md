@@ -88,6 +88,7 @@ privacy-manifest entry (dates come from file names, not file-timestamp APIs).
 | iOS | | `GRDBCabinetArchiveStore`, `FileArchiveBackupStore` | `Features/Transfer/` |
 | Android | | `SqlCabinetArchiveStore`, `FileArchiveBackupStore` | `features/transfer/` |
 
-Shared fixtures (the contract): `fixtures/archive/v1/golden.medicabinet`, `archive-cases.json`,
-`archive-code-points.json`, `archive-store-contract.json`. Each platform's encoder reproduces the golden file byte
-for byte.
+Shared fixtures (the contract): `fixtures/archive/v1/golden.medicabinet`, `fixtures/archive/v2/golden.medicabinet`,
+`archive-cases.json`, `archive-code-points.json`, `archive-store-contract.json`. Each platform's encoder reproduces
+the golden file of the current version byte for byte (version 2: it carries the
+[products you named](named-products.md)); the older golden files are only decoded.
