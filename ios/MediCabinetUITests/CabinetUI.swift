@@ -14,10 +14,10 @@ enum CabinetUI {
     """
 
     @MainActor
-    static func launch(seeded: Bool = true, extra: [String] = []) -> XCUIApplication {
+    static func launch(seeded: Bool = true, extra: [String] = [], seed customSeed: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-UITestingTemporaryStorage", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
-        if seeded { app.launchEnvironment["MEDICABINET_UI_TEST_CABINET"] = seed }
+        if seeded { app.launchEnvironment["MEDICABINET_UI_TEST_CABINET"] = customSeed ?? seed }
         app.launch()
         let bar = app.tabBars.firstMatch
         XCTAssertTrue(bar.waitForExistence(timeout: 15))

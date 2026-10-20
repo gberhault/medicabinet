@@ -227,7 +227,9 @@ final class CabinetUITests: XCTestCase {
         XCTAssertTrue(app.frame.contains(filter.frame), "the filter button stays on screen")
         let spasfon = row(app, "Spasfon")
         for _ in 0..<8 where !(spasfon.exists && spasfon.isHittable) { app.swipeUp() }
-        XCTAssertTrue(spasfon.isHittable, "rows stay reachable (and wrap) at the largest text size")
+        XCTAssertTrue(spasfon.isHittable, "pills stay reachable (and wrap) at the largest text size")
+        XCTAssertGreaterThanOrEqual(spasfon.frame.minX, app.frame.minX)
+        XCTAssertLessThanOrEqual(spasfon.frame.maxX, app.frame.maxX, "a pill never overflows, so its count stays visible")
         spasfon.tap()
         XCTAssertTrue(app.buttons["box.edit"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["box.edit"].isHittable)
