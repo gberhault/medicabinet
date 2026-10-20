@@ -6,8 +6,9 @@ import java.time.Instant
 
 /**
  * Writes an archive in canonical form (design §2.3). The model is validated first, so the app never produces
- * a file it would refuse to import; locations are ordered by `sortOrder` then id, boxes by `createdAt` then id,
- * so one cabinet always gives the same bytes on both platforms.
+ * a file it would refuse to import; locations are ordered by `sortOrder` then id, boxes and named products by
+ * `createdAt` then id, so one cabinet always gives the same bytes on both platforms. Always writes the current
+ * version (2).
  */
 object ArchiveEncoder {
     private val locationOrder = compareBy<ArchivedLocation>(
@@ -18,6 +19,11 @@ object ArchiveEncoder {
     private val boxOrder = compareBy<ArchivedBox>(
         { ArchiveDates.milliseconds(it.box.createdAt) },
         { it.box.id.toString().uppercase() }
+    )
+
+    private val namedProductOrder = compareBy<ArchivedNamedProduct>(
+        { ArchiveDates.milliseconds(it.product.createdAt) },
+        { it.product.id.toString().uppercase() }
     )
 
     fun encode(archive: Archive, limits: ArchiveLimits = ArchiveLimits.DEFAULT): ByteArray {
@@ -38,6 +44,10 @@ object ArchiveEncoder {
         writer.key("boxes")
         writer.beginArray()
         archive.cabinet.boxes.sortedWith(boxOrder).forEach { writer.writeBox(it) }
+        writer.endArray()
+        writer.key("namedProducts")
+        writer.beginArray()
+        archive.cabinet.namedProducts.sortedWith(namedProductOrder).forEach { writer.writeNamedProduct(it) }
         writer.endArray()
         writer.endObject()
         val bytes = writer.finish()
@@ -109,6 +119,28 @@ private fun CanonicalJsonWriter.writeBox(archived: ArchivedBox) {
     string(ArchiveDates.format(box.createdAt))
     key("updatedAt")
     string(ArchiveDates.format(box.updatedAt))
+    key("deletedAt")
+    optionalDate(archived.deletedAt)
+    endObject()
+}
+
+private fun CanonicalJsonWriter.writeNamedProduct(archived: ArchivedNamedProduct) {
+    val product = archived.product
+    beginObject()
+    key("id")
+    string(product.id.toString().uppercase())
+    key("gtin")
+    string(product.gtin)
+    key("name")
+    string(product.name)
+    key("category")
+    string(product.category.rawValue)
+    key("categoryOverridden")
+    bool(product.categoryOverridden)
+    key("createdAt")
+    string(ArchiveDates.format(product.createdAt))
+    key("updatedAt")
+    string(ArchiveDates.format(product.updatedAt))
     key("deletedAt")
     optionalDate(archived.deletedAt)
     endObject()

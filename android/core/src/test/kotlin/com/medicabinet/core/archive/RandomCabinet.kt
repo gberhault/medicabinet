@@ -4,6 +4,7 @@ import com.medicabinet.core.Box
 import com.medicabinet.core.CategoryID
 import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.Location
+import com.medicabinet.core.NamedProduct
 import com.medicabinet.core.ProductRef
 import com.medicabinet.core.RemovalReason
 import java.time.Instant
@@ -47,7 +48,26 @@ object RandomCabinet {
             text(1..20, random),
             text(1..20, random)
         )
-        return Archive(instant(random), app, CabinetContents(locations, boxes))
+        return Archive(instant(random), app, CabinetContents(locations, boxes, namedProducts(random)))
+    }
+
+    /** Named products with a few repeated GTINs: at most one live product per GTIN, any number of forgotten ones. */
+    private fun namedProducts(random: Random): List<ArchivedNamedProduct> {
+        val liveGtins = HashSet<String>()
+        return (0 until random.nextInt(0, 13)).map {
+            val gtin = "%014d".format(random.nextInt(6))
+            val isForgotten = !liveGtins.add(gtin) || random.nextBoolean()
+            val product = NamedProduct(
+                id = id(random),
+                gtin = gtin,
+                name = text(1..200, random),
+                category = CategoryID(text(1..100, random)),
+                categoryOverridden = random.nextBoolean(),
+                createdAt = instant(random),
+                updatedAt = instant(random)
+            )
+            ArchivedNamedProduct(product, if (isForgotten) instant(random) else null)
+        }
     }
 
     private fun box(index: Int, locations: List<ArchivedLocation>, random: Random): ArchivedBox {

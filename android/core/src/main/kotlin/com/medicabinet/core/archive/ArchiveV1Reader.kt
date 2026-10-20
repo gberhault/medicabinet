@@ -15,6 +15,12 @@ internal class ArchiveBody {
     var app = ArchiveApp(name = "", platform = "", version = "", build = "")
     val locations = ArrayList<ArchivedLocation>()
     val boxes = ArrayList<ArchivedBox>()
+
+    /** Empty for version 1, which has none. */
+    val namedProducts = ArrayList<ArchivedNamedProduct>()
+
+    /** A version 1 file has no named products: the app fills them from the boxes after the import. */
+    var namedProductsNeedFill = false
 }
 
 /** Reads the members of one `formatVersion` after `archive` and `formatVersion`, into the current model. */
@@ -28,34 +34,37 @@ internal interface ArchiveVersionReader {
  */
 internal object ArchiveV1Reader : ArchiveVersionReader {
     override fun read(reader: JsonReader, limits: ArchiveLimits): ArchiveBody {
-        val fields = listOf(
-            ObjectField<ArchiveBody>("exportedAt") { body, json, field -> body.exportedAt = json.readDate(field) },
-            ObjectField("app") { body, json, field ->
-                val draft = AppDraft()
-                json.readObject(field.text, draft, appFields)
-                body.app = ArchiveApp(draft.name, draft.platform, draft.version, draft.build)
-            },
-            ObjectField("locations") { body, json, field ->
-                val cursor = ListCursor(json, field.text, limits.maxLocations)
-                var index = cursor.next(json)
-                while (index != null) {
-                    body.locations.add(readLocation(json, "locations[$index]"))
-                    index = cursor.next(json)
-                }
-            },
-            ObjectField("boxes") { body, json, field ->
-                val cursor = ListCursor(json, field.text, limits.maxBoxes)
-                var index = cursor.next(json)
-                while (index != null) {
-                    body.boxes.add(readBox(json, "boxes[$index]"))
-                    index = cursor.next(json)
-                }
-            }
-        )
         val body = ArchiveBody()
-        reader.readObject("", body, fields, opened = true)
+        reader.readObject("", body, fields(limits), opened = true)
+        body.namedProductsNeedFill = true
         return body
     }
+
+    /** The members of version 1, which version 2 keeps unchanged (it adds `namedProducts` to them). */
+    fun fields(limits: ArchiveLimits): List<ObjectField<ArchiveBody>> = listOf(
+        ObjectField<ArchiveBody>("exportedAt") { body, json, field -> body.exportedAt = json.readDate(field) },
+        ObjectField("app") { body, json, field ->
+            val draft = AppDraft()
+            json.readObject(field.text, draft, appFields)
+            body.app = ArchiveApp(draft.name, draft.platform, draft.version, draft.build)
+        },
+        ObjectField("locations") { body, json, field ->
+            val cursor = ListCursor(json, field.text, limits.maxLocations)
+            var index = cursor.next(json)
+            while (index != null) {
+                body.locations.add(readLocation(json, "locations[$index]"))
+                index = cursor.next(json)
+            }
+        },
+        ObjectField("boxes") { body, json, field ->
+            val cursor = ListCursor(json, field.text, limits.maxBoxes)
+            var index = cursor.next(json)
+            while (index != null) {
+                body.boxes.add(readBox(json, "boxes[$index]"))
+                index = cursor.next(json)
+            }
+        }
+    )
 
     // MARK: Objects
 

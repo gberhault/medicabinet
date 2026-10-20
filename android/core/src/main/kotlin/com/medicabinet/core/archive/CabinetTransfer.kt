@@ -51,8 +51,9 @@ class CabinetTransfer(
      */
     suspend fun preview(bytes: ByteArray): ImportPreview {
         val archive = ArchiveDecoder.decode(bytes, limits)
-        val current = store.snapshot().summary
-        return ImportPreview(archive, archive.cabinet.summary, current, current.needsBackup)
+        val snapshot = store.snapshot()
+        // The snapshot, not its summary: a forgotten named product is not counted there but is still worth a backup.
+        return ImportPreview(archive, archive.cabinet.summary, snapshot.summary, snapshot.needsBackup)
     }
 
     /**

@@ -4,6 +4,7 @@ import com.medicabinet.core.Box
 import com.medicabinet.core.CategoryID
 import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.Location
+import com.medicabinet.core.NamedProduct
 import com.medicabinet.core.ProductRef
 import com.medicabinet.core.RemovalReason
 import com.medicabinet.core.testing.ArchiveFixtureFiles
@@ -14,6 +15,7 @@ import kotlin.random.Random
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Test
@@ -38,8 +40,28 @@ class ArchiveCodecTest {
         return ArchivedBox(edit(box))
     }
 
-    private fun archive(locations: List<Location> = listOf(location()), boxes: List<ArchivedBox> = emptyList()) =
-        Archive(stamp, app, CabinetContents(locations.map { ArchivedLocation(it) }, boxes))
+    private fun named(
+        number: Int = 1,
+        gtin: String = "03401234567890",
+        forgotten: Boolean = false,
+        id: UUID = UUID.fromString(SyntheticArchive.uuid("C", number))
+    ): ArchivedNamedProduct {
+        val product = NamedProduct(
+            id = id,
+            gtin = gtin,
+            name = "Named $number",
+            category = CategoryID("skin-wound"),
+            categoryOverridden = true,
+            createdAt = stamp.plusSeconds(number.toLong())
+        )
+        return ArchivedNamedProduct(product, if (forgotten) stamp else null)
+    }
+
+    private fun archive(
+        locations: List<Location> = listOf(location()),
+        boxes: List<ArchivedBox> = emptyList(),
+        namedProducts: List<ArchivedNamedProduct> = emptyList()
+    ) = Archive(stamp, app, CabinetContents(locations.map { ArchivedLocation(it) }, boxes, namedProducts))
 
     private fun assertRefused(
         kind: ArchiveErrorKind,
@@ -62,7 +84,21 @@ class ArchiveCodecTest {
     }
 
     @Test
+    fun namedProductsSurviveEncodingForgottenOnesIncluded() {
+        val products = listOf(named(1), named(2, gtin = "03401234567891", forgotten = true), named(3, forgotten = true))
+        val original = archive(boxes = listOf(box(1)), namedProducts = products)
+        val decoded = ArchiveDecoder.decode(ArchiveEncoder.encode(original))
+        assertEquals(original, decoded)
+        assertEquals(1, decoded.cabinet.summary.namedProducts)
+        assertFalse(decoded.cabinet.namedProductsNeedFill)
+    }
+
+    @Test
     fun tooManyLocationsOrBoxesAreRefusedAtTheLimit() {
+        val twoProducts = archive(namedProducts = listOf(named(1), named(2, gtin = "03401234567891")))
+        val oneAllowed = ArchiveLimits(maxNamedProducts = 1)
+        assertRefused(ArchiveErrorKind.TOO_MANY_ITEMS, "namedProducts", twoProducts, oneAllowed)
+        ArchiveEncoder.encode(archive(namedProducts = listOf(named(1))), oneAllowed)
         val twoBoxes = archive(boxes = listOf(box(1), box(2)))
         assertRefused(ArchiveErrorKind.TOO_MANY_ITEMS, "boxes", twoBoxes, ArchiveLimits(maxBoxes = 1))
         val two = listOf(location(), location(UUID(0, 1), "Other", false, 1))
@@ -80,6 +116,12 @@ class ArchiveCodecTest {
 
     private fun ArchivedBox.withProduct(edit: (ProductRef) -> ProductRef) =
         copy(box = box.copy(product = edit(box.product)))
+
+    private fun mapNamed(archive: Archive, edit: (NamedProduct) -> NamedProduct): Archive = archive.copy(
+        cabinet = archive.cabinet.copy(
+            namedProducts = archive.cabinet.namedProducts.map { it.copy(product = edit(it.product)) }
+        )
+    )
 
     private fun mapBox(archive: Archive, edit: (ArchivedBox) -> ArchivedBox): Archive =
         archive.copy(cabinet = archive.cabinet.copy(boxes = archive.cabinet.boxes.map(edit)))
@@ -125,13 +167,26 @@ class ArchiveCodecTest {
         },
         Breakage("boxes[0].createdAt") { mapBox(it) { b -> b.copy(box = b.box.copy(createdAt = beyond)) } },
         Breakage("boxes[0].updatedAt") { mapBox(it) { b -> b.copy(box = b.box.copy(updatedAt = beyond)) } },
-        Breakage("boxes[0].deletedAt") { mapBox(it) { b -> b.copy(deletedAt = beyond) } }
+        Breakage("boxes[0].deletedAt") { mapBox(it) { b -> b.copy(deletedAt = beyond) } },
+        Breakage("namedProducts[0].gtin") { mapNamed(it) { p -> p.copy(gtin = "123") } },
+        Breakage("namedProducts[0].gtin") { mapNamed(it) { p -> p.copy(gtin = "0340123456789A") } },
+        Breakage("namedProducts[0].name") { mapNamed(it) { p -> p.copy(name = "") } },
+        Breakage("namedProducts[0].name") { mapNamed(it) { p -> p.copy(name = "n".repeat(201)) } },
+        Breakage("namedProducts[0].category") { mapNamed(it) { p -> p.copy(category = CategoryID("")) } },
+        Breakage("namedProducts[0].category") { mapNamed(it) { p -> p.copy(category = CategoryID("c".repeat(101))) } },
+        Breakage("namedProducts[0].createdAt") { mapNamed(it) { p -> p.copy(createdAt = beyond) } },
+        Breakage("namedProducts[0].updatedAt") { mapNamed(it) { p -> p.copy(updatedAt = beyond) } },
+        Breakage("namedProducts[0].deletedAt") {
+            val forgotten = it.cabinet.namedProducts.map { n -> n.copy(deletedAt = beyond) }
+            it.copy(cabinet = it.cabinet.copy(namedProducts = forgotten))
+        }
     )
 
     @TestFactory
     fun aFieldTheDecoderWouldRefuseIsRefusedAtEncodingToo(): List<DynamicTest> = breakages().map { breakage ->
         dynamicTest(breakage.path) {
-            assertRefused(ArchiveErrorKind.INVALID_VALUE, breakage.path, breakage.edit(archive(boxes = listOf(box(1)))))
+            val valid = archive(boxes = listOf(box(1)), namedProducts = listOf(named(1)))
+            assertRefused(ArchiveErrorKind.INVALID_VALUE, breakage.path, breakage.edit(valid))
         }
     }
 
@@ -174,6 +229,20 @@ class ArchiveCodecTest {
         ArchiveEncoder.encode(archive(boxes = distinct))
     }
 
+    @Test
+    fun namedProductChecksAreEnforcedAtEncodingToo() {
+        val twin = named(2, gtin = "03401234567891", id = named(1).product.id)
+        val sameId = archive(namedProducts = listOf(named(1), twin))
+        assertRefused(ArchiveErrorKind.DUPLICATE_ID, "namedProducts[1].id", sameId)
+        val sameGtin = archive(namedProducts = listOf(named(1), named(2)))
+        assertRefused(ArchiveErrorKind.DUPLICATE_NAMED_PRODUCT, "namedProducts[1].gtin", sameGtin)
+        // A forgotten product and a live one (or several forgotten ones) may share a GTIN, in any order.
+        val shared = listOf(named(1, forgotten = true), named(2), named(3, forgotten = true))
+        ArchiveEncoder.encode(archive(namedProducts = shared))
+        // A named product may share its id with a box (ids are unique per kind of row).
+        ArchiveEncoder.encode(archive(boxes = listOf(box(1)), namedProducts = listOf(named(1, id = box(1).box.id))))
+    }
+
     // MARK: Deleted locations
 
     private fun contents(locations: List<ArchivedLocation>, boxes: List<ArchivedBox>) =
@@ -205,11 +274,36 @@ class ArchiveCodecTest {
         val golden = ArchiveFixtureFiles.goldenArchive()
         val decoded = ArchiveDecoder.decode(golden)
         val cabinet = decoded.cabinet
-        val reversed = decoded.copy(cabinet = CabinetContents(cabinet.locations.reversed(), cabinet.boxes.reversed()))
+        val reversed = decoded.copy(
+            cabinet = cabinet.copy(
+                locations = cabinet.locations.reversed(),
+                boxes = cabinet.boxes.reversed(),
+                namedProducts = cabinet.namedProducts.reversed()
+            )
+        )
         assertContentEquals(golden, ArchiveEncoder.encode(reversed))
         val shuffledBoxes = reversed.cabinet.boxes.shuffled(Random(7))
         val shuffled = reversed.copy(cabinet = reversed.cabinet.copy(boxes = shuffledBoxes))
         assertContentEquals(golden, ArchiveEncoder.encode(shuffled))
+    }
+
+    @Test
+    fun theEncoderOrdersNamedProductsByCreationThenIdWhateverTheInputOrder() {
+        val golden = ArchiveFixtureFiles.goldenArchive()
+        val decoded = ArchiveDecoder.decode(golden)
+        assertEquals(3, decoded.cabinet.namedProducts.size)
+        val backwards = decoded.cabinet.namedProducts.reversed()
+        val reversed = decoded.copy(cabinet = decoded.cabinet.copy(namedProducts = backwards))
+        assertContentEquals(golden, ArchiveEncoder.encode(reversed))
+        // The same instant breaks the tie by id, upper case.
+        val first = named(2, "03401234567891", id = UUID.fromString("C000000B-0000-4000-8000-000000000002"))
+        val second = named(1, id = UUID.fromString("C000000A-0000-4000-8000-000000000001"))
+        val sameInstant = listOf(first, second).map { it.copy(product = it.product.copy(createdAt = stamp)) }
+        val encoded = ArchiveDecoder.decode(ArchiveEncoder.encode(archive(namedProducts = sameInstant)))
+        assertEquals(
+            listOf("C000000A-0000-4000-8000-000000000001", "C000000B-0000-4000-8000-000000000002"),
+            encoded.cabinet.namedProducts.map { it.product.id.toString().uppercase() }
+        )
     }
 
     // MARK: Round trip over random cabinets
@@ -223,6 +317,7 @@ class ArchiveCodecTest {
             assertEquals(original.app, decoded.app)
             assertEquals(original.cabinet.locations.toSet(), decoded.cabinet.locations.toSet())
             assertEquals(original.cabinet.boxes.toSet(), decoded.cabinet.boxes.toSet())
+            assertEquals(original.cabinet.namedProducts.toSet(), decoded.cabinet.namedProducts.toSet())
             // Idempotence: writing what was read gives the same bytes.
             assertContentEquals(ArchiveEncoder.encode(original), ArchiveEncoder.encode(decoded))
         }

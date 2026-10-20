@@ -16,7 +16,8 @@ enum class ArchiveErrorKind(val rawValue: String) {
     DUPLICATE_ID("duplicateId"),
     UNKNOWN_LOCATION("unknownLocation"),
     DEFAULT_LOCATION("defaultLocation"),
-    DUPLICATE_SERIAL("duplicateSerial")
+    DUPLICATE_SERIAL("duplicateSerial"),
+    DUPLICATE_NAMED_PRODUCT("duplicateNamedProduct")
 }
 
 /**
