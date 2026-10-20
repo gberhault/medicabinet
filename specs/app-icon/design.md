@@ -102,7 +102,7 @@ design rule checked in review and written in `docs/app-icon.md`.
 |---------|-----------|---|---------|
 | light (default; Android, iOS light, Play) | `#0D9488` → `#115E59` | `#FFFFFF` | `#FBBF24` / `#FFFFFF` |
 | iOS dark | `#134E4A` → `#042F2E` | `#99F6E4` | `#FBBF24` / `#99F6E4` |
-| iOS tinted | `#000000` | `#FFFFFF` | `#FFFFFF` / `#9CA3AF` (keeps the two halves apart in grey) |
+| iOS tinted | `#000000` (every colour below luminance 160, which includes both teal stops) | greyscale by luminance: `#FFFFFF` | greyscale by luminance: amber becomes `#C1C1C1`, the white half stays `#FFFFFF`, so the two halves stay apart |
 | Android monochrome | none (alpha only) | opaque | opaque |
 
 ### 2.2 Feature graphic layout (P2, P3)

@@ -398,6 +398,117 @@ class Manifest(unittest.TestCase):
             icon.verify_manifest(self.root, [self.asset])
 
 
+CHROME_INSTALLED = os.path.exists(icon.DEFAULT_CHROME) or bool(os.environ.get("CHROME"))
+IOS_SET = Path("ios/MediCabinet/Resources/Assets.xcassets/AppIcon.appiconset")
+
+
+class IosIcon(unittest.TestCase):
+    def source(self):
+        return icon.load_source(ROOT / icon.SOURCE_RELATIVE)
+
+    def test_dark_variant_deepens_the_background_and_lightens_the_white(self):
+        dark = icon.VARIANTS["ios-dark"]
+        self.assertEqual("#134E4A", dark("#0D9488"))
+        self.assertEqual("#042F2E", dark("#115E59"))
+        self.assertEqual("#99F6E4", dark("#FFFFFF"))
+        self.assertEqual("#FBBF24", dark("#FBBF24"))
+
+    def test_tinted_variant_is_greyscale_on_black(self):
+        tinted = icon.VARIANTS["ios-tinted"]
+        self.assertEqual("#000000", tinted("#0D9488"))
+        self.assertEqual("#000000", tinted("#115E59"))
+        self.assertEqual("#FFFFFF", tinted("#FFFFFF"))
+        amber = tinted("#FBBF24")
+        self.assertEqual(amber[1:3], amber[3:5])
+        self.assertEqual(amber[3:5], amber[5:7])
+        self.assertNotIn(amber, ("#000000", "#FFFFFF"))  # keeps the two capsule halves apart
+
+    def test_contents_json_declares_light_dark_and_tinted(self):
+        contents = json.loads(icon.ios_outputs(self.source())[IOS_SET / "Contents.json"])
+        images = {image.get("appearances", [{}])[0].get("value", "light"): image for image in contents["images"]}
+        self.assertEqual({"light", "dark", "tinted"}, set(images))
+        self.assertEqual("AppIcon-light.png", images["light"]["filename"])
+        self.assertNotIn("appearances", images["light"])
+        for value in ("dark", "tinted"):
+            self.assertEqual([{"appearance": "luminosity", "value": value}], images[value]["appearances"])
+            self.assertEqual(f"AppIcon-{value}.png", images[value]["filename"])
+        for image in contents["images"]:
+            self.assertEqual({"universal", "ios", "1024x1024"}, {image["idiom"], image["platform"], image["size"]})
+
+    def test_the_three_pngs_are_registered_with_the_rgb_1024_rule(self):
+        for name in ("light", "dark", "tinted"):
+            path = IOS_SET / f"AppIcon-{name}.png"
+            self.assertIn(path, icon.BINARY_ASSETS)
+            self.assertEqual((1024, 1024, 2), icon.BINARY_RULES[path][:3])
+
+    @unittest.skipUnless(CHROME_INSTALLED, "Google Chrome not installed")
+    def test_built_icons_are_opaque_rgb_and_differ_by_appearance(self):
+        render = icon.chrome_renderer(icon.find_chrome())
+        pixels = {}
+        for name in ("light", "dark", "tinted"):
+            png = icon.BINARY_ASSETS[IOS_SET / f"AppIcon-{name}.png"](self.source(), render)
+            self.assertEqual((1024, 1024, 2), icon.png_header(png))
+            _, _, _, pixels[name] = icon.decode_png(png)
+        corner = {name: tuple(data[:3]) for name, data in pixels.items()}
+        # The icon shows the central 72 of 108 units, so its top edge is 1/6 of the way down the gradient.
+        def at_top_edge(top, bottom):
+            return tuple(a + (b - a) / 6 for a, b in zip(top, bottom))
+
+        for name, (top, bottom) in {"light": ((0x0D, 0x94, 0x88), (0x11, 0x5E, 0x59)),
+                                    "dark": ((0x13, 0x4E, 0x4A), (0x04, 0x2F, 0x2E))}.items():
+            expected = at_top_edge(top, bottom)
+            self.assertTrue(all(abs(a - b) <= 3 for a, b in zip(corner[name], expected)), (name, corner))
+        self.assertEqual((0, 0, 0), corner["tinted"])
+        grey = pixels["tinted"]
+        self.assertEqual(grey[0::3], grey[1::3])
+        self.assertEqual(grey[1::3], grey[2::3])
+        self.assertEqual(3, len({corner["light"], corner["dark"], corner["tinted"]}))
+
+
+class PngRules(unittest.TestCase):
+    """check enforces dimensions, colour type and size of every raster asset (I1, P1, P2)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.root = Path(self._tmp.name)
+        self.path = Path("design/app-icon/asset.png")
+        (self.root / self.path.parent).mkdir(parents=True)
+        original = icon.BINARY_RULES
+        icon.BINARY_RULES = {self.path: (8, 4, 2, 10_000)}
+        self.addCleanup(setattr, icon, "BINARY_RULES", original)
+
+    def write(self, png):
+        (self.root / self.path).write_bytes(png)
+
+    def test_a_conforming_file_passes(self):
+        self.write(icon.encode_png(8, 4, 3, bytes(96)))
+        icon.check_png_rules(self.root)
+
+    def test_an_alpha_channel_fails(self):
+        self.write(icon.encode_png(8, 4, 4, bytes(128)))
+        with self.assertRaises(icon.IconError) as ctx:
+            icon.check_png_rules(self.root)
+        self.assertIn("alpha", str(ctx.exception))
+
+    def test_a_wrong_size_fails(self):
+        self.write(icon.encode_png(9, 4, 3, bytes(108)))
+        with self.assertRaises(icon.IconError) as ctx:
+            icon.check_png_rules(self.root)
+        self.assertIn("8x4", str(ctx.exception))
+
+    def test_an_oversized_file_fails(self):
+        icon.BINARY_RULES = {self.path: (8, 4, 2, 50)}
+        self.write(icon.encode_png(8, 4, 3, bytes(range(96))))
+        with self.assertRaises(icon.IconError) as ctx:
+            icon.check_png_rules(self.root)
+        self.assertIn("bytes", str(ctx.exception))
+
+    def test_a_missing_file_fails(self):
+        with self.assertRaises(icon.IconError):
+            icon.check_png_rules(self.root)
+
+
 class Chrome(unittest.TestCase):
     def test_a_missing_chrome_stops_the_build_with_a_clear_message(self):
         result = subprocess.run([sys.executable, "-I", str(ROOT / "scripts" / "build-app-icon.py"), "build"],

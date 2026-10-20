@@ -1,5 +1,9 @@
 {
-  "files": {},
-  "script": "acb8c7007560216c30dfd6f44c824c89999b02344d4b2edc415a9cbc37cf9ffd",
+  "files": {
+    "ios/MediCabinet/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-dark.png": "7bf80997a16453c017cda713a76f7cf936ac748331f99062a6652dcbd0683fa2",
+    "ios/MediCabinet/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-light.png": "40f1875cbf3ee70bedacd51bf7609e05fa13387e9abf39f6b964f9418e985c7f",
+    "ios/MediCabinet/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-tinted.png": "c5ee0dc9805056d569e7df86dd7d34b5fff69d039cb255adc1e439aec6d0a4eb"
+  },
+  "script": "27087a8e8eed5a9074839ffa927ab43de86ea57012bcabf366a13a62d6c9049a",
   "source": "c8bdebbed9413df5d536dbf975db52392848c106e481031eae15497e25915c24"
 }

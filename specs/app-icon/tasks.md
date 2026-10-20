@@ -67,7 +67,7 @@ each other once T2 and T4 are done.
     - safe-zone detector on synthetic images (inside passes, one pixel outside fails);
     - manifest mismatch for the source, the script and an output;
     - `CHROME=/nonexistent build` exits non-zero with the message.
-- [ ] **T5 — iOS app icon: light, dark, tinted** `[ios]` (I1–I5; §1.6, §2.1, §3)
+- [x] **T5 — iOS app icon: light, dark, tinted** `[ios]` (I1–I5; §1.6, §2.1, §3)
   - `build` writes `AppIcon.appiconset/Contents.json` (default + `luminosity` dark and tinted)
     and the three 1024×1024 RGB PNGs from the palette maps.
   - `check` verifies the header rules (no alpha, size) and regenerates `Contents.json`.
