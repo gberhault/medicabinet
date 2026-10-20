@@ -51,7 +51,7 @@ change would otherwise break the other platform's suite.
   - UI tests: the search field and filter button sit on one row; the count sits next to the title; picking a
     location and a status from the menu; the chip appears and its × clears only that filter; the button's
     accessibility value; *Clear filters*; search still filters. *(F1–F6, X1)*
-- [ ] **T10** `[ios]` **Cards and pills.**
+- [x] **T10** `[ios]` **Cards and pills.**
   - Add `CategoryCardView` and `ProductPill`, and rewrite `CabinetView`'s list as a `ScrollView` with a
     `LazyVStack` of cards. Remove `ProductRowView`.
   - Strings: `cabinet.pill.count`, `cabinet.pill.label`, `cabinet.pill.labelStatus`.
@@ -79,7 +79,7 @@ change would otherwise break the other platform's suite.
   - Remove `AppEnvironment.categoryOrder`.
   - Add `clearLocation()`, `clearStatus()` and `activeFilterCount`.
   - Turbine/unit tests for each. *(G2, F4)*
-- [ ] **T15** `[android]` **Header.**
+- [x] **T15** `[android]` **Header.**
   - Add `CabinetHeader`: the search field, the filter `IconButton` in a `BadgedBox`, a `DropdownMenu` with its
     sections and *Clear filters*, and `InputChip`s.
   - Put the title and count in the `TopAppBar`, and delete `CabinetFilterBar.kt`.
