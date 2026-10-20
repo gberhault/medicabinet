@@ -3,7 +3,7 @@
 Newest entry first. The top entry must match `MARKETING_VERSION` in `project.yml`
 (checked by `scripts/check-version.sh`).
 
-## 0.7.0 — 2026-10-21
+## 0.7.0 — 2026-10-20
 
 Official leaflet link, and the products you named.
 
