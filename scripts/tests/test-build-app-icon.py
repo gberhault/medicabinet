@@ -465,6 +465,95 @@ class IosIcon(unittest.TestCase):
         self.assertEqual(3, len({corner["light"], corner["dark"], corner["tinted"]}))
 
 
+PLAY_ICON = Path("design/app-icon/play/icon-512.png")
+PLAY_GRAPHIC = Path("design/app-icon/play/feature-graphic-1024x500.png")
+
+
+class PlayAssets(unittest.TestCase):
+    def source(self):
+        return icon.load_source(ROOT / icon.SOURCE_RELATIVE)
+
+    def test_both_assets_are_registered_with_the_play_rules(self):
+        self.assertIn(PLAY_ICON, icon.BINARY_ASSETS)
+        self.assertIn(PLAY_GRAPHIC, icon.BINARY_ASSETS)
+        self.assertEqual((512, 512, 6, 1_048_576), icon.BINARY_RULES[PLAY_ICON])  # 32-bit, at most 1 024 KB
+        self.assertEqual((1024, 500, 2, 15_000_000), icon.BINARY_RULES[PLAY_GRAPHIC])  # no alpha, at most 15 MB
+
+    @unittest.skipUnless(CHROME_INSTALLED, "Google Chrome not installed")
+    def test_the_play_icon_is_a_full_bleed_opaque_square(self):
+        png = icon.BINARY_ASSETS[PLAY_ICON](self.source(), icon.chrome_renderer(icon.find_chrome()))
+        self.assertEqual((512, 512, 6), icon.png_header(png))
+        _, _, _, pixels = icon.decode_png(png)
+        self.assertEqual(512 * 512, pixels[3::4].count(255))  # opaque everywhere: no baked rounded corners
+        left, right = pixels[:3], pixels[511 * 4:511 * 4 + 3]  # both top corners: same colour, up to gradient rounding
+        self.assertTrue(all(abs(a - b) <= 2 for a, b in zip(left, right)), (tuple(left), tuple(right)))
+        self.assertGreater(pixels[(256 * 512 + 256) * 4 + 2], 0)
+
+    @unittest.skipUnless(CHROME_INSTALLED, "Google Chrome not installed")
+    def test_the_feature_graphic_keeps_the_lockup_inside_the_safe_area(self):
+        png = icon.BINARY_ASSETS[PLAY_GRAPHIC](self.source(), icon.chrome_renderer(icon.find_chrome()))
+        self.assertEqual((1024, 500, 2), icon.png_header(png))
+        width, height, channels, pixels = icon.decode_png(png)
+        bright_inside = bright_outside = 0
+        for y in range(height):
+            for x in range(width):
+                offset = (y * width + x) * channels
+                if min(pixels[offset:offset + 3]) > 200:
+                    if 62 <= x < 962 and 50 <= y < 450:
+                        bright_inside += 1
+                    else:
+                        bright_outside += 1
+        self.assertGreater(bright_inside, 5000)  # the M and the name are drawn
+        self.assertEqual(0, bright_outside)  # nothing in the margins Play may crop or cover
+
+
+class PlacementAndBudget(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.root = Path(self._tmp.name)
+        (self.root / "design" / "app-icon").mkdir(parents=True)
+        shutil.copy(ROOT / icon.SOURCE_RELATIVE, self.root / icon.SOURCE_RELATIVE)
+        self.manifest = self.root / icon.MANIFEST_RELATIVE
+        self.manifest.parent.mkdir(parents=True)
+        shutil.copy(ROOT / icon.MANIFEST_RELATIVE, self.manifest)
+        icon.command_build(self.root, render=fake_render)
+
+    def test_a_clean_tree_passes(self):
+        icon.check_placement(self.root)
+        icon.check_size_budget(self.root)
+
+    def test_a_play_asset_copied_into_an_app_fails(self):
+        for app_dir in ("android/app/src/main/res/drawable", "ios/MediCabinet/Resources"):
+            with self.subTest(app_dir):
+                target = self.root / app_dir
+                target.mkdir(parents=True, exist_ok=True)
+                (target / PLAY_ICON.name).write_bytes(b"x")
+                with self.assertRaises(icon.IconError) as ctx:
+                    icon.check_placement(self.root)
+                self.assertIn(PLAY_ICON.name, str(ctx.exception))
+                (target / PLAY_ICON.name).unlink()
+
+    def test_an_app_over_the_icon_budget_fails(self):
+        original = icon.APP_BUDGET_BYTES
+        icon.APP_BUDGET_BYTES = 10
+        self.addCleanup(setattr, icon, "APP_BUDGET_BYTES", original)
+        with self.assertRaises(icon.IconError) as ctx:
+            icon.check_size_budget(self.root)
+        self.assertIn("budget", str(ctx.exception))
+
+    def test_the_real_icon_weight_is_reported_per_app(self):
+        weights = icon.app_icon_bytes(self.root)
+        self.assertEqual({"android", "ios"}, set(weights))
+        self.assertGreater(weights["android"], 0)
+        self.assertGreater(weights["ios"], 0)
+
+    def test_the_budget_counts_only_what_an_app_bundles(self):
+        before = icon.app_icon_bytes(self.root)
+        (self.root / "design/app-icon/play/extra.png").write_bytes(bytes(500_000))
+        self.assertEqual(before, icon.app_icon_bytes(self.root))
+
+
 class PngRules(unittest.TestCase):
     """check enforces dimensions, colour type and size of every raster asset (I1, P1, P2)."""
 

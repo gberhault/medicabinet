@@ -75,7 +75,7 @@ each other once T2 and T4 are done.
     test `AppIconTests`: `CFBundleIcons.CFBundlePrimaryIcon.CFBundleIconName == "AppIcon"`
     in the built bundle.
   - Then run `bash scripts/ios-local-ci.sh`.
-- [ ] **T6 — Play listing assets** `[shared]` (P1–P4, X1; §2.2, §4)
+- [x] **T6 — Play listing assets** `[shared]` (P1–P4, X1; §2.2, §4)
   - `build` writes `play/icon-512.png` (RGBA, full-bleed) and
     `play/feature-graphic-1024x500.png` (RGB: foreground plus the vector wordmark, inside the
     900×400 area).
