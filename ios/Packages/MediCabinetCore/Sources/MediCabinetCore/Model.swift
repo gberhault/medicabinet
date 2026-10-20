@@ -147,9 +147,11 @@ public struct NamedProduct: Identifiable, Hashable, Sendable {
 }
 
 /// One row of the Settings list: a named product and how many of its boxes are in the cabinet.
-public struct NamedProductSummary: Hashable, Sendable {
+public struct NamedProductSummary: Hashable, Sendable, Identifiable {
     public let product: NamedProduct
     public let boxesInCabinet: Int
+
+    public var id: NamedProduct.ID { product.id }
 
     public init(product: NamedProduct, boxesInCabinet: Int) {
         self.product = product
