@@ -1,6 +1,6 @@
 # Export and import of the cabinet — Tasks
 
-Status: **Draft — awaiting approval**
+Status: **Approved**
 Epic: #26 · Branch: `feature/26-export-import`
 
 One task = one focused commit (code + tests + this file checked off). Tags: `[shared]`,
@@ -15,13 +15,10 @@ independent of each other.
 
 ## 0. Prerequisite
 
-- [ ] **T0 — Rebase on `develop` after #12** *(2026-10-20: rebased on `feature/22-expiry-tracking`, which carries
-  the merged bulk-scan work. Schema v2 is as assumed, but v3 added `location.deletedAt`; the format change that
-  follows is pending approval, see the epic comment. Rebase again on `develop` once #22 is merged.)* `[shared]` (decision 1; §14) — **blocked by #12**
-  Rebase this branch on `develop` once the bulk-scan epic is merged. Check that schema v2
-  is exactly what §2.2 assumes (`box.deletedAt`, unique live serial, `delete` /
-  `undoDelete`), and that no other schema change landed (e.g. location tombstones from
-  #18). If anything differs, stop and update the spec first. Mark #27–#29 in progress.
+- [x] **T0 — Rebase on `develop` after #12** `[shared]` (decision 1; §14)
+  Done 2026-10-20: the branch is fast-forwarded to `develop` (#12, #17, #22 and the first slice of this epic
+  merged). Schema is v3 (`box.deletedAt`, unique live serial, `location.deletedAt`), exactly what §2.2
+  assumes; no other schema change landed. #26, #28, #29 marked in progress.
 
 ## 1. Archive format in both cores (#27)
 
