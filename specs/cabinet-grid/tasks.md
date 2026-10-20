@@ -99,7 +99,7 @@ change would otherwise break the other platform's suite.
 
 - [x] **T17** `[shared]` Docs: rewrite "What the user sees" in `docs/cabinet.md` (cards, pills, short names, orders,
   filter menu), and add the two fixtures to its rules table. Check the `fixtures/README.md` rows. *(X4)*
-- [ ] **T18** `[ios]` `[android]` Bump the minor version of both apps (`project.yml` and `build.gradle.kts`, with the
+- [x] **T18** `[ios]` `[android]` Bump the minor version of both apps (`project.yml` and `build.gradle.kts`, with the
   build numbers incremented) and add the changelog entries. Run `check-version.sh ios` and `check-version.sh android`.
   *(X5)*
 - [ ] **T19** `[shared]` Run `bash scripts/local-ci.sh` (shared, iOS and Android gates) and fix every failure. Record
