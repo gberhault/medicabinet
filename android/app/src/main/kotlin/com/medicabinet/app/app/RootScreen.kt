@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,7 +21,11 @@ import com.medicabinet.app.features.MainScaffold
 val LocalAppEnvironment = staticCompositionLocalOf<AppEnvironment?> { null }
 
 @Composable
-fun RootScreen(viewModel: BootstrapViewModel, modifier: Modifier = Modifier) {
+fun RootScreen(
+    viewModel: BootstrapViewModel,
+    modifier: Modifier = Modifier,
+    tabRouter: TabRouter = remember { TabRouter() }
+) {
     val state by viewModel.state.collectAsState()
     when (val current = state) {
         BootstrapUiState.Loading -> Column(
@@ -37,7 +42,7 @@ fun RootScreen(viewModel: BootstrapViewModel, modifier: Modifier = Modifier) {
             modifier = modifier
         )
         is BootstrapUiState.Ready -> CompositionLocalProvider(LocalAppEnvironment provides current.environment) {
-            MainScaffold(current.environment, modifier = modifier)
+            MainScaffold(current.environment, modifier = modifier, tabRouter = tabRouter)
         }
     }
 }

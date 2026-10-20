@@ -31,8 +31,6 @@
     <string name="category_uncategorized">Non classé</string>
     <string name="category_vitamins_minerals">Vitamines et minéraux</string>
     <string name="location_default_name">Armoire à pharmacie</string>
-    <string name="placeholder_expiring_message">Les médicaments périmés ou bientôt périmés seront listés ici.</string>
-    <string name="placeholder_expiring_title">Le suivi des péremptions arrive bientôt</string>
     <string name="placeholder_scan_message">Vous pourrez bientôt scanner vos boîtes de médicaments les unes après les autres.</string>
     <string name="placeholder_scan_title">Le scan arrive bientôt</string>
     <string name="settings_about">À propos</string>
@@ -241,4 +239,21 @@
     <string name="settings_expiryWindow_title">Bientôt périmé</string>
     <string name="settings_expiryWindow_footer">Les boîtes qui périment dans ce nombre de jours sont affichées comme bientôt périmées.</string>
     <string name="settings_expiryWindow_option">%1$d jours</string>
+    <string name="expiry_status_expiresToday">Périme aujourd’hui</string>
+    <string name="expiring_section_expired">Périmés</string>
+    <string name="expiring_section_expiringSoon">Bientôt périmés</string>
+    <string name="expiring_section_unknown">Péremption inconnue</string>
+    <string name="expiring_row_expiry">Péremption : %1$s</string>
+    <string name="expiring_row_accessibility">%1$s, %2$s, %3$s, %4$s</string>
+    <string name="expiring_empty_title">Tout est à jour</string>
+    <string name="expiring_empty_message">Rien ne périme dans les %1$d prochains jours.</string>
+    <string name="expiring_loading">Chargement des péremptions…</string>
+    <string name="expiring_error_title">Impossible de charger les péremptions</string>
+    <plurals name="expiring_badge_accessibility">
+        <item quantity="one">%1$d boîte à vérifier</item>
+        <item quantity="other">%1$d boîtes à vérifier</item>
+    </plurals>
+    <string name="expiring_thrownAway">Jetée</string>
+    <string name="expiring_thrownAway_done">%1$s jetée</string>
+    <string name="expiring_thrownAway_failed">Impossible de jeter cette boîte</string>
 </resources>

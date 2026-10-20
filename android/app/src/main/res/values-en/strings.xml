@@ -31,8 +31,6 @@
     <string name="category_uncategorized">Uncategorized</string>
     <string name="category_vitamins_minerals">Vitamins and minerals</string>
     <string name="location_default_name">Medicine cabinet</string>
-    <string name="placeholder_expiring_message">Expired and soon-to-expire medicines will be listed here.</string>
-    <string name="placeholder_expiring_title">Expiry tracking is coming soon</string>
     <string name="placeholder_scan_message">Soon you will be able to scan your medicine boxes one after the other.</string>
     <string name="placeholder_scan_title">Scanning is coming soon</string>
     <string name="settings_about">About</string>
@@ -241,4 +239,21 @@
     <string name="settings_expiryWindow_title">Expiring soon</string>
     <string name="settings_expiryWindow_footer">Boxes expiring within this many days are shown as expiring soon.</string>
     <string name="settings_expiryWindow_option">%1$d days</string>
+    <string name="expiry_status_expiresToday">Expires today</string>
+    <string name="expiring_section_expired">Expired</string>
+    <string name="expiring_section_expiringSoon">Expiring soon</string>
+    <string name="expiring_section_unknown">Expiry unknown</string>
+    <string name="expiring_row_expiry">Expires: %1$s</string>
+    <string name="expiring_row_accessibility">%1$s, %2$s, %3$s, %4$s</string>
+    <string name="expiring_empty_title">All clear</string>
+    <string name="expiring_empty_message">Nothing expires in the next %1$d days.</string>
+    <string name="expiring_loading">Loading expiry dates…</string>
+    <string name="expiring_error_title">Couldn’t load expiry dates</string>
+    <plurals name="expiring_badge_accessibility">
+        <item quantity="one">%1$d box needs attention</item>
+        <item quantity="other">%1$d boxes need attention</item>
+    </plurals>
+    <string name="expiring_thrownAway">Thrown away</string>
+    <string name="expiring_thrownAway_done">%1$s thrown away</string>
+    <string name="expiring_thrownAway_failed">Couldn’t throw this box away</string>
 </resources>

@@ -6,6 +6,8 @@ import androidx.compose.material.icons.outlined.EventBusy
 import androidx.compose.material.icons.outlined.MedicalServices
 import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -15,13 +17,19 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -34,10 +42,13 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.medicabinet.app.R
 import com.medicabinet.app.app.AppEnvironment
+import com.medicabinet.app.app.AppTab
+import com.medicabinet.app.app.TabRouter
 import com.medicabinet.app.features.cabinet.cabinetGraph
 import com.medicabinet.app.features.common.LocalUndoController
 import com.medicabinet.app.features.common.UndoController
-import com.medicabinet.app.features.placeholders.FeaturePlaceholder
+import com.medicabinet.app.features.expiring.ExpiringScreen
+import com.medicabinet.app.features.expiring.ExpiringViewModel
 import com.medicabinet.app.features.scan.ScanScreen
 import com.medicabinet.app.features.scan.ScanServices
 import com.medicabinet.app.features.scan.ScanViewModel
@@ -56,20 +67,27 @@ private const val SETTINGS_HOME = "settings/home"
 private const val SETTINGS_ABOUT = "settings/about"
 private const val SETTINGS_LOCATIONS = "settings/locations"
 
-private enum class Destination(val route: String, val labelRes: Int, val icon: ImageVector) {
-    Scan("scan", R.string.tab_scan, Icons.Outlined.QrCodeScanner),
-    Cabinet("cabinet", R.string.tab_cabinet, Icons.Outlined.MedicalServices),
-    Expiring("expiring", R.string.tab_expiring, Icons.Outlined.EventBusy),
-    Settings("settings", R.string.tab_settings, Icons.Outlined.Settings)
+private enum class Destination(val tab: AppTab, val labelRes: Int, val icon: ImageVector) {
+    Scan(AppTab.SCAN, R.string.tab_scan, Icons.Outlined.QrCodeScanner),
+    Cabinet(AppTab.CABINET, R.string.tab_cabinet, Icons.Outlined.MedicalServices),
+    Expiring(AppTab.EXPIRING, R.string.tab_expiring, Icons.Outlined.EventBusy),
+    Settings(AppTab.SETTINGS, R.string.tab_settings, Icons.Outlined.Settings);
+
+    val route: String get() = tab.route
 }
 
-/** Four destinations — Scan, Cabinet, Expiring, Settings — as on iOS. Unbuilt features show an empty state. */
+/**
+ * Four destinations — Scan, Cabinet, Expiring, Settings — as on iOS. The Expiring model lives here, above the tabs,
+ * so the badge on the tab is live whichever tab is shown and always agrees with the list. [tabRouter] lets the
+ * notification tap switch tab from outside.
+ */
 @Composable
 fun MainScaffold(
     environment: AppEnvironment,
     modifier: Modifier = Modifier,
     appInfo: AppInfo = PackageAppInfo(LocalContext.current),
-    scanServices: ScanServices = ScanServices.live(LocalContext.current, environment.reference)
+    scanServices: ScanServices = ScanServices.live(LocalContext.current, environment.reference),
+    tabRouter: TabRouter = remember { TabRouter() }
 ) {
     val aboutViewModel = remember(appInfo, environment.reference) { AboutViewModel(appInfo, environment.reference) }
     val navController = rememberNavController()
@@ -77,12 +95,21 @@ fun MainScaffold(
     val snackbars = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val undoController = remember(snackbars, scope) { UndoController(snackbars, scope) }
+    val expiringModel = viewModel { ExpiringViewModel(environment) }
+    val requested by tabRouter.requested.collectAsState()
+    LaunchedEffect(requested) {
+        requested?.let { tab ->
+            navController.openTab(Destination.entries.first { it.tab == tab })
+            tabRouter.consume(tab)
+        }
+    }
     CompositionLocalProvider(LocalUndoController provides undoController) {
         MainContent(
             navController,
             aboutViewModel,
             environment,
             scanServices,
+            expiringModel,
             snackbars,
             backStack?.destination,
             modifier
@@ -96,10 +123,12 @@ private fun MainContent(
     aboutViewModel: AboutViewModel,
     environment: AppEnvironment,
     scanServices: ScanServices,
+    expiringModel: ExpiringViewModel,
     snackbars: SnackbarHostState,
     current: NavDestination?,
     modifier: Modifier
 ) {
+    val attention by expiringModel.attentionCount.collectAsStateWithLifecycle()
     Scaffold(
         modifier = modifier,
         snackbarHost = { SnackbarHost(snackbars) },
@@ -107,18 +136,47 @@ private fun MainContent(
             NavigationBar {
                 Destination.entries.forEach { destination ->
                     val label = stringResource(destination.labelRes)
+                    val badge = attention.takeIf { destination == Destination.Expiring && it > 0 }
                     NavigationBarItem(
                         selected = current?.hierarchy?.any { it.route == destination.route } == true,
                         onClick = { navController.openTab(destination) },
-                        icon = { Icon(destination.icon, contentDescription = null) },
-                        label = { Text(label) }
+                        icon = { TabIcon(destination, badge) },
+                        label = { Text(label) },
+                        // The item clears its icon's semantics, so the item itself says the count (TalkBack).
+                        modifier = badge?.let { Modifier.badgeSemantics(label, it) } ?: Modifier
                     )
                 }
             }
         }
     ) { padding ->
-        MainNavHost(navController, aboutViewModel, environment, scanServices, Modifier.padding(padding))
+        MainNavHost(
+            navController,
+            aboutViewModel,
+            environment,
+            scanServices,
+            expiringModel,
+            Modifier.padding(padding)
+        )
     }
+}
+
+/** The tab icon; the Expiring tab carries the number of boxes needing attention ([badge], absent at zero). */
+@Composable
+private fun TabIcon(destination: Destination, badge: Int?) {
+    if (badge == null) {
+        Icon(destination.icon, contentDescription = null)
+        return
+    }
+    BadgedBox(badge = { Badge { Text(badge.toString()) } }) {
+        Icon(destination.icon, contentDescription = null)
+    }
+}
+
+/** "Expiring, 3 boxes need attention": the label, then the count in words. */
+@Composable
+private fun Modifier.badgeSemantics(label: String, count: Int): Modifier {
+    val description = pluralStringResource(R.plurals.expiring_badge_accessibility, count, count)
+    return semantics { contentDescription = "$label, $description" }
 }
 
 /** Switches to a bottom-bar tab, keeping each tab's own back stack. */
@@ -136,6 +194,7 @@ private fun MainNavHost(
     aboutViewModel: AboutViewModel,
     environment: AppEnvironment,
     scanServices: ScanServices,
+    expiringModel: ExpiringViewModel,
     modifier: Modifier
 ) {
     NavHost(navController, startDestination = Destination.Scan.route, modifier = modifier) {
@@ -144,13 +203,7 @@ private fun MainNavHost(
             ScanScreen(model, scanServices)
         }
         cabinetGraph(navController, environment) { navController.openTab(Destination.Scan) }
-        composable(Destination.Expiring.route) {
-            FeaturePlaceholder(
-                R.string.placeholder_expiring_title,
-                R.string.placeholder_expiring_message,
-                Destination.Expiring.icon
-            )
-        }
+        composable(Destination.Expiring.route) { ExpiringScreen(expiringModel) }
         navigation(route = Destination.Settings.route, startDestination = SETTINGS_HOME) {
             composable(SETTINGS_HOME) {
                 SettingsScreen(

@@ -23,6 +23,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { MediCabinetTheme { RootScreen(viewModel) } }
+        val router = (application as MediCabinetApplication).tabRouter
+        setContent { MediCabinetTheme { RootScreen(viewModel, tabRouter = router) } }
     }
 }
