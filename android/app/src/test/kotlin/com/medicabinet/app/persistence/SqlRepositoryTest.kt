@@ -39,7 +39,11 @@ class SqlRepositoryContractTest(private val check: RepositoryContract.Check) {
         try {
             check.run { clock ->
                 val cabinet = openCabinet().also { opened += it }
-                SqlLocationRepository(cabinet, clock) to SqlBoxRepository(cabinet, clock)
+                RepositoryContract.Stores(
+                    SqlLocationRepository(cabinet, clock),
+                    SqlBoxRepository(cabinet, clock),
+                    SqlNamedProductRepository(cabinet, clock)
+                )
             }
         } finally {
             opened.forEach { it.close() }

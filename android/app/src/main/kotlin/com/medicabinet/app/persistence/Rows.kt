@@ -6,6 +6,7 @@ import com.medicabinet.core.CategoryID
 import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.InvalidExpiryDateException
 import com.medicabinet.core.Location
+import com.medicabinet.core.NamedProduct
 import com.medicabinet.core.ProductRef
 import com.medicabinet.core.RemovalReason
 
@@ -16,6 +17,16 @@ internal fun Cursor.toLocation(): Location = Location(
     sortOrder = getInt(getColumnIndexOrThrow("sortOrder")),
     createdAt = StoredDate.read(str("createdAt"), "location"),
     updatedAt = StoredDate.read(str("updatedAt"), "location")
+)
+
+internal fun Cursor.toNamedProduct(): NamedProduct = NamedProduct(
+    id = uuid(str("id"), "namedProduct"),
+    gtin = str("gtin"),
+    name = str("name"),
+    category = CategoryID(str("category")),
+    categoryOverridden = flag("categoryOverridden"),
+    createdAt = StoredDate.read(str("createdAt"), "namedProduct"),
+    updatedAt = StoredDate.read(str("updatedAt"), "namedProduct")
 )
 
 internal fun Cursor.toBox(): Box = Box(
