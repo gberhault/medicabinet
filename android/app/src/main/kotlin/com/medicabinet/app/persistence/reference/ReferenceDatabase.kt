@@ -18,8 +18,20 @@ class ReferenceDatabase private constructor(private val database: SQLiteDatabase
     Closeable {
     /** The product of a CIP13 (withdrawn ones included), or `null` when the database does not know it. */
     fun product(cip13: String): ReferenceProduct? =
-        database.rawQuery("SELECT name, category FROM presentation WHERE cip13 = ?", arrayOf(cip13)).use { cursor ->
-            if (cursor.moveToFirst()) ReferenceProduct(cursor.getString(0), CategoryID(cursor.getString(1))) else null
+        database.rawQuery(
+            "SELECT name, category, cis, withdrawnSince FROM presentation WHERE cip13 = ?",
+            arrayOf(cip13)
+        ).use { cursor ->
+            if (cursor.moveToFirst()) {
+                ReferenceProduct(
+                    name = cursor.getString(0),
+                    category = CategoryID(cursor.getString(1)),
+                    cis = if (cursor.isNull(2)) null else cursor.getString(2),
+                    isWithdrawn = !cursor.isNull(3)
+                )
+            } else {
+                null
+            }
         }
 
     /**
@@ -33,11 +45,12 @@ class ReferenceDatabase private constructor(private val database: SQLiteDatabase
         database.rawQuery("SELECT key, value FROM meta ORDER BY key", null).use { cursor ->
             while (cursor.moveToNext()) add("meta\t${cursor.getString(0)}\t${cursor.getString(1)}\n")
         }
-        val sql = "SELECT cip13, name, category, withdrawnSince FROM presentation ORDER BY cip13"
+        val sql = "SELECT cip13, name, category, withdrawnSince, cis FROM presentation ORDER BY cip13"
         database.rawQuery(sql, null).use { cursor ->
             while (cursor.moveToNext()) {
                 val withdrawn = if (cursor.isNull(WITHDRAWN_COLUMN)) "" else cursor.getString(WITHDRAWN_COLUMN)
-                add("row\t${cursor.getString(0)}\t${cursor.getString(1)}\t${cursor.getString(2)}\t$withdrawn\n")
+                val cis = if (cursor.isNull(CIS_COLUMN)) "" else cursor.getString(CIS_COLUMN)
+                add("row\t${cursor.getString(0)}\t${cursor.getString(1)}\t${cursor.getString(2)}\t$withdrawn\t$cis\n")
             }
         }
         return digest.digest().toHex()
@@ -47,8 +60,9 @@ class ReferenceDatabase private constructor(private val database: SQLiteDatabase
 
     companion object {
         /** The reference schema version this app understands (`PRAGMA user_version`). */
-        const val SUPPORTED_SCHEMA_VERSION = 1
+        const val SUPPORTED_SCHEMA_VERSION = 2
         private const val WITHDRAWN_COLUMN = 3
+        private const val CIS_COLUMN = 4
 
         /** Opens and validates the file: right schema version, intact, with a valid data date. */
         fun open(file: File): ReferenceDatabase {

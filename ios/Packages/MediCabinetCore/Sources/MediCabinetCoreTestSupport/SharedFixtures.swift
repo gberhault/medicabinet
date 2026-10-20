@@ -39,6 +39,8 @@ public struct ReferenceLookupCase: Decodable, Sendable, CustomStringConvertible 
     public struct Product: Decodable, Sendable, Equatable {
         public let name: String
         public let category: String
+        public let cis: String
+        public let isWithdrawn: Bool
     }
 
     public struct Expect: Decodable, Sendable {

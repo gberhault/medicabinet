@@ -36,6 +36,8 @@ import Testing
         let expected = lookupCase.expect.product
         #expect(product?.name == expected?.name)
         #expect(product?.category?.rawValue == expected?.category)
+        #expect(product?.cis == expected?.cis)
+        #expect(product?.isWithdrawn == expected?.isWithdrawn)
         #expect((product == nil) == (expected == nil))
     }
 
@@ -84,7 +86,7 @@ import Testing
     }
 
     @Test func anotherSchemaVersionIsUnsupported() async throws {
-        let url = try sampleCopy { try $0.write { try $0.execute(sql: "PRAGMA user_version = 2") } }
+        let url = try sampleCopy { try $0.write { try $0.execute(sql: "PRAGMA user_version = 3") } }
         let source = GRDBReferenceData(url: url)
         #expect(await source.status() == .unavailable(.unsupportedSchema))
         #expect(try await source.product(gtin: "03400900000013") == nil)
@@ -143,6 +145,8 @@ import Testing
         let source = GRDBReferenceData(url: bundledURL)
         let product = try #require(try await source.product(gtin: "03400935955838"))
         #expect(product.name.hasPrefix("DOLIPRANE 1000 mg"))
+        #expect(product.cis == "60234100")  // #56: the BDPM page of this medicine is built from it
+        #expect(!product.isWithdrawn)
         #expect(product.category == .painFever)
         let status = await source.status()
         guard case .available = status else { Issue.record("bundled data unavailable"); return }

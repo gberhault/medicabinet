@@ -2,11 +2,11 @@ import Foundation
 import GRDB
 import MediCabinetCore
 
-/// The bundled reference database (BDPM names and categories by CIP13), opened read-only. Nothing here writes to it;
+/// The bundled reference database (BDPM names, categories and CIS by CIP13), opened read-only. Nothing here writes to it;
 /// it holds no household data.
 struct ReferenceDatabase: Sendable {
     /// The reference schema version this app understands (`PRAGMA user_version`).
-    static let supportedSchemaVersion = 1
+    static let supportedSchemaVersion = 2
 
     let queue: DatabaseQueue
     let dataDate: ReferenceDataDate
@@ -40,9 +40,14 @@ struct ReferenceDatabase: Sendable {
     /// The product of a CIP13 (withdrawn ones included), or `nil` when the database does not know it.
     func product(cip13: String) throws -> ReferenceProduct? {
         try queue.read { db in
-            let sql = "SELECT name, category FROM presentation WHERE cip13 = ?"
+            let sql = "SELECT name, category, cis, withdrawnSince FROM presentation WHERE cip13 = ?"
             guard let row = try Row.fetchOne(db, sql: sql, arguments: [cip13]) else { return nil }
-            return ReferenceProduct(name: row["name"], category: CategoryID(rawValue: row["category"]))
+            let withdrawnSince: String? = row["withdrawnSince"]
+            return ReferenceProduct(
+                name: row["name"],
+                category: CategoryID(rawValue: row["category"]),
+                cis: row["cis"],
+                isWithdrawn: withdrawnSince != nil)
         }
     }
 }

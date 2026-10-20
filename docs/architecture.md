@@ -131,7 +131,7 @@ session ends. See [export-import.md](export-import.md) and [export-format.md](ex
 ## The reference database
 
 A second, **read-only** SQLite database ships inside each app: the BDPM names and categories by CIP13
-(`reference-data/bundle/reference.sqlite`, ~1.7 MB, the same file for both apps; contents, rules and the update
+(`reference-data/bundle/reference.sqlite`, ~1.9 MB, the same file for both apps; contents, rules and the update
 procedure are in [reference-data.md](reference-data.md)). It is separate from the cabinet database, holds no
 household data, and is never migrated: a new data release replaces the whole file.
 

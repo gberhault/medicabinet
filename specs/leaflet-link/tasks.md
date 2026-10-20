@@ -14,7 +14,7 @@ order avoids conflicts. Rebase onto `origin/develop` (never merge it) whenever d
 
 ## Reference data (shared, both apps)
 
-- [ ] **T1** `[shared]` `[ios]` `[android]` **Reference schema v2 with the CIS.**
+- [x] **T1** `[shared]` `[ios]` `[android]` **Reference schema v2 with the CIS.**
   - `build-reference-db.py`: everything in design §2.2.
   - `test-build-reference-db.py`: five columns; CIS checks (7 digits, a letter, null on a current row refused; null
     on a withdrawn row accepted); `user_version`/manifest 2; build against a v1 previous database succeeds and

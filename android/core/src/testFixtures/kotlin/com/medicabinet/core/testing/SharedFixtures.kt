@@ -36,7 +36,7 @@ data class ReferenceLookupCase(val name: String, val gtin: String, val expect: E
     data class Expect(val cip13: String? = null, val product: Product? = null)
 
     @Serializable
-    data class Product(val name: String, val category: String)
+    data class Product(val name: String, val category: String, val cis: String, val isWithdrawn: Boolean)
 
     override fun toString(): String = name
 }

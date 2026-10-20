@@ -25,16 +25,16 @@ CREATE TABLE presentation (
   name           TEXT NOT NULL CHECK (length(name) BETWEEN 1 AND 255),
   category       TEXT NOT NULL,
   withdrawnSince TEXT CHECK (withdrawnSince IS NULL OR withdrawnSince GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
-  cis            TEXT CHECK (
-                   (cis IS NULL AND withdrawnSince IS NOT NULL)
-                   OR (length(cis) = 8 AND cis GLOB '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')
-                 )
+  cis            TEXT CHECK (CASE WHEN cis IS NULL THEN withdrawnSince IS NOT NULL
+                                  ELSE length(cis) = 8 AND cis GLOB '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' END)
 ) WITHOUT ROWID;
 ```
 
 - `cis` is the **last** column, so v1 readers' `SELECT name, category` and the existing row order stay readable. The
   apps never read a v1 database once they support v2 (they ship their own bundle), but the build script reads the
   committed v1 bundle once as the "previous" database.
+- The CHECK is a `CASE`, not `… OR …`: SQLite accepts a CHECK that evaluates to NULL, so a NULL CIS on a current row would
+  pass the `OR` form.
 - `TEXT`, not `INTEGER`: a CIS is an identifier, and keeping the digits as text avoids any leading-zero or
   formatting question. Measured cost, un-vacuumed: about +209 KB on 20 896 rows (about 1.95 MB in total, budget
   8 MB).

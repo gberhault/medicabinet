@@ -85,7 +85,7 @@ bundle, so that updating the data is routine, reviewable and reproducible.*
    taxonomy, and SHALL write a new reference database and its manifest.
 2. The reference database SHALL hold only what the apps need: CIP13, product name, category,
    and the withdrawn state with its date. It SHALL be indexed for lookup by CIP13 and carry a
-   reference-schema version.
+   reference-schema version. *(Amended by `specs/leaflet-link/` R1: schema v2 also keeps each presentation's CIS.)*
 3. The script SHALL treat its input as untrusted and SHALL fail with a clear message, writing
    nothing, WHEN a file is missing, cannot be decoded in its expected encoding, has an
    unexpected number of columns, or holds a CIP13 that is not 13 digits with prefix `3400`.

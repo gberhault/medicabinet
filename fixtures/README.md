@@ -21,8 +21,8 @@ Every file is JSON with:
 |------|----------|
 | `expiry-dates.json` | `ExpiryDate` validation, `lastValidDay`, `sortKey`, error kinds |
 | `categories.json` | the category taxonomy in display order; which categories the reference-data build may assign and which the user may pick |
-| `reference-lookup.json` | GTIN → CIP13 conversion (both cores) and product lookup against the sample database (both apps): name, category, unknown, withdrawn, malformed input |
-| `reference-sample.sqlite` | a small reference database (reference schema v1) built by `scripts/tests/write-reference-sample.py` from invented BDPM-shaped files; the app lookup tests open it |
+| `reference-lookup.json` | GTIN → CIP13 conversion (both cores) and product lookup against the sample database (both apps): name, category, `cis`, `isWithdrawn`, unknown, withdrawn, malformed input |
+| `reference-sample.sqlite` | a small reference database (reference schema v2) built by `scripts/tests/write-reference-sample.py` from invented BDPM-shaped files; the app lookup tests open it |
 | `reference-sample-manifest.json` | the manifest of the sample database (same format as `reference-data/bundle/reference-manifest.json`): the Android installer tests copy and verify the sample against it |
 | `gs1-datamatrix.json` | GS1 DataMatrix / EAN-13 payload parsing: GTIN, expiry (invalid vs missing), lot, serial, the `shape` of a payload, parse error kinds |
 | `scan-debounce.json` | `ScanDebouncer`: which sightings count as a new scan (1 s re-scan gap) |

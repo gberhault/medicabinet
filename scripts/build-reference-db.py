@@ -294,7 +294,9 @@ def classify(product, rules):
     return UNCATEGORIZED
 
 
-REFERENCE_SCHEMA_VERSION = 1
+REFERENCE_SCHEMA_VERSION = 2
+# The previous database may still be of this version: it holds no CIS, so rows carried over as withdrawn keep none.
+READABLE_PREVIOUS_VERSIONS = (1, REFERENCE_SCHEMA_VERSION)
 # ~4.5x the measured 1.78 MB of the 2026-10 snapshot: room for years of cumulative growth (design §3.2).
 MAX_REFERENCE_DB_BYTES = 8_000_000
 # A snapshot must still hold this share of the presentations that were marketed in the previous database.
@@ -312,7 +314,9 @@ CREATE TABLE presentation (
   cip13          TEXT PRIMARY KEY NOT NULL CHECK (length(cip13) = 13 AND cip13 GLOB '3400[0-9]*'),
   name           TEXT NOT NULL CHECK (length(name) BETWEEN 1 AND 255),
   category       TEXT NOT NULL,
-  withdrawnSince TEXT CHECK (withdrawnSince IS NULL OR withdrawnSince GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]')
+  withdrawnSince TEXT CHECK (withdrawnSince IS NULL OR withdrawnSince GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+  cis            TEXT CHECK (CASE WHEN cis IS NULL THEN withdrawnSince IS NOT NULL
+                                  ELSE length(cis) = 8 AND cis GLOB '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' END)
 ) WITHOUT ROWID;
 """
 
@@ -322,6 +326,7 @@ class Row:
     name: str
     category: str
     withdrawn_since: str = None  # data date of the first build whose snapshot lacked it; None = in the latest snapshot
+    cis: str = None  # BDPM identifier of the medicine; None only for a withdrawn row carried over from a v1 database
 
 
 @dataclass
@@ -342,14 +347,15 @@ def connect_read_only(path):
 
 
 def read_database(path):
-    """(meta dict, user_version, {cip13: Row}) of a reference database."""
+    """(meta dict, user_version, {cip13: Row}) of a reference database (version 1 has no `cis` column)."""
     try:
         connection = connect_read_only(path)
         try:
             version = connection.execute("PRAGMA user_version").fetchone()[0]
             meta = dict(connection.execute("SELECT key, value FROM meta"))
-            rows = {c: Row(n, cat, w) for c, n, cat, w in connection.execute(
-                "SELECT cip13, name, category, withdrawnSince FROM presentation ORDER BY cip13")}
+            cis_column = "cis" if version >= 2 else "NULL"
+            rows = {c: Row(n, cat, w, cis) for c, n, cat, w, cis in connection.execute(
+                f"SELECT cip13, name, category, withdrawnSince, {cis_column} FROM presentation ORDER BY cip13")}
         finally:
             connection.close()
     except sqlite3.Error as error:
@@ -361,7 +367,8 @@ def content_sha256(meta, version, rows):
     """Hash of the canonical content: identical rows give an identical hash on any machine (design §1.2)."""
     lines = [f"user_version\t{version}\n"]
     lines += [f"meta\t{key}\t{meta[key]}\n" for key in sorted(meta)]
-    lines += [f"row\t{c}\t{r.name}\t{r.category}\t{r.withdrawn_since or ''}\n" for c, r in sorted(rows.items())]
+    lines += [f"row\t{c}\t{r.name}\t{r.category}\t{r.withdrawn_since or ''}\t{r.cis or ''}\n"
+              for c, r in sorted(rows.items())]
     return hashlib.sha256("".join(lines).encode("utf-8")).hexdigest()
 
 
@@ -370,7 +377,7 @@ def read_previous(path):
     if path is None or not Path(path).is_file():
         return None, {}
     meta, version, rows = read_database(path)
-    if version != REFERENCE_SCHEMA_VERSION:
+    if version not in READABLE_PREVIOUS_VERSIONS:
         raise BuildError(f"{path}: reference schema version {version}, this script builds version {REFERENCE_SCHEMA_VERSION}")
     if parse_iso_date(meta.get("dataDate", "")) is None:
         raise BuildError(f"{path}: meta.dataDate is missing or not a date")
@@ -378,7 +385,7 @@ def read_previous(path):
 
 
 def merge(snapshot_rows, previous_rows, data_date, accept_drop=False, previous_date=None):
-    """The new database rows and what changed (requirements B7). `snapshot_rows`: {cip13: (name, category)}."""
+    """The new database rows and what changed (requirements B7). `snapshot_rows`: {cip13: (name, category, cis)}."""
     if previous_date is not None and data_date < previous_date:
         raise BuildError(f"data date {data_date} is older than the previous database ({previous_date})")
     active_previous = {c for c, r in previous_rows.items() if r.withdrawn_since is None}
@@ -388,9 +395,9 @@ def merge(snapshot_rows, previous_rows, data_date, accept_drop=False, previous_d
             f"the snapshot holds only {kept} of the {len(active_previous)} presentations marketed in the previous "
             f"database (< {MIN_KEPT_RATIO:.0%}): truncated download? Pass --accept-drop if this is expected")
 
-    rows = {c: Row(name, category) for c, (name, category) in snapshot_rows.items()}
+    rows = {c: Row(name, category, None, cis) for c, (name, category, cis) in snapshot_rows.items()}
     report = Report({}, {}, {})
-    for cip13, (name, category) in sorted(snapshot_rows.items()):
+    for cip13, (name, category, _) in sorted(snapshot_rows.items()):
         old = previous_rows.get(cip13)
         if old is None:
             report.added.append(cip13)
@@ -404,16 +411,16 @@ def merge(snapshot_rows, previous_rows, data_date, accept_drop=False, previous_d
     for cip13, old in sorted(previous_rows.items()):
         if cip13 in snapshot_rows:
             continue
-        rows[cip13] = Row(old.name, old.category, old.withdrawn_since or data_date)
+        rows[cip13] = Row(old.name, old.category, old.withdrawn_since or data_date, old.cis)
         if old.withdrawn_since is None:
             report.withdrawn.append(cip13)
     return rows, report
 
 
 def classify_snapshot(snapshot, rules):
-    """{cip13: (name, category)}: every presentation takes the name and category of its product."""
+    """{cip13: (name, category, cis)}: every presentation takes the name and category of its product."""
     categories = {cis: classify(p, rules) for cis, p in snapshot.products.items()}
-    return {c: (snapshot.products[cis].name, categories[cis]) for c, cis in snapshot.presentations.items()}
+    return {c: (snapshot.products[cis].name, categories[cis], cis) for c, cis in snapshot.presentations.items()}
 
 
 def count_by_category(rows, taxonomy):
@@ -435,8 +442,8 @@ def write_database(path, rows, data_date, rules_version):
         connection.execute(f"PRAGMA user_version = {REFERENCE_SCHEMA_VERSION}")
         connection.executemany("INSERT INTO meta VALUES (?, ?)", [("dataDate", data_date), ("rulesVersion", str(rules_version))])
         connection.executemany(
-            "INSERT INTO presentation VALUES (?, ?, ?, ?)",
-            [(c, r.name, r.category, r.withdrawn_since) for c, r in sorted(rows.items())])
+            "INSERT INTO presentation VALUES (?, ?, ?, ?, ?)",
+            [(c, r.name, r.category, r.withdrawn_since, r.cis) for c, r in sorted(rows.items())])
         connection.commit()
         connection.execute("VACUUM")
     except sqlite3.Error as error:
