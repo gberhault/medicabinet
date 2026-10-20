@@ -50,16 +50,16 @@ order avoids conflicts. Rebase onto `origin/develop` (never merge it) whenever d
 - [x] **T3** `[ios]` **View model.** `BoxDetailViewModel.leaflet` and `openLeafletFailed()` (design §4.2). Unit tests:
   known GTIN → URL; unknown, withdrawn, no GTIN, throwing lookup → `nil`; an update of the same box does not look up
   again (counting `ProductLookup` fake); the failure message is shown. *(L1, L3, L4, L5)*
-- [ ] **T4** `[ios]` **View and strings.** The link section (design §4.3) and the four strings (fr + en). Extend
+- [x] **T4** `[ios]` **View and strings.** The link section (design §4.3) and the four strings (fr + en). Extend
   `FixedProductLookup` / the UI-test seed so a seeded GTIN has a CIS. UI tests: the link exists with its label, hint
   and link trait, ≥ 44 pt, below the information; absent for a box without a code; largest accessibility text size.
   Update `docs/cabinet.md` (Box detail). Run `ios-check-strings.sh`. *(L1, L6, L7, X4, X5)*
 
 ## Android
 
-- [ ] **T5** `[android]` **View model.** `BoxDetailViewModel.leaflet` (design §5.2). Turbine tests: the same cases as
+- [x] **T5** `[android]` **View model.** `BoxDetailViewModel.leaflet` (design §5.2). Turbine tests: the same cases as
   T3, plus cancellation is not swallowed. *(L1, L3, L4)*
-- [ ] **T6** `[android]` **Screen and strings.** The link row and note (design §5.3) and the four strings
+- [x] **T6** `[android]` **Screen and strings.** The link row and note (design §5.3) and the four strings
   (`values` + `values-en`). Robolectric tests: shown with label, click label and ≥ 48 dp; a click hands the fixture
   address to a fake `UriHandler`; a throwing handler shows the message; absent without a code; font scale 2. Run the
   Android string checks and `check-string-parity.py`. *(L1, L2, L5, L6, L7, X4)*
