@@ -13,6 +13,8 @@ final class BoxDetailViewModel {
     private(set) var isGone = false
     /// A write failed and nothing was changed: the screen shows an alert.
     var actionFailed = false
+    /// The "expiring soon" window in force; it follows Settings, so the status below is never stale.
+    private(set) var window: ExpiryWindow
 
     private let environment: AppEnvironment
     private let undo: UndoCenter?
@@ -21,13 +23,21 @@ final class BoxDetailViewModel {
         self.boxID = boxID
         self.environment = environment
         self.undo = undo
+        window = environment.expiryWindow
     }
 
     /// Follows the box and the locations until the screen goes away.
     func observe() async {
         async let boxes: Void = followBox()
         async let locations: Void = followLocations()
-        _ = await (boxes, locations)
+        async let window: Void = followWindow()
+        _ = await (boxes, locations, window)
+    }
+
+    private func followWindow() async {
+        for await snapshot in environment.preferences.changes() {
+            window = snapshot.window
+        }
     }
 
     private func followBox() async {
@@ -57,7 +67,7 @@ final class BoxDetailViewModel {
     // MARK: What the screen shows
 
     var status: ExpiryStatus? {
-        box.map { environment.expiryStatus(of: $0.expiry, on: environment.today()) }
+        box.map { environment.expiryStatus(of: $0.expiry, on: environment.today(), window: window) }
     }
 
     var locationName: String {

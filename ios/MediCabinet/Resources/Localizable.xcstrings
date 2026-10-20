@@ -3449,6 +3449,54 @@
         }
       }
     },
+    "settings.expiryWindow.footer": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les boîtes qui périment dans ce nombre de jours sont affichées comme bientôt périmées."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boxes expiring within this many days are shown as expiring soon."
+          }
+        }
+      }
+    },
+    "settings.expiryWindow.option": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld jours"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld days"
+          }
+        }
+      }
+    },
+    "settings.expiryWindow.title": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bientôt périmé"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expiring soon"
+          }
+        }
+      }
+    },
     "settings.locations": {
       "localizations": {
         "en": {

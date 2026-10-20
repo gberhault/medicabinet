@@ -33,6 +33,7 @@ final class CabinetViewModel {
     @ObservationIgnored private var cabinetBoxes: [Box]?
     @ObservationIgnored private var hasLocations = false
     @ObservationIgnored private var today: CalendarDay
+    @ObservationIgnored private var window: ExpiryWindow
     @ObservationIgnored private var debounce: Task<Void, Never>?
     @ObservationIgnored private var build: Task<Void, Never>?
 
@@ -45,6 +46,7 @@ final class CabinetViewModel {
         boxes = environment.boxes
         locationRepository = environment.locations
         today = environment.today()
+        window = environment.expiryWindow
         self.sleep = sleep
     }
 
@@ -58,7 +60,9 @@ final class CabinetViewModel {
         async let boxes: Void = followBoxes()
         async let locations: Void = followLocations()
         async let midnight: Void = followMidnight()
-        _ = await (boxes, locations, midnight)
+        async let timeChanges: Void = followTimeChanges()
+        async let window: Void = followWindow()
+        _ = await (boxes, locations, midnight, timeChanges, window)
     }
 
     func retry() {
@@ -97,6 +101,21 @@ final class CabinetViewModel {
         while !Task.isCancelled {
             do { try await sleep(.seconds(environment.secondsUntilMidnight())) } catch { return }
             refreshToday()
+        }
+    }
+
+    /// The time zone or the clock changed while the app ran.
+    private func followTimeChanges() async {
+        for await _ in environment.todaySource.changes() {
+            refreshToday()
+        }
+    }
+
+    /// The "expiring soon" window was changed in Settings: every status is computed again at once (W2).
+    private func followWindow() async {
+        for await snapshot in environment.preferences.changes() where snapshot.window != window {
+            window = snapshot.window
+            rebuild()
         }
     }
 
@@ -172,7 +191,7 @@ final class CabinetViewModel {
 
     /// The status of a box today (the core rule, the "expiring soon" window).
     func status(of box: Box) -> ExpiryStatus {
-        environment.expiryStatus(of: box.expiry, on: today)
+        environment.expiryStatus(of: box.expiry, on: today, window: window)
     }
 
     /// The row as it is now, so the product's boxes screen follows the list; `nil` once its last box left.
@@ -191,12 +210,13 @@ final class CabinetViewModel {
         let filter = filter
         let order = environment.categoryOrder
         let day = today
+        let window = window
         let environment = environment
         build = Task {
             // The core is pure and synchronous; the work stays off the main thread.
             let result = await Task.detached(priority: .userInitiated) {
                 CabinetRows.build(boxes: source, filter: filter, categoryOrder: order) {
-                    environment.expiryStatus(of: $0.expiry, on: day)
+                    environment.expiryStatus(of: $0.expiry, on: day, window: window)
                 }
             }.value
             guard !Task.isCancelled else { return }

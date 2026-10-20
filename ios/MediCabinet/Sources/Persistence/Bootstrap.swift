@@ -27,6 +27,8 @@ struct Bootstrap: Sendable {
     var backupsToKeep = BackupService.defaultKeepCount
     /// The bundled reference database (`nil` = not bundled). Only stored here: it is opened on first use, not at launch.
     var referenceURL: URL?
+    /// The expiry preferences the app runs with (the device's `UserDefaults`; UI tests pass an in-memory set).
+    var preferences: any ExpiryPreferences = UserDefaultsExpiryPreferences()
 
     /// Runs off the main actor.
     func run() async -> BootstrapState {
@@ -73,7 +75,8 @@ struct Bootstrap: Sendable {
             locations: locations,
             boxes: GRDBBoxRepository(database: database, clock: clock),
             clock: clock,
-            reference: GRDBReferenceData(url: referenceURL)
+            reference: GRDBReferenceData(url: referenceURL),
+            preferences: preferences
         ))
     }
 

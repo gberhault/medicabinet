@@ -16,10 +16,14 @@ struct LocationsEntry: View {
 
 struct SettingsView: View {
     var info: any AppInfo = BundleAppInfo()
+    @Environment(\.appEnvironment) private var environment
 
     var body: some View {
         NavigationStack {
             List {
+                if let environment {
+                    ExpirySettingsSection(preferences: environment.preferences)
+                }
                 NavigationLink {
                     LocationsEntry()
                 } label: {

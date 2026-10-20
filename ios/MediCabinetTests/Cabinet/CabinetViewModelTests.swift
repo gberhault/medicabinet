@@ -3,32 +3,6 @@ import MediCabinetCore
 import Testing
 @testable import MediCabinet
 
-/// Records the sleeps the model asks for. Short ones (the search debounce) return at once; long ones (until midnight)
-/// wait until the test opens them, so the day change is deterministic.
-private actor Sleeps {
-    private(set) var requested: [Duration] = []
-    private var waiters: [CheckedContinuation<Void, Never>] = []
-    private var released = 0
-
-    func sleep(_ duration: Duration) async throws {
-        requested.append(duration)
-        if duration < .seconds(1) { return }
-        if released > 0 {
-            released -= 1
-            return
-        }
-        await withCheckedContinuation { waiters.append($0) }
-    }
-
-    func releaseOne() {
-        if waiters.isEmpty {
-            released += 1
-        } else {
-            waiters.removeFirst().resume()
-        }
-    }
-}
-
 @MainActor
 @Suite struct CabinetViewModelTests {
     private struct Running {
