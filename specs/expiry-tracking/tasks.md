@@ -60,52 +60,52 @@ boxes`). The Expiring view uses them as they are.
 
 ## 5. Preferences, today source and window setting (#23)
 
-- [ ] **T10 — iOS preferences, `TodaySource`, window setting** `[ios]` [#23] (S9, W1–W5; §4.1, §5, §6)
+- [x] **T10 — iOS preferences, `TodaySource`, window setting** `[ios]` [#23] (S9, W1–W5; §4.1, §5, §6)
   `ExpiryPreferences` (protocol + `UserDefaults` + in-memory, stream of changes),
   `TodaySource` (day change, zone change, significant time change, injected clock and zone),
   `ExpirySettingsSection` window `Picker` with footer. *Tests:* preference round trip and bad
   stored values; `TodaySource` emits at midnight / zone change with a `MutableClock`; Settings
   UI test changes the window. Strings fr + en.
-- [ ] **T11 — Android preferences, `TodaySource`, window setting** `[android]` [#23] (S9, W1–W5; §4.1, §5, §7.4)
+- [x] **T11 — Android preferences, `TodaySource`, window setting** `[android]` [#23] (S9, W1–W5; §4.1, §5, §7.4)
   `SharedPreferences` `expiry_preferences`, `TodaySource` (midnight `delay` + runtime
   `TIMEZONE_CHANGED`/`TIME_SET` receiver), window radio group. *Tests:* same as T10 with
   `runTest` and Robolectric. Strings fr + en, same wording.
 
 ## 6. Expiring view (#24)
 
-- [ ] **T12 — iOS Expiring view, badge, Thrown away + Undo** `[ios]` [#24] (E1–E10, X4; §4.2, §6.1)
+- [x] **T12 — iOS Expiring view, badge, Thrown away + Undo** `[ios]` [#24] (E1–E10, X4; §4.2, §6.1)
   `ExpiringViewModel`, `ExpiringView`, `ExpiringRow`, `ExpiryText`, `TabRouter`; the
   placeholder and its strings are removed; `.badge` with accessibility label. *Tests:*
   view-model states (loading, content, empty naming the window, failed + Retry), live update
   through the fake's observation and `TodaySource`, Thrown away + Undo, error path;
   `ExpiringUITests` (sections, month-year text, status words, swipe and accessibility action,
   largest accessibility text size, no row navigation).
-- [ ] **T13 — Android Expiring screen, badge, Thrown away + Undo** `[android]` [#24] (E1–E10, X4; §4.2, §7.1)
+- [x] **T13 — Android Expiring screen, badge, Thrown away + Undo** `[android]` [#24] (E1–E10, X4; §4.2, §7.1)
   `ExpiringViewModel` (`StateFlow`, injected dispatcher), `ExpiringScreen`, `ExpiringRow`,
   `ExpiryText`, `TabRouter`, `BadgedBox`; placeholder removed. *Tests:* same as T12 with
   Turbine and Robolectric Compose (font scale 2.0, `CustomAccessibilityAction`).
 
 ## 7. Reminders (#25)
 
-- [ ] **T14 — iOS reminder setting, card and permission** `[ios]` [#25] (N1–N4, N13; §4.3, §6)
+- [x] **T14 — iOS reminder setting, card and permission** `[ios]` [#25] (N1–N4, N13; §4.3, §6)
   `NotificationClient` (protocol + `UNUserNotificationCenter` live + fake), `ReminderModel`
   (`off` / `on` / `blocked`, re-read on foreground), `ReminderCard` on Expiring, Settings
   `Toggle` with blocked state and **Open Settings**; SwiftLint rule confining
   `UserNotifications` to `App/Reminders/` + lint fixture. *Tests:* every permission path
   (not determined → granted / denied, revoked later), card **Not now** remembered, turning off
   cancels; lint fixture fails.
-- [ ] **T15 — iOS digest scheduler and tap routing** `[ios]` [#25] (N5–N9, N11, N14, X1; §4.4, §6.2)
+- [x] **T15 — iOS digest scheduler and tap routing** `[ios]` [#25] (N5–N9, N11, N14, X1; §4.4, §6.2)
   `ReminderScheduler` actor (debounce, ≤ 12 requests `expiry-digest-YYYY-MM`, floating
   `UNCalendarNotificationTrigger` at 09:00 on the 1st, empty months skipped, unauthorised
   removes all), delegate set at launch (`willPresent`, `didReceive` → `TabRouter`).
   *Tests:* scheduler with the fake client and `MutableClock` (counts per month, window change,
   cabinet change, zone change, 12 max, debounce), built content never contains a box name,
   tap → Expiring.
-- [ ] **T16 — Android reminder setting, card, permission and channel** `[android]` [#25] (N1–N4, N13; §4.3, §7.2)
+- [x] **T16 — Android reminder setting, card, permission and channel** `[android]` [#25] (N1–N4, N13; §4.3, §7.2)
   `ReminderModel`, `ReminderCard`, Settings `Switch`, `POST_NOTIFICATIONS` request (API 33+),
   enabled/channel checks (API 26–32), channel `expiry_reminders`. *Tests:* Robolectric on SDK
   33 and 30 for every permission path, card **Not now** remembered, turning off cancels.
-- [ ] **T17 — Android alarm, receivers, notifier and tap routing** `[android]` [#25] (N5–N9, N12, N14, X1; §4.4, §7.3)
+- [x] **T17 — Android alarm, receivers, notifier and tap routing** `[android]` [#25] (N5–N9, N12, N14, X1; §4.4, §7.3)
   `ReminderScheduler.arm()` (`setWindow`, `RTC_WAKEUP`, 1 h, immutable `PendingIntent`),
   `DigestAlarmReceiver` (`goAsync`, bootstrap, `due`, `lastDigestMonth`, re-arm),
   `RescheduleReceiver` (boot, package replaced, zone, time set), `DigestNotifier`, intent
@@ -117,12 +117,14 @@ boxes`). The Expiring view uses them as they are.
 
 ## 8. Docs, measurements, version
 
-- [ ] **T18 — Docs** `[shared]` (X6)
+- [x] **T18 — Docs** `[shared]` (X6)
   `docs/expiry-tracking.md` (status rule, window, Expiring view, reminders per platform,
   late Android delivery and the 12-month iOS horizon, privacy), `docs/architecture.md`
   (observation, scheduling), `docs/README.md` link; amend requirements decision 5 if not
   already done at design approval.
-- [ ] **T19 — Device measurements** `[shared]` (X3; §9, §13)
+- [ ] **T19 — Device measurements — NOT DONE** `[shared]` (X3; §9, §13)
+  The Android phone was connected but installing on it was not permitted in this session, so none of this
+  was run; the Robolectric and simulator tests stand in until someone runs it (see the PR's risk section).
   **Needs the user's devices** (`ANDROID_SERIAL` = the device the user names): 1 000-box
   Expiring list scrolls without dropped frames on both; a digest delivered on a real
   iPhone and Android phone (clock moved forward), and still armed after an Android app
