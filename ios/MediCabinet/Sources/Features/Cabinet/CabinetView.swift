@@ -87,31 +87,28 @@ struct CabinetView: View {
     }
 
     private var list: some View {
-        List {
+        ScrollView {
             if model.hasNoResults {
-                Section {
-                    ContentUnavailableView {
-                        Label("cabinet.noResults.title", systemImage: "magnifyingglass")
-                    } description: {
-                        Text("cabinet.noResults.message")
-                    } actions: {
-                        Button("cabinet.noResults.clear") { model.clearFilters() }
-                            .accessibilityIdentifier("cabinet.noResults.clear")
-                    }
+                ContentUnavailableView {
+                    Label("cabinet.noResults.title", systemImage: "magnifyingglass")
+                } description: {
+                    Text("cabinet.noResults.message")
+                } actions: {
+                    Button("cabinet.noResults.clear") { model.clearFilters() }
+                        .accessibilityIdentifier("cabinet.noResults.clear")
                 }
             } else {
-                ForEach(model.snapshot.sections) { section in
-                    Section {
-                        ForEach(section.rows) { row in
-                            NavigationLink(value: route(for: row)) { ProductRowView(row: row) }
-                                .accessibilityIdentifier("cabinet.row")
-                        }
-                    } header: {
-                        Text(LocalizedStringKey(CategoryLabel.key(for: section.category)))
+                LazyVStack(spacing: 12) {
+                    ForEach(model.snapshot.sections) { section in
+                        CategoryCardView(section: section, route: route(for:))
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
             }
         }
+        .scrollDismissesKeyboard(.immediately)
+        .background(Color(.systemGroupedBackground))
         .accessibilityIdentifier("cabinet.list")
     }
 
@@ -119,27 +116,5 @@ struct CabinetView: View {
     private func route(for row: ProductRow) -> CabinetRoute {
         if row.boxes.count == 1, let box = row.boxes.first { return .box(box.id) }
         return .product(row.id)
-    }
-}
-
-private struct ProductRowView: View {
-    let row: ProductRow
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(verbatim: row.name).font(.headline)
-            Text(verbatim: details)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            ExpiryStatusLabel(status: row.status)
-        }
-        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-    }
-
-    /// "3 boxes · Expires end of March 2027"; just the count when no box has a known expiry (the status says so).
-    private var details: String {
-        let count = CabinetText.rowBoxes(row.boxes.count)
-        guard let earliest = row.earliestExpiry else { return count }
-        return "\(count) · \(ScanText.expiry(earliest))"
     }
 }

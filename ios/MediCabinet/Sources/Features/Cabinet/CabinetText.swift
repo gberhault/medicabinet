@@ -1,4 +1,5 @@
 import Foundation
+import MediCabinetCore
 
 /// User-facing text of the Cabinet screens that needs formatting: plural counts and the box code.
 enum CabinetText {
@@ -20,6 +21,21 @@ enum CabinetText {
     /// "Remove filter Expired": the spoken label of a filter chip.
     static func removeFilter(_ filter: String, bundle: Bundle = .main) -> String {
         String(format: bundle.localizedString(forKey: "cabinet.filter.remove", value: nil, table: nil), filter)
+    }
+
+    /// What VoiceOver reads for a pill: the full name, the box count and, for an alert status, the status
+    /// ("Doliprane 1000 mg, comprimé, 3 boxes, Expired"). The short name is for the eye only.
+    static func pillLabel(
+        name: String, boxes: Int, status: ExpiryStatus, bundle: Bundle = .main, locale: Locale = .current
+    ) -> String {
+        let count = rowBoxes(boxes, bundle: bundle, locale: locale)
+        guard status != .ok else {
+            return String(format: bundle.localizedString(forKey: "cabinet.pill.label", value: nil, table: nil), name, count)
+        }
+        let statusText = bundle.localizedString(forKey: ExpiryStatusStyle.key(status), value: nil, table: nil)
+        return String(
+            format: bundle.localizedString(forKey: "cabinet.pill.labelStatus", value: nil, table: nil),
+            name, count, statusText)
     }
 
     /// The code shown on a box: the 13 digits (CIP13 / EAN-13) when the GTIN-14 starts with `0`, else the GTIN-14;

@@ -17,19 +17,39 @@ final class CabinetUITests: XCTestCase {
 
     // MARK: List
 
-    func testRowsAreGroupedByCategoryWithCountAndStatusAsText() {
+    func testCardsAreAlphabeticalAndPillsShowShortNameCountAndOnlyAlertStatuses() {
         let app = launch()
         XCTAssertTrue(app.staticTexts["cabinet.count"].waitForExistence(timeout: 10))
-        XCTAssertEqual(app.staticTexts["cabinet.count"].label, "5 boxes")
-        XCTAssertTrue(text(app, "Pain and fever").exists)
-        XCTAssertTrue(text(app, "Digestion").exists)
-        XCTAssertTrue(text(app, "First-aid kit").exists)
-        let doliprane = row(app, "Doliprane 1000")
-        XCTAssertTrue(doliprane.exists)
-        XCTAssertEqual(doliprane.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '2 boxes'")).count, 1)
-        XCTAssertTrue(doliprane.staticTexts["Expired"].exists, "the status is text, not colour alone")
-        XCTAssertTrue(row(app, "Thermometer").staticTexts["Expiry unknown"].exists, "an unknown expiry is never OK")
-        XCTAssertFalse(row(app, "Thermometer").staticTexts["OK"].exists)
+        XCTAssertEqual(app.staticTexts["cabinet.count"].label, "6 boxes")
+
+        let headers = app.descendants(matching: .any).matching(identifier: "cabinet.card.header")
+            .allElementsBoundByIndex.sorted { $0.frame.minY < $1.frame.minY }
+        XCTAssertEqual(headers.count, 3)
+        XCTAssertTrue(headers[0].label.hasPrefix("Digestion"), "A to Z: Digestion first")
+        XCTAssertTrue(headers[0].label.contains("3 boxes"))
+        XCTAssertTrue(headers[1].label.hasPrefix("First-aid kit"))
+        XCTAssertTrue(headers[2].label.hasPrefix("Pain and fever"))
+
+        // The spoken label has the full name; the eye reads the short one, in A to Z order within the card.
+        XCTAssertTrue(row(app, "Smecta 3 g, poudre pour suspension buvable, 1 box").exists)
+        XCTAssertEqual(row(app, "Spasfon").label, "Spasfon, 1 box", "an ok pill says nothing more")
+        XCTAssertEqual(row(app, "Doliprane 1000").label, "Doliprane 1000, 2 boxes, Expired", "the worst box wins")
+        XCTAssertEqual(row(app, "Thermometer").label, "Thermometer, 1 box, Expiry unknown", "never OK without a date")
+        XCTAssertEqual(row(app, "Gaviscon").label, "Gaviscon, 1 box, Expiring soon")
+        let names = app.buttons.matching(identifier: "cabinet.pill").allElementsBoundByIndex
+            .sorted { ($0.frame.minY, $0.frame.minX) < ($1.frame.minY, $1.frame.minX) }.map(\.label)
+        XCTAssertEqual(names.prefix(3).map { String($0.prefix(5)) }, ["Gavis", "Smect", "Spasf"])
+
+        let dateOrOK = NSPredicate(format: "label CONTAINS 'Expires' OR label == 'OK' OR label CONTAINS '2027'")
+        XCTAssertEqual(app.staticTexts.matching(dateOrOK).count, 0, "no date and no OK in the list")
+    }
+
+    func testAPillIsAtLeast44PointsHighAndALongNameKeepsItsCount() {
+        let app = launch()
+        let pill = row(app, "Smecta")
+        XCTAssertTrue(pill.waitForExistence(timeout: 10))
+        XCTAssertGreaterThanOrEqual(pill.frame.height, 44)
+        XCTAssertGreaterThanOrEqual(pill.frame.width, 44)
     }
 
     func testSearchNarrowsTheListAndAnUnmatchedSearchOffersClear() {
@@ -46,7 +66,7 @@ final class CabinetUITests: XCTestCase {
         XCTAssertTrue(text(app, "No results").waitForExistence(timeout: 5))
         app.buttons["cabinet.noResults.clear"].tap()
         XCTAssertTrue(row(app, "Thermometer").waitForExistence(timeout: 5))
-        XCTAssertEqual(app.staticTexts["cabinet.count"].label, "5 boxes")
+        XCTAssertEqual(app.staticTexts["cabinet.count"].label, "6 boxes")
     }
 
     func testAnEmptyCabinetExplainsItselfAndTheButtonOpensTheScanTab() {
