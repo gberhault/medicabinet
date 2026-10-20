@@ -43,7 +43,7 @@ code, so Android computes the counts when it fires. Both call
 `ExpiryDigest.counts(boxes:on:window:)` with the **digest date** (never the delivery time),
 so a late Android digest shows the same counts as the iPhone (N6).
 
-### 1.4 Cabinet changes are observed, not polled
+### 1.4 Cabinet changes are observed, not polled — already provided by #17
 
 E7 (the view updates without a manual refresh) and N11 (iOS reschedules on every stock
 change) need a change signal. `BoxRepository` gains one observation method returning the
@@ -522,18 +522,46 @@ Store labels stay "no data collected".
 
 ## 12. i18n impact
 
-New keys on both platforms (fr = source, en), same wording:
-`expiring.title`, `expiring.section.{expired,expiringSoon,unknown}`,
-`expiring.status.{expired,expiresToday,expiringSoon,unknown}`,
-`expiring.row.accessibility` (name, status, date, location), `expiring.empty` (window, plural),
-`expiring.loading`, `expiring.error`, `expiring.retry`, `expiring.badge.accessibility` (plural),
-`expiring.thrownAway`, `expiring.thrownAway.done`, `expiring.undo`, `expiring.thrownAway.failed`,
-`reminder.card.{title,message,turnOn,notNow}`,
-`reminder.settings.{title,footer,blocked,openSettings,denied}`,
-`reminder.digest.title`, `reminder.digest.body.{expired,soon,both}` (plural),
-`reminder.channel.{name,description}` (Android only),
-`settings.expiryWindow.{title,footer,option}` (option: "%d days", plural).
-Placeholder `placeholder.expiring.*` keys are removed on both platforms.
+Key names follow the existing rule (iOS `a.b` ↔ Android `a_b`, same French and English text, checked by
+`check-string-parity.py`). Existing keys are reused where the wording fits (`tab.expiring`,
+`expiry.status.{expired,expiringSoon,ok,unknown}`, the Retry and Open Settings wording, the undo mechanism of #17).
+`%1$d` is a number, `%1$@` / `%1$s` a string; plurals follow each platform's mechanism.
+
+| Key | Français | English |
+|-----|----------|---------|
+| `expiry.status.expiresToday` | Périme aujourd’hui | Expires today |
+| `expiring.section.expired` | Périmés | Expired |
+| `expiring.section.expiringSoon` | Bientôt périmés | Expiring soon |
+| `expiring.section.unknown` | Péremption inconnue | Expiry unknown |
+| `expiring.row.expiry` (date) | Péremption : %1$@ | Expires: %1$@ |
+| `expiring.row.accessibility` (name, status, expiry line, location) | %1$@, %2$@, %3$@, %4$@ | %1$@, %2$@, %3$@, %4$@ |
+| `expiring.empty.title` | Tout est à jour | All clear |
+| `expiring.empty.message` (window days) | Rien ne périme dans les %1$d prochains jours. | Nothing expires in the next %1$d days. |
+| `expiring.loading` | Chargement des péremptions… | Loading expiry dates… |
+| `expiring.error.title` | Impossible de charger les péremptions | Couldn’t load expiry dates |
+| `expiring.badge.accessibility` (plural, count) | one: %1$d boîte à vérifier · other: %1$d boîtes à vérifier | one: %1$d box needs attention · other: %1$d boxes need attention |
+| `expiring.thrownAway` | Jetée | Thrown away |
+| `expiring.thrownAway.done` (name) | %1$@ jetée | %1$@ thrown away |
+| `expiring.thrownAway.failed` | Impossible de jeter cette boîte | Couldn’t throw this box away |
+| `reminder.card.title` | Rappel mensuel | Monthly reminder |
+| `reminder.card.message` | Recevez un récapitulatif le 1er de chaque mois si des boîtes sont périmées ou bientôt périmées. | Get a summary on the 1st of each month when boxes are expired or expiring soon. |
+| `reminder.card.turnOn` | Activer | Turn on |
+| `reminder.card.notNow` | Plus tard | Not now |
+| `reminder.settings.title` | Rappel mensuel | Monthly reminder |
+| `reminder.settings.footer` | Une notification le 1er du mois à 9 h, avec seulement le nombre de boîtes concernées, jamais un nom de médicament. | One notification on the 1st of the month at 9:00, with only the number of boxes, never a medicine name. |
+| `reminder.settings.blocked` | Les notifications sont désactivées pour MediCabinet. | Notifications are turned off for MediCabinet. |
+| `reminder.settings.denied` | Sans autorisation de notification, le rappel ne peut pas être envoyé. | Without notification permission, the reminder can’t be sent. |
+| `reminder.settings.openSettings` | Ouvrir les réglages | Open Settings |
+| `reminder.digest.title` | Votre armoire à pharmacie | Your medicine cabinet |
+| `reminder.digest.body.expired` (plural, count) | one: %1$d boîte périmée · other: %1$d boîtes périmées | one: %1$d box expired · other: %1$d boxes expired |
+| `reminder.digest.body.soon` (plural, count; the window is a separate argument `%2$d`) | one: %1$d boîte périme dans les %2$d jours · other: %1$d boîtes périment dans les %2$d jours | one: %1$d box expires within %2$d days · other: %1$d boxes expire within %2$d days |
+| `reminder.digest.body.both` (expired part, soon part) | %1$@ · %2$@ | %1$@ · %2$@ |
+| `settings.expiryWindow.title` | Bientôt périmé | Expiring soon |
+| `settings.expiryWindow.footer` | Les boîtes qui périment dans ce nombre de jours sont affichées comme bientôt périmées. | Boxes expiring within this many days are shown as expiring soon. |
+| `settings.expiryWindow.option` (days) | %1$d jours | %1$d days |
+| `reminder.channel.name`, `reminder.channel.description` (Android only; add to `ANDROID_ONLY` in the parity script) | Rappel mensuel · Récapitulatif mensuel des boîtes périmées ou bientôt périmées | Monthly reminder · Monthly summary of expired or soon-to-expire boxes |
+
+The `placeholder.expiring.*` keys are removed on both platforms.
 
 ## 13. Risks
 

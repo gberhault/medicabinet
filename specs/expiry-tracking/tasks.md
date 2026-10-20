@@ -40,22 +40,19 @@ T14, T16) and the Android block (T11, T13, T15, T17) are independent of each oth
 
 ## 3. Cabinet change observation (#24)
 
-- [ ] **T6 — Observation contract checks** `[shared]` [#24] (E7; §1.4, §2.4)
-  Add to `fixtures/repository-contract.json`, in order: `observation emits the active boxes
-  first`, `observation emits after insert, update, markRemoved and undoRemoval`,
-  `observation ignores removed boxes`, `observation does not emit for a failed write`.
-- [ ] **T7 — `activeBoxesUpdates()` on iOS** `[ios]` [#24] (E7; §3.5)
-  Port method, `InMemoryCabinetStore` emission, `GRDBBoxRepository` via `ValueObservation`
-  (tracking the `box` table, active filter); `RepositoryContract` runs the T6 checks on both.
-- [ ] **T8 — `observeActiveBoxes()` on Android** `[android]` [#24] (E7; §1.4, §3.5)
-  Port method, fake emission, `CabinetDatabase.transaction` bumps a `MutableStateFlow` after
-  commit only; `SqlBoxRepository` maps it to a re-query on the injected dispatcher;
-  `RepositoryContract` runs the T6 checks (Turbine).
+Superseded by the inventory epic (#17), merged to `develop` first: `BoxRepository.observeCabinet()` (Swift) /
+`observeCabinet()` (Kotlin) already emit the boxes in the cabinet — removed and deleted ones excluded — after every
+committed change, with shared contract checks (`observeCabinet emits after each write and excludes removed and deleted
+boxes`). The Expiring view uses them as they are.
+
+- [x] **T6 — Observation contract checks** `[shared]` — covered by #17's contract checks; nothing added here.
+- [x] **T7 — Observation on iOS** `[ios]` — `observeCabinet()` from #17 (GRDB `ValueObservation`).
+- [x] **T8 — Observation on Android** `[android]` — `observeCabinet()` from #17 (commit signal).
 
 ## 4. Integration point with bulk scan (#12)
 
-- [ ] **T9 — Bring `develop` in after #12 merges** `[shared]` (open point 1; §13)
-  **Blocked until epic #12 is on `develop`.** Merge `develop`; check that deleted boxes
+- [x] **T9 — Bring `develop` in after #12 merges** `[shared]` (open point 1; §13)
+  Epics #7, #12 and #17 are on `develop`; the branch was rebased onto it. Check that deleted boxes
   (schema v2) are absent from both observations (add the contract case `observation ignores
   deleted boxes`); check `PrivacyInfo.xcprivacy` has `UserDefaults` / `CA92.1`; reuse #12's
   expiry text helpers if any instead of duplicating them in §6/§7. Full core and app suites
