@@ -9,6 +9,7 @@ final class ImportUITests: XCTestCase {
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         .appendingPathComponent("fixtures", isDirectory: true)
     static let golden = fixtures.appendingPathComponent("archive/v1/golden.medicabinet").path
+    static let goldenVersion2 = fixtures.appendingPathComponent("archive/v2/golden.medicabinet").path
 
     override func setUp() {
         continueAfterFailure = false
@@ -78,6 +79,21 @@ final class ImportUITests: XCTestCase {
         openCabinet(app)
         XCTAssertTrue(text(app, containing: "DOLIPRANE").waitForExistence(timeout: 10), "the imported cabinet, without a restart")
         XCTAssertFalse(text(app, containing: "Aspirin Test").exists)
+    }
+
+    /// A version 2 file lists the products the household named; a version 1 file has none and shows no such line.
+    func testThePreviewCountsTheProductsYouNamedOfAVersionTwoFileOnly() {
+        let app = launch(opening: Self.goldenVersion2)
+        XCTAssertTrue(app.buttons["transfer.import.replace"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["File format: version 2"].exists)
+        let line = app.staticTexts["transfer.import.preview.namedProducts"]
+        XCTAssertTrue(line.exists)
+        XCTAssertEqual(line.label, "Products you named: 2", "the live ones only: the forgotten one is not counted")
+        app.terminate()
+
+        let old = launch(opening: Self.golden)
+        XCTAssertTrue(old.buttons["transfer.import.replace"].waitForExistence(timeout: 15))
+        XCTAssertFalse(old.staticTexts["transfer.import.preview.namedProducts"].exists)
     }
 
     func testCancelInThePreviewChangesNothing() {

@@ -76,6 +76,11 @@ struct ImportPreviewView: View {
             CountLabel(key: "transfer.export.summary.removed", count: file.removed, systemImage: "clock.arrow.circlepath")
             CountLabel(key: "transfer.export.summary.locations", count: file.locations, systemImage: "mappin.and.ellipse")
             CountLabel(key: "transfer.import.preview.unknownExpiry", count: file.unknownExpiry, systemImage: "questionmark.circle")
+            // Only a version 2 file that holds some: a version 1 file has none, and its products are filled after the import.
+            if file.namedProducts > 0 {
+                CountLabel(key: "transfer.import.preview.namedProducts", count: file.namedProducts, systemImage: "tag")
+                    .accessibilityIdentifier("transfer.import.preview.namedProducts")
+            }
         } header: {
             Text("transfer.import.preview.fileTitle")
         }

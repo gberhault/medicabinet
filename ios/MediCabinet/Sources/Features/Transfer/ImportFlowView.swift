@@ -6,11 +6,15 @@ struct ImportFlowView: View {
     let onClose: () -> Void
     @State private var model: ImportViewModel
 
+    /// `afterReplace` runs once the cabinet was replaced (the named-products fill, for a version 1 file).
     init(
-        request: ImportCoordinator.Request, transfer: CabinetTransfer, revision: CabinetRevision, onClose: @escaping () -> Void
+        request: ImportCoordinator.Request, transfer: CabinetTransfer, revision: CabinetRevision,
+        afterReplace: @escaping @MainActor () -> Void, onClose: @escaping () -> Void
     ) {
         self.onClose = onClose
-        _model = State(initialValue: ImportViewModel(request: request, transfer: transfer, revision: revision))
+        _model = State(initialValue: ImportViewModel(
+            request: request, transfer: transfer, revision: revision, afterReplace: afterReplace
+        ))
     }
 
     var body: some View {

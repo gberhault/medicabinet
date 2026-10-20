@@ -53,6 +53,12 @@ The archive carries the named products (see [`export-format.md`](export-format.m
 files still import; their named products are filled from their boxes, as after an upgrade. Automatic backups are
 archives, so they carry the products too.
 
+The import preview shows *Products you named: N* (the file's products that are not forgotten) when N is more than 0. A
+version 1 file shows no such line. After a successful import or restore the app starts the same background fill as
+after an upgrade (`AppLaunch.startBackfill`), so a version 1 file's products appear from its boxes within moments; a
+version 2 file's products are kept as written and the fill finds nothing to do. Importing replaces the products
+together with the boxes and locations, in one transaction.
+
 ## Where the code is
 
 | | iOS | Android |

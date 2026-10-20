@@ -48,7 +48,8 @@ import Testing
         let preview = try #require(model.preview)
         let expected = try ArchiveDecoder.decode(try SharedFixtures.goldenArchive()).cabinet.summary
         #expect(preview.file == expected)
-        #expect(preview.archive.sourceFormatVersion == 1)
+        #expect(preview.archive.sourceFormatVersion == 2)
+        #expect(preview.file.namedProducts == 2)
         #expect(preview.current == CabinetSummary(locations: 1, inCabinet: 1, removed: 0, deleted: 0, unknownExpiry: 1))
         #expect(preview.willBackUp)
         #expect(try await snapshot(kit) == before)
@@ -186,7 +187,7 @@ import Testing
     @Test func aFileFromANewerAppAsksForAnUpdate() async throws {
         let kit = try await TransferTestKit.make()
         defer { kit.cleanUp() }
-        let newer = Array(#"{"archive":"medicabinet","formatVersion":2}"#.utf8)
+        let newer = Array(#"{"archive":"medicabinet","formatVersion":3}"#.utf8)
         let model = model(kit, source: .file(try file(kit, newer)))
         await model.start()
         #expect(model.stage == .failed(.newerVersion))

@@ -71,18 +71,21 @@ final class ImportViewModel {
     private let revision: CabinetRevision
     private let limits: ArchiveLimits
     private let announce: @MainActor (String) -> Void
+    private let afterReplace: @MainActor () -> Void
     private var bytes: [UInt8]?
 
     init(
         request: ImportCoordinator.Request, transfer: CabinetTransfer, revision: CabinetRevision,
         limits: ArchiveLimits = .default,
-        announce: @escaping @MainActor (String) -> Void = { AccessibilityNotification.Announcement($0).post() }
+        announce: @escaping @MainActor (String) -> Void = { AccessibilityNotification.Announcement($0).post() },
+        afterReplace: @escaping @MainActor () -> Void = {}
     ) {
         self.request = request
         self.transfer = transfer
         self.revision = revision
         self.limits = limits
         self.announce = announce
+        self.afterReplace = afterReplace
     }
 
     /// The backup being restored, `nil` for an import.
@@ -128,6 +131,8 @@ final class ImportViewModel {
             self.result = result
             stage = .done
             revision.bump()
+            // A version 1 file brought no named products and left the fill pending: run it on the imported boxes.
+            afterReplace()
             announce(TransferText.string("transfer.import.done"))
         } catch TransferError.backupFailed {
             fail(.backupFailed, stage: "backup")
