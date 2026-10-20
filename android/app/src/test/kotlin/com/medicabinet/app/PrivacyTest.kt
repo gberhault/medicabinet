@@ -23,16 +23,26 @@ class PrivacyTest {
     private val context: Context get() = ApplicationProvider.getApplicationContext()
 
     /**
-     * The camera is the only system permission — in particular not INTERNET. (AndroidX adds one app-private,
+     * The camera, the notifications and the boot broadcast (to arm the monthly alarm again) are the only system
+     * permissions — in particular not INTERNET and never an exact-alarm permission. (AndroidX adds one app-private,
      * signature-level permission named after the package; it grants nothing and is ignored here.)
      */
     @Test
-    fun theCameraIsTheOnlySystemPermission() {
+    fun theCameraNotificationsAndBootAreTheOnlySystemPermissions() {
         val info = context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
         val requested = info.requestedPermissions?.toList().orEmpty()
         val system = requested.filterNot { it.startsWith("${context.packageName}.") }
-        assertEquals(listOf("android.permission.CAMERA"), system)
+        assertEquals(
+            listOf(
+                "android.permission.CAMERA",
+                "android.permission.POST_NOTIFICATIONS",
+                "android.permission.RECEIVE_BOOT_COMPLETED"
+            ),
+            system.sorted()
+        )
         assertFalse("android.permission.INTERNET" in requested)
+        assertFalse("android.permission.SCHEDULE_EXACT_ALARM" in requested)
+        assertFalse("android.permission.USE_EXACT_ALARM" in requested)
     }
 
     @Test

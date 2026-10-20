@@ -10,6 +10,7 @@ import com.medicabinet.core.ExpiryStatus
 import com.medicabinet.core.RemovalReason
 import com.medicabinet.core.cabinet.BoxEdit
 import com.medicabinet.core.cabinet.BoxEditError
+import com.medicabinet.core.expiry.ExpiryWindow
 import com.medicabinet.core.reference.ReferenceProduct
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -329,5 +330,17 @@ class BoxDetailViewModelTest {
         assertEquals(SaveResult.Failed, viewModel.save(BoxEdit.from(box)))
         assertEquals(CategoryID.UNCATEGORIZED, viewModel.automaticCategory())
         assertEquals(false, stored(box)?.isOpened)
+    }
+
+    @Test
+    fun aNewExpiryWindowEvaluatesTheStatusAgain() = runTest {
+        kit.open()
+        val box = kit.box("Doliprane", CabinetTestKit.DOLIPRANE, ExpiryDate.of(2027, 3, 1))
+        model(box).state.test {
+            assertEquals(ExpiryStatus.EXPIRING_SOON, loaded().status)
+            kit.environment.expiryPreferences.window = ExpiryWindow.DAYS_30
+            assertEquals(ExpiryStatus.OK, loaded().status)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }

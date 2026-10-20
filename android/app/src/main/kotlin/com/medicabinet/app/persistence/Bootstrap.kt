@@ -8,6 +8,10 @@ import com.medicabinet.app.app.AppEnvironment
 import com.medicabinet.app.app.AppLog
 import com.medicabinet.app.app.BootstrapFailure
 import com.medicabinet.app.app.BootstrapState
+import com.medicabinet.app.app.DayTicker
+import com.medicabinet.app.app.ExpiryPreferences
+import com.medicabinet.app.app.SharedExpiryPreferences
+import com.medicabinet.app.app.systemTimeChanges
 import com.medicabinet.app.persistence.reference.AndroidReferenceAssets
 import com.medicabinet.app.persistence.reference.ReferenceInstaller
 import com.medicabinet.app.persistence.reference.SqlReferenceData
@@ -15,6 +19,7 @@ import com.medicabinet.core.Clock
 import com.medicabinet.core.SystemClock
 import com.medicabinet.core.reference.ReferenceDataSource
 import java.io.File
+import java.time.ZoneId
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,6 +36,7 @@ class Bootstrap(
     private val backupsToKeep: Int = BackupService.DEFAULT_KEEP_COUNT,
     private val io: CoroutineDispatcher = Dispatchers.IO,
     private val databaseName: String = AppPaths.DATABASE_NAME,
+    private val expiryPreferences: ExpiryPreferences = SharedExpiryPreferences(context),
     /** Only handed to the environment here: it installs and opens the reference data on first use, not at launch. */
     private val reference: ReferenceDataSource = SqlReferenceData(
         ReferenceInstaller(AndroidReferenceAssets(context.assets), AppPaths(context).referenceDirectory),
@@ -59,7 +65,15 @@ class Bootstrap(
         val locations = SqlLocationRepository(cabinet, clock, io)
         ensureDefaultLocation(cabinet, locations)
         runCatching { backups.prune(backupsToKeep) }
-        return AppEnvironment(locations, SqlBoxRepository(cabinet, clock, io), clock, reference)
+        return AppEnvironment(
+            locations,
+            SqlBoxRepository(cabinet, clock, io),
+            clock,
+            reference,
+            expiryPreferences = expiryPreferences,
+            // The zone is read at each use and a time-zone or clock change wakes the ticker (S9).
+            todaySource = DayTicker(clock, { ZoneId.systemDefault() }, systemTimeChanges(context))
+        )
     }
 
     /** A needed copy that cannot be written stops everything: nothing is migrated without a safety copy. */

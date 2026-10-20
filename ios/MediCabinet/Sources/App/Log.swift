@@ -9,4 +9,5 @@ enum Log {
     static let bootstrap = Logger(subsystem: subsystem, category: "bootstrap")
     static let persistence = Logger(subsystem: subsystem, category: "persistence")
     static let reference = Logger(subsystem: subsystem, category: "reference")
+    static let reminders = Logger(subsystem: subsystem, category: "reminders")
 }

@@ -15,6 +15,8 @@ enum UITestSeed {
         var category: String?
         var location: String?
         var expiryInDays: Int?
+        /// With `expiryInDays`: keep only the month and year of that day (a GS1 `DD = 00` date).
+        var monthPrecision: Bool?
         var opened: Bool?
         var lot: String?
         var serial: String?
@@ -39,7 +41,7 @@ enum UITestSeed {
                     category: item.category.map { CategoryID(rawValue: $0) } ?? .uncategorized,
                     categoryOverridden: false,
                     locationID: location.id,
-                    expiry: expiry(inDays: item.expiryInDays, environment: environment),
+                    expiry: expiry(inDays: item.expiryInDays, monthOnly: item.monthPrecision ?? false, environment: environment),
                     lot: item.lot,
                     serial: item.serial,
                     isOpened: item.opened ?? false,
@@ -65,9 +67,9 @@ enum UITestSeed {
         return created
     }
 
-    private static func expiry(inDays days: Int?, environment: AppEnvironment) -> ExpiryDate? {
+    private static func expiry(inDays days: Int?, monthOnly: Bool, environment: AppEnvironment) -> ExpiryDate? {
         guard let days else { return nil }
         let day = environment.today().adding(days: days)
-        return try? ExpiryDate.make(year: day.year, month: day.month, day: day.day)
+        return try? ExpiryDate.make(year: day.year, month: day.month, day: monthOnly ? nil : day.day)
     }
 }

@@ -247,7 +247,7 @@ private fun NoResults(onClear: () -> Unit) {
  * scale; inside the list it does not (the list scrolls).
  */
 @Composable
-private fun CenteredMessage(
+internal fun CenteredMessage(
     modifier: Modifier,
     icon: ImageVector,
     title: String,

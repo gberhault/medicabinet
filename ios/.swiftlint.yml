@@ -18,6 +18,7 @@ identifier_name:
   excluded:
     - id
     - ok  # ExpiryStatus.ok — the term used throughout the spec
+    - on  # ReminderState.on — the name the spec and the Android twin use (off / on / blocked)
     - db  # GRDB's conventional database parameter name
     - v1  # migration identifiers
 
@@ -54,6 +55,13 @@ custom_rules:
     regex: '^\s*(@\w+\s+)?import\s+(VisionKit|AVFoundation)\b'
     included: 'MediCabinet/Sources/.*\.swift'
     excluded: 'MediCabinet/Sources/Features/Scan/Camera/'
+    severity: error
+  notifications_confined_to_reminders:
+    name: "Notification framework outside App/Reminders"
+    message: "import UserNotifications is only allowed under MediCabinet/Sources/App/Reminders/."
+    regex: '^\s*(@\w+\s+)?import\s+UserNotifications\b'
+    included: 'MediCabinet/Sources/.*\.swift'
+    excluded: 'MediCabinet/Sources/App/Reminders/'
     severity: error
   no_public_log_privacy:
     name: "Public log interpolation"

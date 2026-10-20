@@ -1,0 +1,3 @@
+import UserNotifications
+
+struct NotificationUser {}

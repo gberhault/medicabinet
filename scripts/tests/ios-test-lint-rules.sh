@@ -27,6 +27,9 @@ check grdb_confined_to_persistence.swift grdb_confined_to_persistence MediCabine
 check grdb_confined_to_persistence.swift grdb_confined_to_persistence MediCabinet/Sources/Persistence/Allowed.swift pass
 check camera_confined.swift camera_confined_to_scan_camera MediCabinet/Sources/Features/Bad.swift fail
 check camera_confined.swift camera_confined_to_scan_camera MediCabinet/Sources/Features/Scan/Camera/Allowed.swift pass
+check notifications_confined.swift notifications_confined_to_reminders MediCabinet/Sources/Features/Bad.swift fail
+check notifications_confined.swift notifications_confined_to_reminders MediCabinet/Sources/App/Bad.swift fail
+check notifications_confined.swift notifications_confined_to_reminders MediCabinet/Sources/App/Reminders/Allowed.swift pass
 check no_network.swift no_network MediCabinet/Sources/App/Bad.swift fail
 check log_privacy_public.swift no_public_log_privacy MediCabinet/Sources/App/Bad.swift fail
 check clean.swift none Packages/MediCabinetCore/Sources/MediCabinetCore/Fine.swift pass

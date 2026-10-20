@@ -5,16 +5,18 @@ import SwiftUI
 /// and dark); only the icon is tinted. An unknown expiry is shown as such, never as OK.
 struct ExpiryStatusLabel: View {
     let status: ExpiryStatus
+    /// Today is the last valid day: still usable, so still "expiring soon", but said as "Expires today".
+    var expiresToday = false
 
     var body: some View {
         Label {
-            Text(ExpiryStatusStyle.title(status))
+            Text(expiresToday ? ExpiryStatusStyle.expiresTodayTitle : ExpiryStatusStyle.title(status))
         } icon: {
             Image(systemName: ExpiryStatusStyle.symbol(status))
                 .foregroundStyle(ExpiryStatusStyle.tint(status))
         }
         .font(.subheadline)
-        .accessibilityIdentifier("expiry.status.\(status.rawValue)")
+        .accessibilityIdentifier(expiresToday ? "expiry.status.expiresToday" : "expiry.status.\(status.rawValue)")
     }
 }
 
@@ -27,6 +29,9 @@ enum ExpiryStatusStyle {
         case .unknown: "expiry.status.unknown"
         }
     }
+
+    static let expiresTodayKey = "expiry.status.expiresToday"
+    static var expiresTodayTitle: LocalizedStringKey { LocalizedStringKey(expiresTodayKey) }
 
     /// String catalog key, for places that need a `String` (menus, filter summaries).
     static func key(_ status: ExpiryStatus) -> String {

@@ -5,7 +5,10 @@ import XCTest
 enum UITestApp {
     static func launch(extraArguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITestingTemporaryStorage", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extraArguments
+        app.launchArguments = [
+            "-UITestingTemporaryStorage", "-UITestNotifications", "notDetermined",
+            "-AppleLanguages", "(en)", "-AppleLocale", "en_US"
+        ] + extraArguments
         app.launch()
         return app
     }
@@ -32,7 +35,7 @@ final class MainTabUITests: XCTestCase {
         XCTAssertTrue(bar.waitForExistence(timeout: 15))
         let expectations = [
             ("Cabinet", "The cabinet is empty"),
-            ("Expiring", "Expiry tracking is coming soon")
+            ("Expiring", "All clear")
         ]
         for (tab, title) in expectations {
             bar.buttons[tab].tap()

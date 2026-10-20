@@ -2,14 +2,30 @@ package com.medicabinet.app.features
 
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.medicabinet.app.app.AppTab
+import com.medicabinet.app.app.TabRouter
+import com.medicabinet.app.features.cabinet.CabinetTestKit
 import com.medicabinet.app.features.scan.testEnvironment
 import com.medicabinet.app.features.scan.testScanServices
+import com.medicabinet.app.reminders.DeliveryKit
+import com.medicabinet.app.reminders.ReminderServices
+import com.medicabinet.app.reminders.ReminderTestKit
 import com.medicabinet.app.ui.theme.MediCabinetTheme
+import com.medicabinet.core.RemovalReason
+import java.time.Instant
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,7 +58,108 @@ class MainScaffoldTest {
         compose.onNodeWithText("Cabinet").performClick()
         waitForText("The cabinet is empty")
         compose.onNodeWithText("Expiring").performClick()
-        compose.onNodeWithText("Expiry tracking is coming soon").assertIsDisplayed()
+        waitForText("All clear")
+        compose.onNodeWithText("Nothing expires in the next 60 days.").assertExists()
+    }
+
+    @Test
+    fun theExpiringTabBadgeCountsBoxesNeedingAttentionOnEveryTabAndIsHiddenAtZero() {
+        val kit = CabinetTestKit()
+        runBlocking {
+            kit.open()
+            kit.box("Smecta", expiry = CabinetTestKit.EXPIRED)
+            kit.box("Doliprane", CabinetTestKit.DOLIPRANE, CabinetTestKit.SOON)
+            kit.box("Pansements")
+        }
+        compose.setContent {
+            MediCabinetTheme { MainScaffold(kit.environment, scanServices = testScanServices()) }
+        }
+        // Still on the Scan tab: the badge is live, and says two boxes (the unknown one is not counted).
+        waitForTabDescription("Expiring, 2 boxes need attention", present = true)
+        compose.onNodeWithText("2", useUnmergedTree = true).assertIsDisplayed()
+        runBlocking {
+            kit.store.box(kit.store.activeBoxes().first { it.product.name == "Smecta" }.id)?.let {
+                kit.store.markRemoved(it.id, RemovalReason.THROWN_AWAY, kit.clock.now())
+            }
+        }
+        waitForTabDescription("Expiring, 1 box needs attention", present = true)
+        runBlocking {
+            kit.store.activeBoxes().filter { it.product.name == "Doliprane" }.forEach {
+                kit.store.markRemoved(it.id, RemovalReason.USED_UP, kit.clock.now())
+            }
+        }
+        waitForTabDescription("Expiring, 1 box needs attention", present = false)
+        // Hidden at zero: no badge number and no count in the tab's description.
+        assertEquals(0, compose.onAllNodesWithText("1", useUnmergedTree = true).fetchSemanticsNodes().size)
+        val described = compose.onAllNodesWithContentDescription("need attention", substring = true)
+        assertEquals(0, described.fetchSemanticsNodes().size)
+    }
+
+    private fun services(kit: ReminderTestKit) = ReminderServices(
+        kit.access,
+        kit.scheduling,
+        DeliveryKit(Instant.parse("2027-01-15T12:00:00Z")).delivery
+    )
+
+    @Test
+    fun comingToTheForegroundArmsTheDigestAlarmAgain() {
+        val kit = ReminderTestKit()
+        compose.setContent {
+            MediCabinetTheme {
+                MainScaffold(testEnvironment(), scanServices = testScanServices(), reminderServices = services(kit))
+            }
+        }
+        compose.waitUntil(WAIT_MS) { kit.scheduling.arms >= 1 }
+    }
+
+    @Test
+    fun theExpiringTabOffersTheMonthlyReminderAndNotNowRemembersIt() {
+        val kit = ReminderTestKit()
+        val environment = testEnvironment()
+        compose.setContent {
+            MediCabinetTheme {
+                MainScaffold(
+                    environment,
+                    scanServices = testScanServices(),
+                    reminderServices = services(kit)
+                )
+            }
+        }
+        compose.onNodeWithText("Expiring").performClick()
+        waitForText("All clear")
+        compose.onNodeWithTag("reminder.card").assertIsDisplayed()
+        compose.onNodeWithTag("reminder.card.notNow").performClick()
+        compose.waitForIdle()
+        assertEquals(0, compose.onAllNodesWithTag("reminder.card").fetchSemanticsNodes().size)
+        assertTrue(environment.expiryPreferences.reminderCardDismissed)
+    }
+
+    @Test
+    fun settingsOfferTheMonthlyReminderSwitchOffByDefault() {
+        show()
+        compose.onNodeWithText("Settings").performClick()
+        compose.onNodeWithTag("settings.reminder.switch").assertIsDisplayed().assertIsOff()
+    }
+
+    @Test
+    fun aTabRequestFromOutsideSwitchesToTheExpiringTab() {
+        val router = TabRouter()
+        compose.setContent {
+            MediCabinetTheme { MainScaffold(testEnvironment(), scanServices = testScanServices(), tabRouter = router) }
+        }
+        compose.onNodeWithText("Allow the camera").assertIsDisplayed()
+        router.select(AppTab.EXPIRING)
+        waitForText("All clear")
+        assertNull(router.requested.value)
+    }
+
+    @Test
+    fun settingsOfferTheExpiringSoonWindow() {
+        show()
+        compose.onNodeWithText("Settings").performClick()
+        compose.onNodeWithTag("settings.expiryWindow.60").assertIsDisplayed()
+        compose.onNodeWithTag("settings.expiryWindow.90").performClick()
+        compose.onNodeWithTag("settings.expiryWindow.90").assertIsSelected()
     }
 
     @Test
@@ -54,6 +171,10 @@ class MainScaffoldTest {
         }
         compose.onNodeWithText("Cabinet").performClick()
         waitForText("The cabinet is empty")
+    }
+
+    private fun waitForTabDescription(description: String, present: Boolean) = compose.waitUntil(WAIT_MS) {
+        compose.onAllNodesWithContentDescription(description).fetchSemanticsNodes().isNotEmpty() == present
     }
 
     private fun waitForText(text: String) = compose.waitUntil(WAIT_MS) {

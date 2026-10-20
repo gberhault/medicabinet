@@ -31,8 +31,6 @@
     <string name="category_uncategorized">Non classé</string>
     <string name="category_vitamins_minerals">Vitamines et minéraux</string>
     <string name="location_default_name">Armoire à pharmacie</string>
-    <string name="placeholder_expiring_message">Les médicaments périmés ou bientôt périmés seront listés ici.</string>
-    <string name="placeholder_expiring_title">Le suivi des péremptions arrive bientôt</string>
     <string name="placeholder_scan_message">Vous pourrez bientôt scanner vos boîtes de médicaments les unes après les autres.</string>
     <string name="placeholder_scan_title">Le scan arrive bientôt</string>
     <string name="settings_about">À propos</string>
@@ -238,4 +236,45 @@
     <string name="expiry_status_expiringSoon">Bientôt périmé</string>
     <string name="expiry_status_ok">OK</string>
     <string name="expiry_status_unknown">Péremption inconnue</string>
+    <string name="settings_expiryWindow_title">Bientôt périmé</string>
+    <string name="settings_expiryWindow_footer">Les boîtes qui périment dans ce nombre de jours sont affichées comme bientôt périmées.</string>
+    <string name="settings_expiryWindow_option">%1$d jours</string>
+    <string name="expiry_status_expiresToday">Périme aujourd’hui</string>
+    <string name="expiring_section_expired">Périmés</string>
+    <string name="expiring_section_expiringSoon">Bientôt périmés</string>
+    <string name="expiring_section_unknown">Péremption inconnue</string>
+    <string name="expiring_row_expiry">Péremption : %1$s</string>
+    <string name="expiring_row_accessibility">%1$s, %2$s, %3$s, %4$s</string>
+    <string name="expiring_empty_title">Tout est à jour</string>
+    <string name="expiring_empty_message">Rien ne périme dans les %1$d prochains jours.</string>
+    <string name="expiring_loading">Chargement des péremptions…</string>
+    <string name="expiring_error_title">Impossible de charger les péremptions</string>
+    <plurals name="expiring_badge_accessibility">
+        <item quantity="one">%1$d boîte à vérifier</item>
+        <item quantity="other">%1$d boîtes à vérifier</item>
+    </plurals>
+    <string name="expiring_thrownAway">Jetée</string>
+    <string name="expiring_thrownAway_done">%1$s jetée</string>
+    <string name="expiring_thrownAway_failed">Impossible de jeter cette boîte</string>
+    <string name="reminder_card_title">Rappel mensuel</string>
+    <string name="reminder_card_message">Recevez un récapitulatif le 1er de chaque mois si des boîtes sont périmées ou bientôt périmées.</string>
+    <string name="reminder_card_turnOn">Activer</string>
+    <string name="reminder_card_notNow">Plus tard</string>
+    <string name="reminder_settings_title">Rappel mensuel</string>
+    <string name="reminder_settings_footer">Une notification le 1er du mois à 9 h, avec seulement le nombre de boîtes concernées, jamais un nom de médicament.</string>
+    <string name="reminder_settings_blocked">Les notifications sont désactivées pour MediCabinet.</string>
+    <string name="reminder_settings_denied">Sans autorisation de notification, le rappel ne peut pas être envoyé.</string>
+    <string name="reminder_settings_openSettings">Ouvrir les réglages</string>
+    <string name="reminder_channel_name">Rappel mensuel</string>
+    <string name="reminder_channel_description">Récapitulatif mensuel des boîtes périmées ou bientôt périmées</string>
+    <string name="reminder_digest_title">Votre armoire à pharmacie</string>
+    <plurals name="reminder_digest_body_expired">
+        <item quantity="one">%1$d boîte périmée</item>
+        <item quantity="other">%1$d boîtes périmées</item>
+    </plurals>
+    <plurals name="reminder_digest_body_soon">
+        <item quantity="one">%1$d boîte périme dans les %2$d jours</item>
+        <item quantity="other">%1$d boîtes périment dans les %2$d jours</item>
+    </plurals>
+    <string name="reminder_digest_body_both">%1$s · %2$s</string>
 </resources>

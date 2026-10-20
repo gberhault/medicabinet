@@ -10,10 +10,15 @@ struct AppEnvironment: Sendable {
     let reference: any ReferenceDataSource
     /// The taxonomy's order: the Cabinet list's category sections follow it, `uncategorized` last.
     var categoryOrder: [CategoryID] = Taxonomy.ordered
-    /// How early a box counts as "expiring soon" (the setting is #23's; its default until then).
-    var expiryWindow: ExpiryWindow = .default
+    /// The device preferences of expiry tracking: the "expiring soon" window and the reminder choices.
+    var preferences: any ExpiryPreferences = InMemoryExpiryPreferences()
+    /// What says "today" may have changed (midnight, time zone, clock).
+    var todaySource: TodaySource = .live()
     /// The wall-clock zone that decides what "today" is; the device's, unless a test pins it.
     var timeZone: @Sendable () -> TimeZone = { TimeZone.current }
+
+    /// How early a box counts as "expiring soon": the setting, read now (it can change while the app runs).
+    var expiryWindow: ExpiryWindow { preferences.window }
 
     /// Today's calendar day, from the injected clock in the device time zone.
     func today() -> CalendarDay {
@@ -22,8 +27,8 @@ struct AppEnvironment: Sendable {
 
     /// The status of an expiry date on `day`: the core rule with the "expiring soon" window. An unknown expiry
     /// is `.unknown`, never `.ok`.
-    func expiryStatus(of expiry: ExpiryDate?, on day: CalendarDay) -> ExpiryStatus {
-        ExpiryRule.assess(expiry, today: day, window: expiryWindow).status
+    func expiryStatus(of expiry: ExpiryDate?, on day: CalendarDay, window: ExpiryWindow? = nil) -> ExpiryStatus {
+        ExpiryRule.assess(expiry, today: day, window: window ?? expiryWindow).status
     }
 
     /// Seconds until the next local midnight, from the injected clock (at least 1).

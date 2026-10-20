@@ -3,6 +3,16 @@
 Newest entry first. The top entry must match `MARKETING_VERSION` in `project.yml`
 (checked by `scripts/check-version.sh`).
 
+## 0.4.0 — 2026-10-20
+
+Expiry tracking and a monthly reminder.
+
+- Expiring tab: the boxes that are expired, expiring soon or of unknown expiry, in three sections, with the location, the date (month and year when only the month is known) and the status as text and icon. Swipe a row (or use the accessibility action) to throw a box away, with Undo. The tab badge counts expired and expiring-soon boxes on every tab.
+- Settings → Expiring soon: choose 30, 60 or 90 days (60 by default); the Cabinet list, box detail, Expiring tab and reminder all follow it.
+- Monthly reminder, off until you turn it on: one notification on the 1st at 09:00 with only the number of expired and expiring-soon boxes (no medicine names), sent only when there is something to report. The notification permission is asked only when you turn it on.
+- The next 12 reminders are scheduled ahead and refreshed whenever the cabinet or the setting changes and when the app opens.
+- The day, time zone and clock changes are followed, so statuses and the reminder stay right after midnight or a trip.
+
 ## 0.3.0 — 2026-10-20
 
 Cabinet inventory, locations and removal by scan.

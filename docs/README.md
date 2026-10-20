@@ -7,6 +7,7 @@
 | [development.md](development.md) | Setup and commands for iOS and Android, quality gates, localization, versioning |
 | [reference-data.md](reference-data.md) | BDPM dataset: licence and attribution, file format and encodings, coverage limits, classification source |
 | [cabinet.md](cabinet.md) | The Cabinet tab: list by category, search and filters, a product's boxes, box detail, category editing, taking a box out with Undo |
+| [expiry-tracking.md](expiry-tracking.md) | Expiry status of a box, the "expiring soon" window, the Expiring tab, the monthly reminder on each platform, privacy |
 | [locations.md](locations.md) | Managing locations (add, rename, reorder, default, delete with move and Undo), the tombstone, where the code is |
 
 Feature pages are added next to these as each feature ships (see `specs/` for the specs that drive

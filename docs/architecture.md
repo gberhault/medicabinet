@@ -141,10 +141,21 @@ place that knows VisionKit (iOS) or CameraX + zxing-cpp (Android) — a lint rul
 become payload strings; everything after that (GS1 parsing, debouncing, intake decision, product resolution) is
 pure code in the two cores, tested by the shared fixtures.
 
+## Notifications
+
+The monthly reminder is local only (see [`expiry-tracking.md`](expiry-tracking.md)): no push server, no network. The
+digest content and its dates come from one pure function in each core (`ExpiryDigest`), proven by
+`fixtures/expiry-digest.json`; only the scheduling differs. iOS schedules the next 12 calendar notifications (the
+system caps pending ones at 64) and `UserNotifications` is imported only under `App/Reminders/`. Android arms one
+inexact `AlarmManager` alarm and its receiver computes the counts at fire time; `AlarmManager` and the notification
+APIs are used only under `reminders/`. Preferences of the feature are device settings (`UserDefaults` /
+`SharedPreferences`), not cabinet data.
+
 ## Privacy
 
 No analytics, crash reporting, advertising or network code (lint rules on both platforms; the Android manifest
-requests the camera permission only — nothing else, in particular no `INTERNET`). iOS `PrivacyInfo.xcprivacy` declares no tracking, no collected data and the `UserDefaults` required-reason API (`CA92.1`, the scanner's two UI preferences). Camera frames are never stored or sent. Logs carry
+requests the camera, notification (`POST_NOTIFICATIONS`) and boot (`RECEIVE_BOOT_COMPLETED`, to re-arm the reminder)
+permissions only — in particular no `INTERNET` and no exact-alarm permission). iOS `PrivacyInfo.xcprivacy` declares no tracking, no collected data and the `UserDefaults` required-reason API (`CA92.1`, the scanner's, expiry window's and reminder's UI preferences). Camera frames are never stored or sent. Logs carry
 no cabinet contents: iOS uses `os.Logger`'s private default (public interpolation is lint-forbidden), Android
 logs only the failure stage and exception class through `AppLog`.
 

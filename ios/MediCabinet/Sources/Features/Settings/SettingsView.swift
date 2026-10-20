@@ -16,6 +16,8 @@ struct LocationsEntry: View {
 
 struct SettingsView: View {
     var info: any AppInfo = BundleAppInfo()
+    @Environment(\.appEnvironment) private var environment
+    @Environment(\.reminderModel) private var reminder
 
     var body: some View {
         NavigationStack {
@@ -26,6 +28,12 @@ struct SettingsView: View {
                     Label("settings.locations", systemImage: "mappin.and.ellipse")
                 }
                 .accessibilityIdentifier("settings.locations")
+                if let environment {
+                    ExpirySettingsSection(preferences: environment.preferences)
+                }
+                if let reminder {
+                    ReminderSettingsSection(model: reminder)
+                }
                 NavigationLink {
                     AboutView(model: AboutViewModel(info: info))
                 } label: {

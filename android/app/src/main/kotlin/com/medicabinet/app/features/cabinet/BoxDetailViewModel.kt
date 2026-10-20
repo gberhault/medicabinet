@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -87,7 +86,6 @@ class BoxDetailViewModel(
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
     private val boxes = environment.boxes
-    private val ticker = DayTicker(environment.clock, environment.zone)
     private val attempt = MutableStateFlow(0)
     private val mutableWriteFailed = MutableStateFlow(false)
 
@@ -108,23 +106,29 @@ class BoxDetailViewModel(
         mutableWriteFailed.value = false
     }
 
-    private fun load(attempt: Int): Flow<BoxDetailState> =
-        combine(boxes.observeCabinet(), environment.locations.observeAll(), ticker.days()) { all, locations, today ->
-            val box = all.firstOrNull { it.id == boxId }
-            if (box == null) {
-                BoxDetailState.Gone
-            } else {
-                val place = locations.firstOrNull { it.id == box.locationId }?.name.orEmpty()
-                BoxDetailState.Loaded(box, locations, place, environment.expiryStatus(box.expiry, today))
-            }
+    private fun load(attempt: Int): Flow<BoxDetailState> = observe()
+        .onStart { if (attempt > 0) emit(BoxDetailState.Loading) }
+        .catch { error ->
+            AppLog.cabinetFailed("detail", error)
+            emit(BoxDetailState.Failed)
         }
-            .map<BoxDetailState, BoxDetailState> { it }
-            .onStart { if (attempt > 0) emit(BoxDetailState.Loading) }
-            .catch { error ->
-                AppLog.cabinetFailed("detail", error)
-                emit(BoxDetailState.Failed)
-            }
-            .flowOn(dispatcher)
+        .flowOn(dispatcher)
+
+    /** The box follows the cabinet, the locations, today and the "expiring soon" window. */
+    private fun observe(): Flow<BoxDetailState> = combine(
+        boxes.observeCabinet(),
+        environment.locations.observeAll(),
+        environment.todaySource.days(),
+        environment.expiryPreferences.windowChanges()
+    ) { all, locations, today, _ ->
+        val box = all.firstOrNull { it.id == boxId }
+        if (box == null) {
+            BoxDetailState.Gone
+        } else {
+            val place = locations.firstOrNull { it.id == box.locationId }?.name.orEmpty()
+            BoxDetailState.Loaded(box, locations, place, environment.expiryStatus(box.expiry, today))
+        }
+    }
 
     /** The **Opened** switch: saved at once; toggling again undoes it (B3). */
     suspend fun setOpened(opened: Boolean) {

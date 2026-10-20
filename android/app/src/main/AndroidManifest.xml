@@ -2,10 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- The only permission is the camera, requested at runtime when the user opens the scanner; the app stays
-         usable (manual entry) without it. No network request (see docs/architecture.md). -->
+    <!-- The camera, requested at runtime when the user opens the scanner; the app stays usable (manual entry)
+         without it. No network request (see docs/architecture.md). -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+
+    <!-- The monthly reminder (Android 13+ asks at runtime, only when the user turns the reminder on; older versions
+         have no permission). Never an exact-alarm permission: the digest uses an inexact alarm. RECEIVE_BOOT_COMPLETED
+         arms that alarm again after a reboot. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- camera-view pulls in media3-common, which declares this permission for video playback we do not use. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
@@ -28,5 +34,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- The digest alarm. No intent filter: only this app's own PendingIntent reaches it. -->
+        <receiver
+            android:name=".reminders.DigestAlarmReceiver"
+            android:exported="false" />
+
+        <!-- Arms the alarm again after a reboot, an app update, a time-zone change or a clock change. These are
+             system broadcasts, which reach a receiver that is not exported. -->
+        <receiver
+            android:name=".reminders.RescheduleReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

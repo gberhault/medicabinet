@@ -1249,6 +1249,238 @@
         }
       }
     },
+    "expiring.badge.accessibility": {
+      "localizations": {
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîte à vérifier"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîtes à vérifier"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld box needs attention"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boxes need attention"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "expiring.empty.message": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien ne périme dans les %1$lld prochains jours."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing expires in the next %1$lld days."
+          }
+        }
+      }
+    },
+    "expiring.empty.title": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout est à jour"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All clear"
+          }
+        }
+      }
+    },
+    "expiring.error.title": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de charger les péremptions"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load expiry dates"
+          }
+        }
+      }
+    },
+    "expiring.loading": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chargement des péremptions…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading expiry dates…"
+          }
+        }
+      }
+    },
+    "expiring.row.accessibility": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@, %4$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@, %4$@"
+          }
+        }
+      }
+    },
+    "expiring.row.expiry": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Péremption : %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expires: %1$@"
+          }
+        }
+      }
+    },
+    "expiring.section.expired": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Périmés"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expired"
+          }
+        }
+      }
+    },
+    "expiring.section.expiringSoon": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bientôt périmés"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expiring soon"
+          }
+        }
+      }
+    },
+    "expiring.section.unknown": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Péremption inconnue"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expiry unknown"
+          }
+        }
+      }
+    },
+    "expiring.thrownAway": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetée"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thrown away"
+          }
+        }
+      }
+    },
+    "expiring.thrownAway.done": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ jetée"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ thrown away"
+          }
+        }
+      }
+    },
+    "expiring.thrownAway.failed": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de jeter cette boîte"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t throw this box away"
+          }
+        }
+      }
+    },
     "expiry.field.day": {
       "localizations": {
         "en": {
@@ -1341,6 +1573,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Périmé"
+          }
+        }
+      }
+    },
+    "expiry.status.expiresToday": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Périme aujourd’hui"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expires today"
           }
         }
       }
@@ -2009,38 +2257,6 @@
         }
       }
     },
-    "placeholder.expiring.message": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Expired and soon-to-expire medicines will be listed here."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Les médicaments périmés ou bientôt périmés seront listés ici."
-          }
-        }
-      }
-    },
-    "placeholder.expiring.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Expiry tracking is coming soon"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le suivi des péremptions arrive bientôt"
-          }
-        }
-      }
-    },
     "placeholder.scan.message": {
       "localizations": {
         "en": {
@@ -2069,6 +2285,262 @@
           "stringUnit": {
             "state": "translated",
             "value": "Le scan arrive bientôt"
+          }
+        }
+      }
+    },
+    "reminder.card.message": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recevez un récapitulatif le 1er de chaque mois si des boîtes sont périmées ou bientôt périmées."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get a summary on the 1st of each month when boxes are expired or expiring soon."
+          }
+        }
+      }
+    },
+    "reminder.card.notNow": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plus tard"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not now"
+          }
+        }
+      }
+    },
+    "reminder.card.title": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rappel mensuel"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monthly reminder"
+          }
+        }
+      }
+    },
+    "reminder.card.turnOn": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on"
+          }
+        }
+      }
+    },
+    "reminder.digest.body.both": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "reminder.digest.body.expired": {
+      "localizations": {
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîte périmée"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîtes périmées"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld box expired"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boxes expired"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "reminder.digest.body.soon": {
+      "localizations": {
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîte périme dans les %2$lld jours"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîtes périment dans les %2$lld jours"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld box expires within %2$lld days"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boxes expire within %2$lld days"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "reminder.digest.title": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre armoire à pharmacie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your medicine cabinet"
+          }
+        }
+      }
+    },
+    "reminder.settings.blocked": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les notifications sont désactivées pour MediCabinet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications are turned off for MediCabinet."
+          }
+        }
+      }
+    },
+    "reminder.settings.denied": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sans autorisation de notification, le rappel ne peut pas être envoyé."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Without notification permission, the reminder can’t be sent."
+          }
+        }
+      }
+    },
+    "reminder.settings.footer": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une notification le 1er du mois à 9 h, avec seulement le nombre de boîtes concernées, jamais un nom de médicament."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One notification on the 1st of the month at 9:00, with only the number of boxes, never a medicine name."
+          }
+        }
+      }
+    },
+    "reminder.settings.openSettings": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir les réglages"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        }
+      }
+    },
+    "reminder.settings.title": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rappel mensuel"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monthly reminder"
           }
         }
       }
@@ -3445,6 +3917,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "À propos"
+          }
+        }
+      }
+    },
+    "settings.expiryWindow.footer": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les boîtes qui périment dans ce nombre de jours sont affichées comme bientôt périmées."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boxes expiring within this many days are shown as expiring soon."
+          }
+        }
+      }
+    },
+    "settings.expiryWindow.option": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld jours"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld days"
+          }
+        }
+      }
+    },
+    "settings.expiryWindow.title": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bientôt périmé"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expiring soon"
           }
         }
       }

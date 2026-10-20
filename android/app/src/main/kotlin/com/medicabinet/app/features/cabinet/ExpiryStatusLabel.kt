@@ -43,11 +43,15 @@ private fun tint(status: ExpiryStatus): Color = when (status) {
     ExpiryStatus.UNKNOWN -> MaterialTheme.colorScheme.onSurfaceVariant
 }
 
-/** An expiry status as an icon and text; the text keeps the default colour (contrast), the icon carries the tint. */
+/**
+ * An expiry status as an icon and text; the text keeps the default colour (contrast), the icon carries the tint. A box
+ * that [expiresToday] is still usable and expiring soon, but says so in words.
+ */
 @Composable
-fun ExpiryStatusLabel(status: ExpiryStatus, modifier: Modifier = Modifier) {
+fun ExpiryStatusLabel(status: ExpiryStatus, modifier: Modifier = Modifier, expiresToday: Boolean = false) {
+    val words = if (expiresToday) R.string.expiry_status_expiresToday else expiryStatusText(status)
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Icon(icon(status), contentDescription = null, tint = tint(status))
-        Text(stringResource(expiryStatusText(status)), style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(words), style = MaterialTheme.typography.bodyMedium)
     }
 }

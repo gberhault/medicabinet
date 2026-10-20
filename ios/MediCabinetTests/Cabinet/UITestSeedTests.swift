@@ -7,13 +7,14 @@ import Testing
 @Suite struct UITestSeedTests {
     private let json = """
     [{"name":"Doliprane","gtin":"03400930000014","category":"pain-fever","expiryInDays":-2,"opened":true,"lot":"L1"},
-     {"name":"Thermometer","location":"Car"}]
+     {"name":"Thermometer","location":"Car"},
+     {"name":"Monthly","expiryInDays":-45,"monthPrecision":true}]
     """
 
     @Test func theSeedIsReadOnlyWithTemporaryStorage() {
         let environment = [UITestSeed.environmentKey: json]
         #expect(UITestSeed.items(from: environment, arguments: []).isEmpty)
-        #expect(UITestSeed.items(from: environment, arguments: [AppLaunch.temporaryStorageArgument]).count == 2)
+        #expect(UITestSeed.items(from: environment, arguments: [AppLaunch.temporaryStorageArgument]).count == 3)
     }
 
     @Test func aMissingOrMalformedSeedSeedsNothing() {
@@ -28,7 +29,7 @@ import Testing
         await UITestSeed.apply(items, to: kit.environment)
 
         let boxes = try await kit.boxes.activeBoxes()
-        #expect(boxes.count == 2)
+        #expect(boxes.count == 3)
         let doliprane = try #require(boxes.first { $0.product.name == "Doliprane" })
         #expect(doliprane.expiry == kit.expiry(inDays: -2))
         #expect(doliprane.category == .painFever)
@@ -37,6 +38,9 @@ import Testing
         #expect(doliprane.locationID == kit.home.id, "no location named: the default one")
         let thermometer = try #require(boxes.first { $0.product.name == "Thermometer" })
         #expect(thermometer.expiry == nil, "no expiry in the seed means an unknown expiry")
+        let monthly = try #require(boxes.first { $0.product.name == "Monthly" })
+        let day = kit.environment.today().adding(days: -45)
+        #expect(monthly.expiry == (try ExpiryDate.make(year: day.year, month: day.month, day: nil)), "month precision, no day")
         let car = try #require(try await kit.locations.all().first { $0.name == "Car" })
         #expect(thermometer.locationID == car.id)
     }

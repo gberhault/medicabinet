@@ -29,4 +29,14 @@ object AppLog {
     fun cabinetFailed(what: String, error: Throwable) {
         Log.e(TAG, "cabinet $what failed: ${error::class.java.simpleName}")
     }
+
+    /** A step of the monthly digest failed; [what] is a fixed word such as `read` or `notify`. */
+    fun reminderFailed(what: String, error: Throwable) {
+        Log.e(TAG, "reminder $what failed: ${error::class.java.simpleName}")
+    }
+
+    /** The cabinet could not be opened for the digest; only the fixed failure kind is logged. */
+    fun reminderUnavailable(failure: BootstrapFailure) {
+        Log.e(TAG, "reminder cabinet unavailable: ${failure.name}")
+    }
 }

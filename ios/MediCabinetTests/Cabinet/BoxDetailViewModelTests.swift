@@ -182,4 +182,14 @@ import Testing
         await model.takeOut(.usedUp)
         #expect(try await kit.boxes.box(id: box.id)?.removal != nil)
     }
+
+    @Test func changingTheWindowUpdatesTheStatusShown() async throws {
+        let kit = try await CabinetTestKit()
+        let box = try await kit.add("Doliprane", expiryInDays: 45)
+        let running = await open(box, in: kit)
+        defer { running.finish() }
+        #expect(running.model.status == .expiringSoon)
+        kit.environment.preferences.window = .days30
+        #expect(await eventually { running.model.status == .ok })
+    }
 }

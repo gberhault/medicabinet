@@ -32,6 +32,9 @@ check no_network.kt               no_network                  android/app/src/ma
 check no_internet_permission.xml  no_network                  android/app/src/main/AndroidManifest.xml fail
 check camera_confined.kt          camera_confined_to_scan_camera android/app/src/main/kotlin/features/Bad.kt fail
 check camera_confined.kt          camera_confined_to_scan_camera android/app/src/main/kotlin/features/scan/camera/Ok.kt pass
+check reminders_confined.kt       alarms_and_notifications_confined_to_reminders android/app/src/main/kotlin/features/Bad.kt fail
+check reminders_confined.kt       alarms_and_notifications_confined_to_reminders android/app/src/main/kotlin/app/Bad.kt fail
+check reminders_confined.kt       alarms_and_notifications_confined_to_reminders android/app/src/main/kotlin/reminders/Ok.kt pass
 check views_not_persistence.kt    views_not_persistence       android/app/src/main/kotlin/features/cabinet/Bad.kt fail
 check views_not_persistence.kt    views_not_persistence       android/app/src/main/kotlin/features/settings/locations/Bad.kt fail
 check views_not_persistence.kt    views_not_persistence       android/app/src/main/kotlin/features/scan/Ok.kt pass

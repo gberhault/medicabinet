@@ -32,6 +32,10 @@ if [[ "$WHICH" == ios || "$WHICH" == all ]]; then
   done
   expect_failure "ios: Swift suite fails on a broken expiry-status fixture" \
     env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter ExpiryRuleFixtureTests
+  expect_failure "ios: Swift suite fails on a broken expiring-overview fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter ExpiringOverviewFixtureTests
+  expect_failure "ios: Swift suite fails on a broken expiry-digest fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter ExpiryDigestFixtureTests
 fi
 if [[ ("$WHICH" == android || "$WHICH" == all) && -f "$ROOT/android/gradlew" ]]; then
   expect_failure "android: Kotlin suite fails on a broken expiry fixture" \
@@ -52,5 +56,9 @@ if [[ ("$WHICH" == android || "$WHICH" == all) && -f "$ROOT/android/gradlew" ]];
   done
   expect_failure "android: Kotlin suite fails on a broken expiry-status fixture" \
     env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*ExpiryRuleFixtureTest*'"
+  expect_failure "android: Kotlin suite fails on a broken expiring-overview fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*ExpiringOverviewFixtureTest*'"
+  expect_failure "android: Kotlin suite fails on a broken expiry-digest fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*ExpiryDigestFixtureTest*'"
 fi
 exit $fail

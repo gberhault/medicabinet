@@ -151,7 +151,7 @@ class ReferenceAboutScreenTest {
             MediCabinetTheme { MainScaffold(environment(status), appInfo = info, scanServices = testScanServices()) }
         }
         compose.onNodeWithText("Settings").performClick()
-        compose.onNodeWithText("About").performClick()
+        compose.onNodeWithText("About").performScrollTo().performClick()
     }
 
     @Test
@@ -183,7 +183,7 @@ class ReferenceAboutScreenTest {
         compose.onNodeWithText("Settings").performClick()
         compose.waitForIdle()
         assertEquals(0, reference.statusCalls, "the main scaffold and Settings must not open the reference data")
-        compose.onNodeWithText("About").performClick()
+        compose.onNodeWithText("About").performScrollTo().performClick()
         compose.assertShown("Data as of October 18, 2026")
         assertEquals(1, reference.statusCalls)
     }
@@ -220,7 +220,7 @@ class ReferenceAboutScreenFrenchTest {
             }
         }
         compose.onNodeWithText("Réglages").performClick()
-        compose.onNodeWithText("À propos").performClick()
+        compose.onNodeWithText("À propos").performScrollTo().performClick()
         compose.assertShown("Données de référence")
         compose.assertShown("Source : Base de Données Publique des Médicaments")
         compose.assertShown("Données du 18 octobre 2026")
