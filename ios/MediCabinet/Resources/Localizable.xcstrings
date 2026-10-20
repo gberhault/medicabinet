@@ -4169,6 +4169,38 @@
         }
       }
     },
+    "transfer.backups.restoreTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore the backup of %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurer la sauvegarde du %1$@"
+          }
+        }
+      }
+    },
+    "transfer.error.backupFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The backup could not be saved. Your cabinet was not changed."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sauvegarde n'a pas pu être enregistrée. Votre armoire n'a pas été modifiée."
+          }
+        }
+      }
+    },
     "transfer.error.close": {
       "localizations": {
         "en": {
@@ -4185,6 +4217,102 @@
         }
       }
     },
+    "transfer.error.damaged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file is damaged or incomplete. Nothing was imported."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce fichier est endommagé ou incomplet. Rien n'a été importé."
+          }
+        }
+      }
+    },
+    "transfer.error.newerVersion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file comes from a newer version of MediCabinet. Update the app, then try again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce fichier vient d'une version plus récente de MediCabinet. Mettez l'application à jour, puis réessayez."
+          }
+        }
+      }
+    },
+    "transfer.error.notArchive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file is not a MediCabinet cabinet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce fichier n'est pas une armoire MediCabinet."
+          }
+        }
+      }
+    },
+    "transfer.error.readFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The file could not be read."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le fichier n'a pas pu être lu."
+          }
+        }
+      }
+    },
+    "transfer.error.replaceFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The import failed. Your cabinet was not changed."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'import a échoué. Votre armoire n'a pas été modifiée."
+          }
+        }
+      }
+    },
+    "transfer.error.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer"
+          }
+        }
+      }
+    },
     "transfer.error.title": {
       "localizations": {
         "en": {
@@ -4197,6 +4325,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Import impossible"
+          }
+        }
+      }
+    },
+    "transfer.error.tooLarge": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file is too large to be a MediCabinet cabinet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce fichier est trop volumineux pour être une armoire MediCabinet."
           }
         }
       }
@@ -4497,6 +4641,54 @@
         }
       }
     },
+    "transfer.import.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import a cabinet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importer une armoire"
+          }
+        }
+      }
+    },
+    "transfer.import.applying": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importing…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import en cours…"
+          }
+        }
+      }
+    },
+    "transfer.import.backingUp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backing up the current cabinet…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sauvegarde de l'armoire actuelle…"
+          }
+        }
+      }
+    },
     "transfer.import.cancel": {
       "localizations": {
         "en": {
@@ -4509,6 +4701,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "Annuler"
+          }
+        }
+      }
+    },
+    "transfer.import.checking": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking the file…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification du fichier…"
+          }
+        }
+      }
+    },
+    "transfer.import.confirm.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The whole current cabinet will be replaced with the one in the file."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toute l'armoire actuelle sera remplacée par celle du fichier."
+          }
+        }
+      }
+    },
+    "transfer.import.confirm.replace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remplacer"
+          }
+        }
+      }
+    },
+    "transfer.import.confirm.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace your cabinet?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remplacer votre armoire ?"
+          }
+        }
+      }
+    },
+    "transfer.import.done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cabinet imported"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armoire importée"
+          }
+        }
+      }
+    },
+    "transfer.import.done.backupKept": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The backup of the previous cabinet is in \"Automatic backups\"."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sauvegarde de l'armoire précédente est dans « Sauvegardes automatiques »."
           }
         }
       }
@@ -4545,6 +4833,174 @@
         }
       }
     },
+    "transfer.import.preview.backupStatement": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A backup of the current cabinet will be kept on this phone. You can restore it."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une sauvegarde de l'armoire actuelle sera gardée sur ce téléphone. Vous pourrez la restaurer."
+          }
+        }
+      }
+    },
+    "transfer.import.preview.currentTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On this phone"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sur ce téléphone"
+          }
+        }
+      }
+    },
+    "transfer.import.preview.exportedAt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exported on %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporté le %1$@"
+          }
+        }
+      }
+    },
+    "transfer.import.preview.exportedBy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "By %1$@ %2$@ (%3$@)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Par %1$@ %2$@ (%3$@)"
+          }
+        }
+      }
+    },
+    "transfer.import.preview.fileTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the file"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dans le fichier"
+          }
+        }
+      }
+    },
+    "transfer.import.preview.formatVersion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File format: version %1$lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format du fichier : version %1$lld"
+          }
+        }
+      }
+    },
+    "transfer.import.preview.noBackupNeeded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current cabinet is empty: no backup is needed."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'armoire actuelle est vide : aucune sauvegarde n'est nécessaire."
+          }
+        }
+      }
+    },
+    "transfer.import.preview.replaceStatement": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importing replaces the whole cabinet on this phone with the one in the file. Nothing is merged."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'import remplace toute l'armoire de ce téléphone par celle du fichier. Rien n'est fusionné."
+          }
+        }
+      }
+    },
+    "transfer.import.preview.unknownExpiry": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld box with no expiry date"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boxes with no expiry date"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîte sans date de péremption"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld boîtes sans date de péremption"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "transfer.import.reading": {
       "localizations": {
         "en": {
@@ -4557,6 +5013,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lecture du fichier…"
+          }
+        }
+      }
+    },
+    "transfer.import.replace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace my cabinet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remplacer mon armoire"
           }
         }
       }

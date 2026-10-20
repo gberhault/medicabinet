@@ -6,6 +6,8 @@ struct TransferSection: View {
     let environment: AppEnvironment
     let transfer: CabinetTransfer
     @State private var export: ExportViewModel?
+    @State private var picking = false
+    @Environment(\.importCoordinator) private var importer
 
     var body: some View {
         Section {
@@ -21,6 +23,19 @@ struct TransferSection: View {
             .accessibilityIdentifier("transfer.export")
             .sheet(item: $export) { model in
                 ExportSheet(model: model)
+            }
+            if let importer {
+                Button {
+                    picking = true
+                } label: {
+                    Label("transfer.import.action", systemImage: "square.and.arrow.down")
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                }
+                .accessibilityIdentifier("transfer.import")
+                // JSON too: a file whose extension changed on the way is still offered; validation decides (§1.4).
+                .fileImporter(isPresented: $picking, allowedContentTypes: [.medicabinetArchive, .json]) { result in
+                    if case let .success(url) = result { importer.open(url) }
+                }
             }
         } header: {
             Text("transfer.section.title")

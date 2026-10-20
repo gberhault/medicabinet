@@ -17,6 +17,8 @@ struct TransferTestKit {
     let files: ArchiveFiles
     let backupsDirectory: URL
     let home: Location
+    /// One revision for the kit, like the one environment of the app.
+    let revision = CabinetRevision()
 
     static func make() async throws -> TransferTestKit {
         let (database, root) = try AppDatabase.temporary()
@@ -42,7 +44,8 @@ struct TransferTestKit {
     var environment: AppEnvironment {
         AppEnvironment(
             locations: locations, boxes: boxes, clock: clock,
-            reference: InMemoryReferenceData(status: .unavailable(.missing)), timeZone: { .gmt }, transfer: transfer
+            reference: InMemoryReferenceData(status: .unavailable(.missing)), timeZone: { .gmt }, transfer: transfer,
+            revision: revision
         )
     }
 

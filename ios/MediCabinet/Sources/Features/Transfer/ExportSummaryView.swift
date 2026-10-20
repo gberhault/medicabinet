@@ -74,10 +74,10 @@ struct ExportSummaryView: View {
     var body: some View {
         List {
             Section {
-                Label(TransferText.format("transfer.export.summary.boxes", summary.inCabinet), systemImage: "cross.case")
+                CountLabel(key: "transfer.export.summary.boxes", count: summary.inCabinet, systemImage: "cross.case")
                     .accessibilityIdentifier("transfer.export.summary.boxes")
-                Label(TransferText.format("transfer.export.summary.removed", summary.removed), systemImage: "clock.arrow.circlepath")
-                Label(TransferText.format("transfer.export.summary.locations", summary.locations), systemImage: "mappin.and.ellipse")
+                CountLabel(key: "transfer.export.summary.removed", count: summary.removed, systemImage: "clock.arrow.circlepath")
+                CountLabel(key: "transfer.export.summary.locations", count: summary.locations, systemImage: "mappin.and.ellipse")
                 if summary.inCabinet + summary.removed == 0 {
                     Text("transfer.export.summary.empty")
                         .accessibilityIdentifier("transfer.export.summary.empty")

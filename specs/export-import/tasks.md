@@ -116,12 +116,18 @@ independent of each other.
   scan completion, manual entry, session row editor, plus the Cabinet box editor and the location name
   sheet (same unsaved-input risk); each shows the waiting banner. The launch cleanup keeps the files the
   coordinator still holds. The type name is localized with its French value as key.
-- [ ] **T14 — Import flow** `[ios]` [#29] (I1–I10, V5, O3; §6, flows 3–6, 8)
+- [x] **T14 — Import flow** `[ios]` [#29] (I1–I10, V5, O3; §6, flows 3–6, 8)
   `.fileImporter`, capped read, `ImportViewModel` (staged progress), `ImportPreviewView`
   (file vs phone, replace and backup statements, nothing to lose), destructive button +
   confirmation dialog, `ImportResultView`, error screens per kind. *Tests:* view-model per
   state and kind; UI tests: preview → confirm → result shows the imported cabinet; Cancel
   changes nothing; newer-version file shows "update MediCabinet".
+  Done 2026-10-20: "Replace my cabinet" and Cancel are pinned at the bottom of the preview, so the
+  decision stays in reach at any text size. One progress line per stage: "Backing up the current
+  cabinet…" while the transaction backs up and replaces, "Importing…" when there is nothing to back up
+  (the two happen in one transaction, so they cannot be told apart). A failure to read the phone's own
+  cabinet while previewing shows `replaceFailed` ("The import failed. Your cabinet was not changed.").
+  `transfer.import.wrongFileHint` is Android-only (iOS opens by extension; the picker also lists JSON).
 - [ ] **T15 — Automatic backups and restore** `[ios]` [#29] (B4, B5; §6, flow 7)
   `BackupsView` (newest first, reason, count, unreadable row, empty state) → restore through
   the import flow (`beforeRestore`). *Tests:* view-model; UI test: import then restore

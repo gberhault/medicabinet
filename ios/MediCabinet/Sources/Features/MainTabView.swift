@@ -30,8 +30,10 @@ struct MainTabView: View {
         ZStack {
             tabs
                 .accessibilityHidden(importer?.active != nil)
-            if let importer, let request = importer.active {
-                ImportFlowView(request: request, environment: environment, onClose: { importer.finish() })
+            if let importer, let request = importer.active, let transfer = environment.transfer {
+                ImportFlowView(
+                    request: request, transfer: transfer, revision: environment.revision, onClose: { importer.finish() }
+                )
                     .transition(.move(edge: .bottom))
                     .zIndex(1)
             }

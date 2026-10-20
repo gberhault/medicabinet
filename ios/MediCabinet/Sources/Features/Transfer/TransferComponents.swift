@@ -32,13 +32,14 @@ struct TransferNotice: View {
 /// A failed step: what happened, Try again.
 struct TransferFailure: View {
     let message: LocalizedStringKey
+    /// On the message: an identifier on the whole view would replace the button's.
     let identifier: String
     let retry: (() -> Void)?
 
     var body: some View {
         ContentUnavailableView {
             Label {
-                Text(message)
+                Text(message).accessibilityIdentifier(identifier)
             } icon: {
                 Image(systemName: "exclamationmark.triangle")
             }
@@ -51,6 +52,16 @@ struct TransferFailure: View {
                 .accessibilityIdentifier("transfer.retry")
             }
         }
-        .accessibilityIdentifier(identifier)
+    }
+}
+
+/// "3 boxes in the cabinet": a counted line, with its plural from the String Catalog.
+struct CountLabel: View {
+    let key: String
+    let count: Int
+    let systemImage: String
+
+    var body: some View {
+        Label(TransferText.format(key, count), systemImage: systemImage)
     }
 }
