@@ -157,8 +157,13 @@ independent of each other.
   `BackupsScreen` → restore flow. *Tests:* as T15.
   Done: each **Restore** button is described to TalkBack with the backup's date
   (`transfer_backups_restoreTitle`), since every row has one.
-- [ ] **T22 — Android accessibility pass** `[android]` (X3, X4)
+- [x] **T22 — Android accessibility pass** `[android]` (X3, X4)
   Font scale 2.0, dark theme, TalkBack labels and live regions, 48 dp targets.
+  Done: `TransferAccessibilityTest` (200 % font in the dark theme: everything reachable,
+  48 dp buttons, headings, live regions for progress, results and empty lists, a labelled
+  Restore per row) and `TransferFrenchTest`. A restore repeats its long title in the content,
+  since the app bar shows one line. Material icon buttons are 40 dp drawn with a 48 dp touch
+  target of their own (Compose 1.7 has no touch-bounds assertion, so they are not measured).
 
 ## 6. Finish
 

@@ -2,6 +2,7 @@ package com.medicabinet.app.features.transfer
 
 import android.net.Uri
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -141,8 +142,8 @@ class ImportFlowTest {
         val model =
             ImportViewModel(kit.transfer, ImportRequest.Backup(entry.id, entry.takenAt), {}, Dispatchers.Unconfined)
         compose.setContent { MediCabinetTheme { ImportScreen(model, onClose = {}, zone = ZoneOffset.UTC) } }
-        compose.onNodeWithText("Restore the backup of", substring = true).assertIsDisplayed()
-        compose.onNodeWithText("Jan 10, 2027", substring = true).assertIsDisplayed()
+        compose.onNodeWithTag("import.restoreTitle").assertIsDisplayed()
+            .assertTextContains("Restore the backup of Jan 10, 2027", substring = true)
     }
 
     @Test
@@ -173,7 +174,7 @@ class ImportFlowTest {
         waitFor("backups.restore")
         compose.onNodeWithTag("backups.restore").performClick()
         waitFor("import.replace")
-        compose.onNodeWithText("Restore the backup of", substring = true).assertIsDisplayed()
+        compose.onNodeWithTag("import.restoreTitle").assertIsDisplayed()
         compose.onNodeWithTag("import.replace").performScrollTo().performClick()
         compose.onNodeWithTag("import.confirm.replace").performClick()
         waitFor("import.done")

@@ -43,6 +43,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.medicabinet.app.R
 import com.medicabinet.core.archive.CabinetSummary
@@ -67,7 +68,8 @@ fun ImportScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(importTitle(model.request, zone)) },
+                // One line in the bar; a restore repeats its long title (with the date) in full below (200 % font).
+                title = { Text(importTitle(model.request, zone), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     if (!applying && state !is ImportState.Done) {
                         IconButton(onClick = onClose, modifier = Modifier.testTag("import.close")) {
@@ -85,6 +87,13 @@ fun ImportScreen(
             Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (model.request is ImportRequest.Backup) {
+                Text(
+                    importTitle(model.request, zone),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.testTag("import.restoreTitle")
+                )
+            }
             when (val current = state) {
                 ImportState.Reading -> ImportProgress(stringResource(R.string.transfer_import_reading))
                 ImportState.Checking -> ImportProgress(stringResource(R.string.transfer_import_checking))
