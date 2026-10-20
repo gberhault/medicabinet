@@ -3,6 +3,15 @@
 Newest entry first. The top entry must match `versionName` in `app/build.gradle.kts`
 (checked by `scripts/check-version.sh android`).
 
+## 0.6.0 — 2026-10-20
+
+Export, import and automatic backups of the cabinet.
+
+- **Settings → Backup and transfer** exports the whole cabinet as one `.medicabinet` file, readable by MediCabinet on iPhone and on Android. Before anything leaves the app it shows what will be exported and warns that the file holds health data and is not encrypted.
+- **Import a cabinet** (or open a `.medicabinet` file from Files, Gmail or Quick Share) checks the whole file, shows what it holds next to your current cabinet, and replaces the cabinet only after you confirm. A damaged or newer file is refused with a clear message and nothing changes.
+- Before every import or restore, the current cabinet is saved on the phone; the last 3 are listed under **Automatic backups** and can be restored.
+- Export files are written by explicit action only; the app never sends or uploads anything by itself.
+
 ## 0.5.0 — 2026-10-20
 
 A Cabinet you can take in at a glance.
