@@ -129,15 +129,15 @@ iOS and Android UI blocks of each section are independent of each other.
 
 ## 7. Finish
 
-- [ ] **T26 — Accessibility pass** `[ios]` `[android]` (X3)
+- [ ] **T26 — Accessibility pass** `[ios]` `[android]` (X3) — *partly done: static review + large-text UI tests, see `reports/cabinet-inventory/README.md`; the on-device VoiceOver / TalkBack walk-through and a measured contrast check remain*
   VoiceOver / TalkBack walk-through of Cabinet, detail, Locations and remove mode; contrast
   of the remove-mode tint in light and dark mode; fixes + UI test assertions.
-- [ ] **T27 — Docs** `[shared]` (X5, X6)
+- [x] **T27 — Docs** `[shared]` (X5, X6)
   `docs/cabinet.md`, `docs/locations.md` (new, linked from `docs/README.md`),
   `docs/bulk-scan.md` (remove mode), `docs/architecture.md` (schema v3, observation),
   `fixtures/README.md` complete; note for #26/#27 that the export must carry
   `location.deletedAt` (comment on #27).
-- [ ] **T28 — Device measurements** `[shared]` (X2; §8)
+- [ ] **T28 — Device measurements** `[shared]` (X2; §8) — *partly done: automated budgets recorded; scrolling and latency on a phone remain*
   Scroll 1 000 boxes on the oldest available iPhone and Android phone (emulator serial only
   unless the user names a device); remove-by-scan latency; results in
   `reports/cabinet-inventory/README.md`.
