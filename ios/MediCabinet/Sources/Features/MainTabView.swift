@@ -7,6 +7,7 @@ struct MainTabView: View {
     /// Owned here, not by the Expiring tab, so the tab badge is live whichever tab is selected.
     @State private var expiring: ExpiringViewModel
     @State private var reminder: ReminderModel
+    @State private var scheduler: ReminderScheduler
     @Environment(\.scenePhase) private var scenePhase
 
     init(environment: AppEnvironment, router: TabRouter = TabRouter(), notifications: any NotificationClient) {
@@ -17,6 +18,9 @@ struct MainTabView: View {
         _expiring = State(initialValue: ExpiringViewModel(environment: environment, undo: undo))
         _reminder = State(initialValue: ReminderModel(
             preferences: environment.preferences, client: notifications, openSystemSettings: Self.openSystemSettings))
+        _scheduler = State(initialValue: ReminderScheduler(
+            client: notifications, boxes: environment.boxes, preferences: environment.preferences,
+            clock: environment.clock, timeZone: environment.timeZone, todaySource: environment.todaySource))
     }
 
     var body: some View {
@@ -53,10 +57,15 @@ struct MainTabView: View {
         .task(id: expiring.attempt) { await expiring.observe() }
         // The permission can be changed in the system settings: read it at launch and whenever the app is back.
         .task { await reminder.refresh() }
+        // The digests follow the cabinet, the settings and the day from launch, whichever tab is selected.
+        .task { await scheduler.run() }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
             expiring.refreshToday()
-            Task { await reminder.refresh() }
+            Task {
+                await reminder.refresh()
+                await scheduler.requestReschedule()
+            }
         }
     }
 

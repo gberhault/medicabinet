@@ -3,8 +3,20 @@ import SwiftUI
 @main
 struct MediCabinetApp: App {
     @State private var model = BootstrapModel(run: AppLaunch.bootstrapRun)
-    @State private var router = TabRouter()
+    @State private var router: TabRouter
     private let notifications = AppLaunch.notificationClient()
+    /// Kept for the life of the app: the notification center holds its delegate weakly.
+    private let notificationDelegate: ReminderNotificationDelegate
+
+    /// The delegate of the notification center is set here, at launch and before the first scene appears, so a tap on
+    /// a digest that launches the app is delivered (N9).
+    init() {
+        let router = TabRouter()
+        _router = State(initialValue: router)
+        let delegate = ReminderNotificationDelegate(openExpiring: { router.select(.expiring) })
+        delegate.install()
+        notificationDelegate = delegate
+    }
 
     var body: some Scene {
         WindowGroup {
