@@ -70,12 +70,16 @@ independent of each other.
 
 ## 3. Persistence (#29)
 
-- [ ] **T9 — iOS store and backup files** `[ios]` [#29] (F7, I4–I6, B1–B2, B4, B6; §1.2, §1.3, §5)
+- [x] **T9 — iOS store and backup files** `[ios]` [#29] (F7, I4–I6, B1–B2, B4, B6; §1.2, §1.3, §5)
   `GRDBCabinetArchiveStore`, `FileArchiveBackupStore` (names, `.partial` → decode → rename,
   protection class, unreadable entries, keep 3 over both prefixes). *Tests:* contract checks
   on GRDB; integration round trip (every field variant → export → apply on a fresh database
   → equal snapshot); rollback when an insert fails; backup-store tests (pre-migration files
   untouched); performance `exportArchive` / `apply` ≤ 600 ms (§9).
+  Done 2026-10-20: the golden file goes through SQLite and comes back byte for byte. GRDB reads a
+  millisecond date back through a calendar, a hair off the exact value, so the store's snapshot rounds
+  dates to the exact millisecond (the database precision). Measured on the simulator (debug build),
+  best of 5: export 47 ms, apply with backup 165 ms.
 - [x] **T10 — Android store and backup files** `[android]` [#29] (same)
   `SqlCabinetArchiveStore`, `FileArchiveBackupStore` in `persistence/`; the same tests
   (Robolectric SQLite), including the performance budgets.
@@ -85,17 +89,25 @@ independent of each other.
 
 ## 4. iOS app (#28, #29)
 
-- [ ] **T11 — Environment, revision and scan session reset** `[ios]` (I7; §1.6, §6)
+- [x] **T11 — Environment, revision and scan session reset** `[ios]` (I7; §1.6, §6)
   `AppEnvironment.transfer` and `revision`, built in `Bootstrap` (`ArchiveApp` from
   `BundleAppInfo`); launch cleanup of `tmp/Export` and `Documents/Inbox`; the scan session
   ends on a revision change. *Tests:* bootstrap builds the environment; cleanup;
   scan view-model reset.
-- [ ] **T12 — Export** `[ios]` [#28] (E1–E9, X1, X4; §6, flow 1)
+  Done 2026-10-20: `AppEnvironment.transfer` is optional (`nil` only in tests of other screens, which then
+  offer no transfer). The launch cleanup runs once bootstrap ends, so a file opened at launch is kept
+  (T13 passes it in). Only the scan session needs the revision: every other screen observes the
+  repositories, which follow the replace by themselves.
+- [x] **T12 — Export** `[ios]` [#28] (E1–E9, X1, X4; §6, flow 1)
   `TransferSection` in Settings, `ExportViewModel`, `ExportSummaryView` (counts, warning,
   empty cabinet), `ActivityView` with temp-file deletion, error + **Try again**. Strings
   (fr + en). *Tests:* view-model states (cancel exports nothing, failure → retry, temp
   deleted on completion); UI test: the warning is shown before the share sheet.
-- [ ] **T13 — Document type, open-with and coordinator** `[ios]` [#28, #29] (O1, O4, O5; §1.4, §6)
+  Done 2026-10-20: the share sheet is presented by UIKit (`SharePresenter`), because its completion is
+  the one reliable "share ended" signal, cancel included; "File saved" is shown for Save to Files only
+  (other apps confirm their own sharing) and reuses `transfer.import.done.close` as its Done button.
+  `transfer.export.saveToFile` / `.share` are Android-only (the iOS share sheet has both).
+- [x] **T13 — Document type, open-with and coordinator** `[ios]` [#28, #29] (O1, O4, O5; §1.4, §6)
   `UTType+Archive`, `project.yml` Info.plist keys (`UTExportedTypeDeclarations`,
   `CFBundleDocumentTypes`, `LSSupportsOpeningDocumentsInPlace = NO`), localized type name;
   `.onOpenURL` → `ImportCoordinator` (pending while loading, refused when failed, waits while
@@ -103,20 +115,34 @@ independent of each other.
   registration in the scan completion step, manual entry and row editor; launch argument
   `-UITestingOpenArchive <fixture>`. *Tests:* coordinator unit tests; Info.plist key test;
   UI test opening the golden file.
-- [ ] **T14 — Import flow** `[ios]` [#29] (I1–I10, V5, O3; §6, flows 3–6, 8)
+  Done 2026-10-20: the flow is a layer over the tabs, not a `fullScreenCover` (design §6 amended). Busy forms:
+  scan completion, manual entry, session row editor, plus the Cabinet box editor and the location name
+  sheet (same unsaved-input risk); each shows the waiting banner. The launch cleanup keeps the files the
+  coordinator still holds. The type name is localized with its French value as key.
+- [x] **T14 — Import flow** `[ios]` [#29] (I1–I10, V5, O3; §6, flows 3–6, 8)
   `.fileImporter`, capped read, `ImportViewModel` (staged progress), `ImportPreviewView`
   (file vs phone, replace and backup statements, nothing to lose), destructive button +
   confirmation dialog, `ImportResultView`, error screens per kind. *Tests:* view-model per
   state and kind; UI tests: preview → confirm → result shows the imported cabinet; Cancel
   changes nothing; newer-version file shows "update MediCabinet".
-- [ ] **T15 — Automatic backups and restore** `[ios]` [#29] (B4, B5; §6, flow 7)
+  Done 2026-10-20: "Replace my cabinet" and Cancel are pinned at the bottom of the preview, so the
+  decision stays in reach at any text size. One progress line per stage: "Backing up the current
+  cabinet…" while the transaction backs up and replaces, "Importing…" when there is nothing to back up
+  (the two happen in one transaction, so they cannot be told apart). A failure to read the phone's own
+  cabinet while previewing shows `replaceFailed` ("The import failed. Your cabinet was not changed.").
+  `transfer.import.wrongFileHint` is Android-only (iOS opens by extension; the picker also lists JSON).
+- [x] **T15 — Automatic backups and restore** `[ios]` [#29] (B4, B5; §6, flow 7)
   `BackupsView` (newest first, reason, count, unreadable row, empty state) → restore through
   the import flow (`beforeRestore`). *Tests:* view-model; UI test: import then restore
   brings the first cabinet back.
-- [ ] **T16 — iOS accessibility pass** `[ios]` (X3, X4)
+- [x] **T16 — iOS accessibility pass** `[ios]` (X3, X4)
   Accessibility text sizes, dark mode, VoiceOver labels and announcements for progress and
   results, 44 pt targets, statuses not by colour alone. *Tests:* UI tests at accessibility
   sizes.
+  Done 2026-10-20: "Replace my cabinet" uses a darker red (`DestructiveFill`, 5.6:1 light, 5.4:1 dark
+  with white) because the system red under white text is 3.6:1; the result's Done is pinned like the
+  preview's buttons. VoiceOver hears each long step (making the file, backing up / importing), each
+  result and failure, and the waiting-file banner; the flow is a modal container over the hidden tabs.
 
 ## 5. Android app (#28, #29)
 

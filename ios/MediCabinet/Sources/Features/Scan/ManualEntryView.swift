@@ -47,6 +47,7 @@ struct ManualEntryView: View {
             }
             .onAppear { locationID = locationID ?? model.sessionLocation?.id }
         }
+        .importBusy()
     }
 
     private var selectedLocation: Location.ID? { locationID ?? model.sessionLocation?.id }

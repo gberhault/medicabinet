@@ -459,7 +459,10 @@ ios/MediCabinet/Sources/Features/Transfer/
 - `RootView` gets `.onOpenURL`, which hands the URL to `ImportCoordinator`. If bootstrap
   **failed**, the coordinator shows "cannot import: storage unavailable" and deletes the
   Inbox copy (O5). While **loading**, the file is kept until the app is ready.
-  `MainTabView` presents the import flow as a `fullScreenCover` driven by the coordinator.
+  `MainTabView` shows the import flow over the tabs, driven by the coordinator. *Amended with T13:* a full-screen
+  layer over the tabs (the tabs hidden from VoiceOver), not a `fullScreenCover`: a modal presentation fails while a
+  sheet is still open in a tab, so a file opened then would be lost; the layer cannot be blocked, and shows as soon
+  as that sheet closes.
 - Busy gating (O4): forms holding unsaved input (scan completion step, manual entry,
   session row editor) register with `ImportCoordinator.busy`. While busy, an incoming file
   shows a banner ("A cabinet file is waiting. Finish or cancel the current entry.") and

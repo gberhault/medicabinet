@@ -4,6 +4,7 @@ import SwiftUI
 struct MediCabinetApp: App {
     @State private var model = BootstrapModel(run: AppLaunch.bootstrapRun)
     @State private var router: TabRouter
+    @State private var importer = ImportCoordinator()
     private let notifications = AppLaunch.notificationClient()
     /// Kept for the life of the app: the notification center holds its delegate weakly.
     private let notificationDelegate: ReminderNotificationDelegate
@@ -20,7 +21,7 @@ struct MediCabinetApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(model: model, router: router, notifications: notifications)
+            RootView(model: model, router: router, notifications: notifications, importer: importer)
         }
     }
 }
@@ -33,6 +34,30 @@ enum AppLaunch {
     /// notification center with one in memory (no system prompt, nothing posted). Honoured only with
     /// `-UITestingTemporaryStorage`.
     static let notificationsArgument = "-UITestNotifications"
+
+    /// UI tests: `-UITestingOpenArchive <path>` opens that file as if it had been opened from Files (copied into
+    /// `Documents/Inbox` first, like iOS does). Honoured only with `-UITestingTemporaryStorage`.
+    static let openArchiveArgument = "-UITestingOpenArchive"
+
+    static func uiTestOpenedArchive(arguments: [String] = ProcessInfo.processInfo.arguments) async -> URL? {
+        guard arguments.contains(temporaryStorageArgument),
+              let index = arguments.firstIndex(of: openArchiveArgument), index + 1 < arguments.count,
+              let inbox = ArchiveFiles.live.inboxDirectory
+        else { return nil }
+        let source = URL(fileURLWithPath: arguments[index + 1])
+        return await Task.detached(priority: .userInitiated) { () -> URL? in
+            let fileManager = FileManager.default
+            let copy = inbox.appendingPathComponent(source.lastPathComponent)
+            do {
+                try fileManager.createDirectory(at: inbox, withIntermediateDirectories: true)
+                if fileManager.fileExists(atPath: copy.path) { try fileManager.removeItem(at: copy) }
+                try fileManager.copyItem(at: source, to: copy)
+                return copy
+            } catch {
+                return nil
+            }
+        }.value
+    }
 
     static func notificationClient(arguments: [String] = ProcessInfo.processInfo.arguments) -> any NotificationClient {
         guard arguments.contains(temporaryStorageArgument),

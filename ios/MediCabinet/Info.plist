@@ -6,6 +6,21 @@
 	<string>fr</string>
 	<key>CFBundleDisplayName</key>
 	<string>MediCabinet</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Armoire MediCabinet</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.medicabinet.archive</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -22,6 +37,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>MediCabinet utilise l'appareil photo pour lire les codes des boîtes de médicaments. Aucune image n'est enregistrée ni envoyée.</string>
 	<key>UIApplicationSceneManifest</key>
@@ -34,6 +51,30 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Armoire MediCabinet</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.medicabinet.archive</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>medicabinet</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/vnd.medicabinet+json</string>
+				</array>
+			</dict>
+		</dict>
 	</array>
 </dict>
 </plist>
