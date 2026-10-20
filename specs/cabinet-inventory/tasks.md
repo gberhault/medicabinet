@@ -101,7 +101,7 @@ iOS and Android UI blocks of each section are independent of each other.
   no results + Clear, counts, deleted-location filter fallback, day change re-evaluates
   status); `CabinetUITests` (seeded cabinet: grouping, search, filters, one-box row → detail,
   largest text size, VoiceOver labels).
-- [ ] **T20 — Android Cabinet tab** `[android]` [#19] (as T19; §6) — **blocked by #23**
+- [x] **T20 — Android Cabinet tab** `[android]` [#19] (as T19; §6)
   `CabinetScreen`, `CabinetViewModel`, filter bar, `ProductBoxesScreen`, routes.
   *Tests:* `CabinetViewModelTest` (Turbine, test dispatcher), Robolectric `CabinetScreenTest`;
   architecture rule (no `persistence` import from `features/cabinet`) + fixture.
@@ -112,7 +112,7 @@ iOS and Android UI blocks of each section are independent of each other.
   `BoxDetailView`, `BoxDetailViewModel`, `BoxEditView` (#12 `ExpiryField`). *Tests:*
   view-model (edit/save/cancel, opened toggle, used up / thrown away → Undo restores
   everything, mistake → Undo, `duplicateSerial` message, pops when the box leaves); UI test.
-- [ ] **T22 — Android box detail and edit** `[android]` [#20] (as T21)
+- [x] **T22 — Android box detail and edit** `[android]` [#20] (as T21)
 - [ ] **T23 — Category editing** `[ios]` `[android]` [#20] (B4; §3.4) — **blocked by #10**
   `BoxEdit.category` / `resetCategory()` in both cores (tests first), category picker on both
   platforms, `categoryOrder` bound to the taxonomy. (T23a iOS, T23b Android.)
