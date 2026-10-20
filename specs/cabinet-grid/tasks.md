@@ -29,14 +29,14 @@ change would otherwise break the other platform's suite.
 
 ## iOS
 
-- [ ] **T5** `[ios]` Add `CategoryIcon` (CategoryID → SF Symbol, design §5) with a test: every taxonomy id is mapped,
+- [x] **T5** `[ios]` Add `CategoryIcon` (CategoryID → SF Symbol, design §5) with a test: every taxonomy id is mapped,
   every symbol resolves with `UIImage(systemName:)`, and no two ids share a symbol. *(G3)*
-- [ ] **T6** `[ios]` Add the pill status colours to `Assets.xcassets` (light and dark, design §6) and `PillStyle`
+- [x] **T6** `[ios]` Add the pill status colours to `Assets.xcassets` (light and dark, design §6) and `PillStyle`
   (background, foreground, outline and icon per status). Add a contrast unit test that resolves each pair in light
   and dark trait collections and requires ≥ 4.5:1. *(K4, K5)*
-- [ ] **T7** `[ios]` Add `FlowLayout` (`Features/Common/`) with unit tests on its placement function: it wraps, caps a
+- [x] **T7** `[ios]` Add `FlowLayout` (`Features/Common/`) with unit tests on its placement function: it wraps, caps a
   subview at the full width, keeps spacing and handles empty input. *(K2, K8)*
-- [ ] **T8** `[ios]` **ViewModel.**
+- [x] **T8** `[ios]` **ViewModel.**
   - Replace `AppEnvironment.categoryOrder` with a `categoryLabel` closure, and have the VM build the order with
     `CategoryOrder.alphabetical`.
   - Add `clearLocation()`, `clearStatus()` and `activeFilterCount`, and remove `activeFilterParts`.
