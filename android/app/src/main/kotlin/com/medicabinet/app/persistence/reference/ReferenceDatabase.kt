@@ -17,22 +17,21 @@ import java.security.MessageDigest
 class ReferenceDatabase private constructor(private val database: SQLiteDatabase, val dataDate: ReferenceDataDate) :
     Closeable {
     /** The product of a CIP13 (withdrawn ones included), or `null` when the database does not know it. */
-    fun product(cip13: String): ReferenceProduct? =
-        database.rawQuery(
-            "SELECT name, category, cis, withdrawnSince FROM presentation WHERE cip13 = ?",
-            arrayOf(cip13)
-        ).use { cursor ->
+    fun product(cip13: String): ReferenceProduct? {
+        val sql = "SELECT cip13, name, category, withdrawnSince, cis FROM presentation WHERE cip13 = ?"
+        return database.rawQuery(sql, arrayOf(cip13)).use { cursor ->
             if (cursor.moveToFirst()) {
                 ReferenceProduct(
-                    name = cursor.getString(0),
-                    category = CategoryID(cursor.getString(1)),
-                    cis = if (cursor.isNull(2)) null else cursor.getString(2),
-                    isWithdrawn = !cursor.isNull(3)
+                    name = cursor.getString(1),
+                    category = CategoryID(cursor.getString(2)),
+                    cis = if (cursor.isNull(CIS_COLUMN)) null else cursor.getString(CIS_COLUMN),
+                    isWithdrawn = !cursor.isNull(WITHDRAWN_COLUMN)
                 )
             } else {
                 null
             }
         }
+    }
 
     /**
      * SHA-256 of the canonical content, the same text the build script hashes into the manifest (design §1.2): the

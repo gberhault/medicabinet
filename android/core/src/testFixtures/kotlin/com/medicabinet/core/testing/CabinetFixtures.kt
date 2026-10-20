@@ -23,7 +23,7 @@ data class ShortNameCase(val name: String, val input: String, val expect: String
     override fun toString(): String = name
 }
 
-/** One case of `fixtures/leaflet-links.json`: the reference product (`null` = unknown code) and the address, or `null`. */
+/** One case of `fixtures/leaflet-links.json`: the reference product (`null` = unknown) and the address or `null`. */
 @Serializable
 data class LeafletLinkCase(val name: String, val product: Product? = null, val expect: String? = null) {
     @Serializable

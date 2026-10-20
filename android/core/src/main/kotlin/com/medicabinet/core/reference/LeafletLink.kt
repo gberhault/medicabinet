@@ -14,12 +14,8 @@ object LeafletLink {
      * presentation (its page may be gone), no CIS, or a CIS that is not exactly 8 ASCII digits.
      */
     fun address(product: ReferenceProduct?): String? {
-        val cis = product?.cis
-        return if (product == null || product.isWithdrawn || cis == null || !isValid(cis)) {
-            null
-        } else {
-            "https://$HOST/medicament/$cis/extrait"
-        }
+        val cis = product?.cis?.takeIf { !product.isWithdrawn && isValid(it) } ?: return null
+        return "https://$HOST/medicament/$cis/extrait"
     }
 
     // `'0'..'9'`, not `Char.isDigit()`: that accepts digits of other scripts, which must never reach a URL.
