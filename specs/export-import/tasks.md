@@ -3,6 +3,8 @@
 Status: **Approved**
 Epic: #26 · Branch: `feature/26-export-import`
 
+Wording of every new string: [`strings.md`](strings.md) (both platforms use it as is).
+
 One task = one focused commit (code + tests + this file checked off). Tags: `[shared]`,
 `[ios]`, `[android]`. Child issue in brackets; requirement IDs refer to
 [`requirements.md`](requirements.md), sections (§) to [`design.md`](design.md).
