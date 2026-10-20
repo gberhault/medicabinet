@@ -46,9 +46,13 @@ final class PushScanner: CodeScanner {
     }
 }
 
-struct StubLookup: ProductLookup {
+struct StubLookup: ReferenceDataSource {
     var products: [String: ReferenceProduct] = [:]
     func product(gtin: String) async throws -> ReferenceProduct? { products[gtin] }
+
+    func status() async -> ReferenceStatus {
+        ReferenceDataDate(iso: "2026-01-01").map { .available(dataDate: $0) } ?? .unavailable(.unreadable)
+    }
 }
 
 /// A model on a real (in-memory) GRDB cabinet with a default location, and a scanner and camera permission
@@ -62,6 +66,7 @@ struct ScanTestKit {
     let clock: MutableClock
     let locations: GRDBLocationRepository
     let boxes: GRDBBoxRepository
+    let named: GRDBNamedProductRepository
     let feedback = RecordingFeedback()
     let preferences = InMemoryScanPreferences()
     let permission: FixedCameraPermission
@@ -78,19 +83,23 @@ struct ScanTestKit {
         let database = try AppDatabase.inMemory()
         let locations = GRDBLocationRepository(database: database, clock: clock)
         let boxes = GRDBBoxRepository(database: database, clock: clock)
+        let named = GRDBNamedProductRepository(database: database, clock: clock)
         let location = try await locations.ensureDefault(named: "Cabinet")
-        let kit = ScanTestKit(clock: clock, locations: locations, boxes: boxes, access: access, lookup: lookup, location: location)
+        let kit = ScanTestKit(
+            clock: clock, locations: locations, boxes: boxes, named: named, access: access, lookup: lookup, location: location
+        )
         if loadsLocations { await kit.model.loadLocations() }
         return kit
     }
 
     private init(
-        clock: MutableClock, locations: GRDBLocationRepository, boxes: GRDBBoxRepository, access: CameraAccess,
-        lookup: StubLookup, location: Location
+        clock: MutableClock, locations: GRDBLocationRepository, boxes: GRDBBoxRepository, named: GRDBNamedProductRepository,
+        access: CameraAccess, lookup: StubLookup, location: Location
     ) {
         self.clock = clock
         self.locations = locations
         self.boxes = boxes
+        self.named = named
         defaultLocation = location
         permission = FixedCameraPermission(access: access)
         let services = ScanServices(
@@ -98,7 +107,8 @@ struct ScanTestKit {
             feedback: feedback, lookup: lookup
         )
         let environment = AppEnvironment(
-            locations: locations, boxes: boxes, clock: clock, reference: InMemoryReferenceData(status: .unavailable(.missing))
+            locations: locations, boxes: boxes, named: named, clock: clock,
+            reference: InMemoryReferenceData(status: .unavailable(.missing))
         )
         model = ScanViewModel(environment: environment, services: services)
     }

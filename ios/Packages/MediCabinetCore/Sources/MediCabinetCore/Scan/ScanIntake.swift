@@ -58,13 +58,18 @@ public struct ScanIntake: Sendable {
     public static let maxNameLength = 200
 
     private let boxes: any BoxRepository
-    private let lookup: any ProductLookup
+    private let memory: ProductMemory
     private let clock: any Clock
 
-    public init(boxes: any BoxRepository, lookup: any ProductLookup, clock: any Clock) {
+    public init(boxes: any BoxRepository, memory: ProductMemory, clock: any Clock) {
         self.boxes = boxes
-        self.lookup = lookup
+        self.memory = memory
         self.clock = clock
+    }
+
+    /// With a reference lookup that has no status of its own (a test double).
+    public init(boxes: any BoxRepository, named: any NamedProductRepository, lookup: any ProductLookup, clock: any Clock) {
+        self.init(boxes: boxes, memory: ProductMemory(named: named, lookup: lookup), clock: clock)
     }
 
     public func evaluate(_ code: ScannedCode, sessionGTINs: Set<String>) async throws -> IntakeOutcome {
@@ -149,11 +154,8 @@ public struct ScanIntake: Sendable {
 
     // MARK: -
 
-    /// A failing reference lookup leaves the product unknown (the user types the name): intake never stops on it.
     private func resolve(gtin: String) async throws -> ResolvedProduct {
-        let reference = try? await lookup.product(gtin: gtin)
-        let previous = try await boxes.latestBox(gtin: gtin)
-        return ProductResolver.resolve(reference: reference, previousBox: previous)
+        try await memory.resolve(gtin: gtin, previousBox: try await boxes.latestBox(gtin: gtin))
     }
 
     private static func date(of reading: ExpiryReading) -> ExpiryDate? {

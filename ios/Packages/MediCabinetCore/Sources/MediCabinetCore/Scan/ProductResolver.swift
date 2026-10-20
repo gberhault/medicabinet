@@ -12,13 +12,21 @@ public struct ResolvedProduct: Hashable, Sendable {
 }
 
 public enum ProductResolver {
-    /// The name is the reference name, else the previous box's. The category is the previous box's when
-    /// the user set it, else the reference category, else `uncategorized`.
-    public static func resolve(reference: ReferenceProduct?, previousBox: Box?) -> ResolvedProduct {
-        let name = reference?.name ?? previousBox?.product.name
-        if let previousBox, previousBox.categoryOverridden {
-            return ResolvedProduct(name: name, category: previousBox.category, categoryOverridden: true)
+    /// For a code the reference knows: the reference name, and the category of the previous box when the user set
+    /// it, else the reference category, else `uncategorized` (`named` is ignored).
+    /// For a code it does not know: the name of the named product (`nil` = ask) and its category when the user set
+    /// it, else `uncategorized`. The previous box no longer names such a code (#57).
+    public static func resolve(reference: ReferenceProduct?, named: NamedProduct?, previousBox: Box?) -> ResolvedProduct {
+        if let reference {
+            if let previousBox, previousBox.categoryOverridden {
+                return ResolvedProduct(name: reference.name, category: previousBox.category, categoryOverridden: true)
+            }
+            return ResolvedProduct(name: reference.name, category: reference.category ?? .uncategorized, categoryOverridden: false)
         }
-        return ResolvedProduct(name: name, category: reference?.category ?? .uncategorized, categoryOverridden: false)
+        guard let named else { return ResolvedProduct(name: nil, category: .uncategorized, categoryOverridden: false) }
+        if named.categoryOverridden {
+            return ResolvedProduct(name: named.name, category: named.category, categoryOverridden: true)
+        }
+        return ResolvedProduct(name: named.name, category: .uncategorized, categoryOverridden: false)
     }
 }

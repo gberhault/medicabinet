@@ -5,6 +5,8 @@ import MediCabinetCore
 struct AppEnvironment: Sendable {
     let locations: any LocationRepository
     let boxes: any BoxRepository
+    /// What the household named for the codes the reference does not know (Settings → Products you named).
+    let named: any NamedProductRepository
     let clock: any Clock
     /// The bundled BDPM reference data; opened lazily, never during launch.
     let reference: any ReferenceDataSource
@@ -22,6 +24,9 @@ struct AppEnvironment: Sendable {
     var transfer: CabinetTransfer?
     /// Bumped when an import or a restore replaced the whole cabinet: what caches cabinet data reloads (I7).
     var revision = CabinetRevision()
+
+    /// Resolves a scanned code to a name (reference, then the named product) and remembers the names typed.
+    var productMemory: ProductMemory { ProductMemory(named: named, reference: reference) }
 
     /// How early a box counts as "expiring soon": the setting, read now (it can change while the app runs).
     var expiryWindow: ExpiryWindow { preferences.window }

@@ -9,7 +9,7 @@ import Testing
     private func environment() -> AppEnvironment {
         let store = InMemoryCabinetStore(clock: SystemClock())
         return AppEnvironment(
-            locations: store, boxes: store, clock: SystemClock(),
+            locations: store, boxes: store, named: store.named, clock: SystemClock(),
             reference: InMemoryReferenceData(status: .unavailable(.missing))
         )
     }

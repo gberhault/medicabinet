@@ -102,7 +102,10 @@ final class ScanViewModel {
 
     init(environment: AppEnvironment, services: ScanServices) {
         self.services = services
-        intake = ScanIntake(boxes: environment.boxes, lookup: services.lookup, clock: environment.clock)
+        intake = ScanIntake(
+            boxes: environment.boxes, memory: ProductMemory(named: environment.named, reference: services.lookup),
+            clock: environment.clock
+        )
         removal = ScanRemoval(boxes: environment.boxes, clock: environment.clock)
         removalReason = services.preferences.removalReason
         locationRepository = environment.locations

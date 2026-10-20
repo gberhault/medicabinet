@@ -24,7 +24,8 @@ import Testing
                 try BoxRecord(box).insert(db)
             }
         }
-        let intake = ScanIntake(boxes: boxes, lookup: NoLookup(), clock: clock)
+        let named = GRDBNamedProductRepository(database: database, clock: clock)
+        let intake = ScanIntake(boxes: boxes, named: named, lookup: NoLookup(), clock: clock)
 
         var durations: [Duration] = []
         for run in 0..<10 {

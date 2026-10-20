@@ -43,7 +43,7 @@ struct TransferTestKit {
 
     var environment: AppEnvironment {
         AppEnvironment(
-            locations: locations, boxes: boxes, clock: clock,
+            locations: locations, boxes: boxes, named: GRDBNamedProductRepository(database: database, clock: clock), clock: clock,
             reference: InMemoryReferenceData(status: .unavailable(.missing)), timeZone: { .gmt }, transfer: transfer,
             revision: revision
         )

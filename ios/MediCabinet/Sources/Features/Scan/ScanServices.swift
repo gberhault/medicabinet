@@ -8,7 +8,7 @@ struct ScanServices {
     let makeScanner: @MainActor () -> any CodeScanner
     let preferences: any ScanPreferences
     let feedback: any ScanFeedback
-    let lookup: any ProductLookup
+    let lookup: any ReferenceDataSource
 
     /// UI tests: `-UITestCameraAccess <notDetermined|authorized|denied|restricted|unsupported>`, and the payloads
     /// to replay in `MEDICABINET_UI_TEST_SCANS` (see `InjectedCodeScanner`).
@@ -17,7 +17,7 @@ struct ScanServices {
     static let productsKey = "MEDICABINET_UI_TEST_PRODUCTS"
 
     /// `lookup` is the bundled BDPM reference data (`AppEnvironment.reference`); UI tests replace it.
-    static func live(clock: any Clock, lookup: any ProductLookup) -> ScanServices {
+    static func live(clock: any Clock, lookup: any ReferenceDataSource) -> ScanServices {
         make(
             clock: clock, arguments: ProcessInfo.processInfo.arguments, environment: ProcessInfo.processInfo.environment,
             lookup: lookup
@@ -25,7 +25,8 @@ struct ScanServices {
     }
 
     static func make(
-        clock: any Clock, arguments: [String], environment: [String: String], lookup: any ProductLookup = UnknownProductLookup()
+        clock: any Clock, arguments: [String], environment: [String: String],
+        lookup: any ReferenceDataSource = UnknownProductLookup()
     ) -> ScanServices {
         guard let index = arguments.firstIndex(of: cameraAccessArgument), index + 1 < arguments.count else {
             return ScanServices(
@@ -56,7 +57,7 @@ struct ScanServices {
         )
     }
 
-    private static func products(from text: String?) -> any ProductLookup {
+    private static func products(from text: String?) -> any ReferenceDataSource {
         guard let text else { return UnknownProductLookup() }
         var known: [String: ReferenceProduct] = [:]
         for pair in text.split(separator: "|") {

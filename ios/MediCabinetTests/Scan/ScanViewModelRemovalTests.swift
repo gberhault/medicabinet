@@ -53,7 +53,7 @@ import Testing
         let kit = try await ScanTestKit.make()
         kit.preferences.removalReason = .thrownAway
         let environment = AppEnvironment(
-            locations: kit.locations, boxes: kit.boxes, clock: kit.clock,
+            locations: kit.locations, boxes: kit.boxes, named: kit.named, clock: kit.clock,
             reference: InMemoryReferenceData(status: .unavailable(.missing))
         )
         let services = ScanServices(

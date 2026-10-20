@@ -26,7 +26,7 @@ import MediCabinetCoreTestSupport
     }
 
     private func intake(_ lookup: StubLookup = StubLookup()) -> ScanIntake {
-        ScanIntake(boxes: store, lookup: lookup, clock: clock)
+        ScanIntake(boxes: store, named: store.named, lookup: lookup, clock: clock)
     }
 
     private func code(
@@ -107,19 +107,6 @@ import MediCabinetCoreTestSupport
         #expect(thenMissing.isEmpty)
     }
 
-    @Test func theNameOfAnEarlierBoxIsReusedWhenTheReferenceDoesNotKnowTheProduct() async throws {
-        let service = intake()
-        try await service.add(
-            BoxDraft(gtin: Self.gtin, name: "Mon paracétamol", category: CategoryID(rawValue: "pain-fever"),
-                     categoryOverridden: true, serial: "OLD"),
-            location: location.id
-        )
-        let outcome = try await service.evaluate(code(), sessionGTINs: [])
-        guard case let .ready(draft) = outcome else { Issue.record("got \(outcome)"); return }
-        #expect(draft.name == "Mon paracétamol")
-        #expect(draft.category.rawValue == "pain-fever" && draft.categoryOverridden)
-    }
-
     @Test func aFailingLookupLeavesTheProductUnknownInsteadOfStoppingIntake() async throws {
         let outcome = try await intake(StubLookup(fails: true)).evaluate(code(), sessionGTINs: [])
         guard case let .needsCompletion(_, missing, _) = outcome else { Issue.record("got \(outcome)"); return }
@@ -138,7 +125,7 @@ import MediCabinetCoreTestSupport
     }
 
     @Test func aGtinKnownToTheReferenceDataIsNamedAndCategorisedWithoutAsking() async throws {
-        let service = ScanIntake(boxes: store, lookup: try reference(), clock: clock)
+        let service = ScanIntake(boxes: store, named: store.named, lookup: try reference(), clock: clock)
         let outcome = try await service.evaluate(code(gtin: "03400935955838"), sessionGTINs: [])
         guard case let .ready(draft) = outcome else { Issue.record("expected ready, got \(outcome)"); return }
         #expect(draft.name == "PARACETAMOL EXEMPLE 500 mg")
@@ -146,7 +133,7 @@ import MediCabinetCoreTestSupport
     }
 
     @Test func aGtinMissingFromTheReferenceDataStillAsksForAName() async throws {
-        let service = ScanIntake(boxes: store, lookup: try reference(), clock: clock)
+        let service = ScanIntake(boxes: store, named: store.named, lookup: try reference(), clock: clock)
         guard case let .needsCompletion(_, missing, _) = try await service.evaluate(code(), sessionGTINs: []) else {
             Issue.record("expected completion"); return
         }
@@ -154,7 +141,9 @@ import MediCabinetCoreTestSupport
     }
 
     @Test func unavailableReferenceDataLeavesEveryProductUnknownInsteadOfStoppingIntake() async throws {
-        let service = ScanIntake(boxes: store, lookup: InMemoryReferenceData(status: .unavailable(.unreadable)), clock: clock)
+        let service = ScanIntake(
+            boxes: store, named: store.named, lookup: InMemoryReferenceData(status: .unavailable(.unreadable)), clock: clock
+        )
         guard case let .needsCompletion(_, missing, _) = try await service.evaluate(code(gtin: "03400935955838"), sessionGTINs: []) else {
             Issue.record("expected completion"); return
         }

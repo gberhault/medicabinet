@@ -108,7 +108,7 @@ import Testing
         let preferences = InMemoryExpiryPreferences()
         let store = InMemoryCabinetStore(clock: SystemClock())
         let environment = AppEnvironment(
-            locations: store, boxes: store, clock: SystemClock(),
+            locations: store, boxes: store, named: store.named, clock: SystemClock(),
             reference: InMemoryReferenceData(status: .unavailable(.missing)), preferences: preferences)
         #expect(environment.expiryWindow == .days60)
         preferences.window = .days30

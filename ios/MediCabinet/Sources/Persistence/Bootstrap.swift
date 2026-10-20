@@ -76,6 +76,7 @@ struct Bootstrap: Sendable {
         return .ready(AppEnvironment(
             locations: locations,
             boxes: GRDBBoxRepository(database: database, clock: clock),
+            named: GRDBNamedProductRepository(database: database, clock: clock),
             clock: clock,
             reference: GRDBReferenceData(url: referenceURL),
             preferences: preferences,

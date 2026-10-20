@@ -85,7 +85,7 @@ final class BoxEditViewModel: Identifiable {
             failed = true
             return
         }
-        edit.resetCategory(to: ProductResolver.resolve(reference: reference, previousBox: nil).category)
+        edit.resetCategory(to: ProductResolver.resolve(reference: reference, named: nil, previousBox: nil).category)
     }
 
     // MARK: Save
