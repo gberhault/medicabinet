@@ -14,6 +14,7 @@ struct ScanView: View {
     var body: some View {
         content
             .onAppear { model.resetMode() }
+            .onChange(of: model.revision.value) { Task { await model.resetIfCabinetReplaced() } }
             .task(id: Lifecycle(attempt: model.attempt, active: scenePhase == .active)) {
                 guard scenePhase == .active else { return }
                 await model.run()

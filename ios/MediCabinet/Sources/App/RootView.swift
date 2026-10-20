@@ -22,7 +22,12 @@ struct RootView: View {
                     .environment(\.appEnvironment, environment)
             }
         }
-        .task { await model.start() }
+        .task {
+            await model.start()
+            // Health data must not linger: a previous export's temporary file, copies of files opened earlier.
+            let files = ArchiveFiles.live
+            await Task.detached(priority: .utility) { files.cleanUp() }.value
+        }
     }
 }
 

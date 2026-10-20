@@ -86,11 +86,15 @@ independent of each other.
 
 ## 4. iOS app (#28, #29)
 
-- [ ] **T11 — Environment, revision and scan session reset** `[ios]` (I7; §1.6, §6)
+- [x] **T11 — Environment, revision and scan session reset** `[ios]` (I7; §1.6, §6)
   `AppEnvironment.transfer` and `revision`, built in `Bootstrap` (`ArchiveApp` from
   `BundleAppInfo`); launch cleanup of `tmp/Export` and `Documents/Inbox`; the scan session
   ends on a revision change. *Tests:* bootstrap builds the environment; cleanup;
   scan view-model reset.
+  Done 2026-10-20: `AppEnvironment.transfer` is optional (`nil` only in tests of other screens, which then
+  offer no transfer). The launch cleanup runs once bootstrap ends, so a file opened at launch is kept
+  (T13 passes it in). Only the scan session needs the revision: every other screen observes the
+  repositories, which follow the replace by themselves.
 - [ ] **T12 — Export** `[ios]` [#28] (E1–E9, X1, X4; §6, flow 1)
   `TransferSection` in Settings, `ExportViewModel`, `ExportSummaryView` (counts, warning,
   empty cabinet), `ActivityView` with temp-file deletion, error + **Try again**. Strings
