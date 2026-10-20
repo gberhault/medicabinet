@@ -46,7 +46,7 @@ import Testing
         #expect(running.model.snapshot.boxCount == 0)
     }
 
-    @Test func rowsAreGroupedByCategoryInTaxonomyOrderWithUncategorizedLast() async throws {
+    @Test func rowsAreGroupedByCategoryAlphabeticallyWithUncategorizedLast() async throws {
         let kit = try await CabinetTestKit()
         try await kit.add("Gaviscon", gtin: "03400930000021", category: .digestion)
         try await kit.add("Mystery", gtin: nil)
@@ -54,7 +54,8 @@ import Testing
         let running = try await loaded(kit)
         defer { running.finish() }
         let categories = running.model.snapshot.sections.map(\.category)
-        #expect(categories == [.painFever, .digestion, .uncategorized])
+        // "Digestion" before "Douleur et fièvre" / "Pain and fever", whichever language the tests run in.
+        #expect(categories == [.digestion, .painFever, .uncategorized])
         #expect(running.model.snapshot.boxCount == 3)
         #expect(running.model.cabinetBoxCount == 3)
         #expect(!running.model.isEmptyCabinet)
