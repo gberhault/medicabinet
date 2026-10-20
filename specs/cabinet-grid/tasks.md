@@ -63,7 +63,7 @@ change would otherwise break the other platform's suite.
     - the pill frame being ≥ 44 pt high;
     - navigation with one box and with several boxes;
     - fr category order end to end. *(G1, G4, N4, K1–K10)*
-- [ ] **T11** `[ios]` Accessibility and performance UI tests:
+- [x] **T11** `[ios]` Accessibility and performance UI tests:
   - At `AccessibilityXXXL`, pills stay hittable and the count stays visible. *(K11)*
   - A cabinet of 1 000 boxes in one category renders and scrolls (`measure`, a budget ≥ 3× the measured cost,
     several runs). *(G5)*
@@ -97,7 +97,7 @@ change would otherwise break the other platform's suite.
 
 ## Finish
 
-- [ ] **T17** `[shared]` Docs: rewrite "What the user sees" in `docs/cabinet.md` (cards, pills, short names, orders,
+- [x] **T17** `[shared]` Docs: rewrite "What the user sees" in `docs/cabinet.md` (cards, pills, short names, orders,
   filter menu), and add the two fixtures to its rules table. Check the `fixtures/README.md` rows. *(X4)*
 - [ ] **T18** `[ios]` `[android]` Bump the minor version of both apps (`project.yml` and `build.gradle.kts`, with the
   build numbers incremented) and add the changelog entries. Run `check-version.sh ios` and `check-version.sh android`.
