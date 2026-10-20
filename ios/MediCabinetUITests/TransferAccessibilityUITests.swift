@@ -37,8 +37,9 @@ final class TransferAccessibilityUITests: XCTestCase {
         let app = launch()
         XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 15))
         app.tabBars.firstMatch.buttons["Settings"].tap()
+        // The section sits below the everyday settings: a lazy list renders it only once scrolled to.
+        XCTAssertTrue(app.buttons["settings.locations"].waitForExistence(timeout: 10))
         let export = app.buttons["transfer.export"]
-        XCTAssertTrue(export.waitForExistence(timeout: 10))
         reach(export, in: app)
         export.tap()
 
@@ -75,7 +76,7 @@ final class TransferAccessibilityUITests: XCTestCase {
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed)
         app.tabBars.firstMatch.buttons["Settings"].tap()
         let backups = app.buttons["transfer.backups"]
-        XCTAssertTrue(app.buttons["transfer.export"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["settings.locations"].waitForExistence(timeout: 10))
         reach(backups, in: app)
         backups.tap()
         let restore = app.buttons["transfer.backups.restore"].firstMatch

@@ -28,14 +28,15 @@ struct SettingsView: View {
                     Label("settings.locations", systemImage: "mappin.and.ellipse")
                 }
                 .accessibilityIdentifier("settings.locations")
-                if let environment, let transfer = environment.transfer {
-                    TransferSection(environment: environment, transfer: transfer)
-                }
                 if let environment {
                     ExpirySettingsSection(preferences: environment.preferences)
                 }
                 if let reminder {
                     ReminderSettingsSection(model: reminder)
+                }
+                // After the everyday settings, which earlier screens and tests expect at the top.
+                if let environment, let transfer = environment.transfer {
+                    TransferSection(environment: environment, transfer: transfer)
                 }
                 NavigationLink {
                     AboutView(model: AboutViewModel(info: info))
