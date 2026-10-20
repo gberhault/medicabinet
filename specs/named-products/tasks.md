@@ -18,43 +18,43 @@ if #55 is still open, stop and ask the user.
   schema fixture tests (table set, v4 snapshot, SQL equality). Add `MigrationV4Tests` / `SchemaV4Test`: a v3 cabinet
   upgrades keeping every row; the table is empty; the marker is `pending`; step-by-step equals fresh install.
   Update `docs/architecture.md`. *(N1, X1)*
-- [ ] **T2** `[shared]` `[ios]` `[android]` **Model, port, fakes, contract.** `NamedProduct`, `NamedProductSummary`,
+- [x] **T2** `[shared]` `[ios]` `[android]` **Model, port, fakes, contract.** `NamedProduct`, `NamedProductSummary`,
   `NamedProductRepository` (Kotlin: `NamedProductEditing` + `NamedProductRepository`), and
   `BoxRepository.latestBoxPerGTIN()`. In-memory fakes on both cores. The named-product checks appended to
   `fixtures/repository-contract.json` and implemented in both `RepositoryContract`s, run against the fakes.
   *(N1, E3, E4, F2, F3, S2)*
-- [ ] **T3** `[ios]` **GRDB implementation.** `GRDBNamedProductRepository` and `latestBoxPerGTIN` in
+- [x] **T3** `[ios]` **GRDB implementation.** `GRDBNamedProductRepository` and `latestBoxPerGTIN` in
   `GRDBBoxRepository`, passing the contract (`GRDBRepositoryTests`). Add a performance test of `observeSummaries` with
   1 000 products and 1 000 boxes. *(S7, E3, E4)*
-- [ ] **T4** `[android]` **SQL implementation.** `SqlNamedProductRepository` and `latestBoxPerGTIN` in
+- [x] **T4** `[android]` **SQL implementation.** `SqlNamedProductRepository` and `latestBoxPerGTIN` in
   `SqlBoxLookups`, passing the contract (`SqlRepositoryTest`), with the same performance test. *(S7, E3, E4)*
 
 ## Core rules (both cores)
 
-- [ ] **T5** `[shared]` `[ios]` `[android]` **Resolution from named products.** Rewrite and extend
+- [x] **T5** `[shared]` `[ios]` `[android]` **Resolution from named products.** Rewrite and extend
   `fixtures/product-resolution.json` (design §3.1) and change `ProductResolver.resolve(reference:named:previousBox:)`
   on both cores. Add `ProductMemory.resolve`. `ScanIntake` takes a `ProductMemory`. Replace
   `theNameOfAnEarlierBoxIsReused…` with the named-product tests, and add the regression test: a used-up box with a
   test name no longer names the next scan (`// Regression #57`). Update the `scan-intake.json` description and
   `docs/bulk-scan.md`. Wire `ProductMemory` and `named` into both `AppEnvironment`s and bootstraps so the apps build.
   *(N3)*
-- [ ] **T6** `[shared]` `[ios]` `[android]` **When a save remembers.** Add `fixtures/product-memory.json`,
+- [x] **T6** `[shared]` `[ios]` `[android]` **When a save remembers.** Add `fixtures/product-memory.json`,
   `MemoryPolicy`, and `ProductMemory.record`, with fixture-driven tests and `ProductMemoryTests` (unavailable
   reference, throwing lookup, failing write). `ScanIntake.add` records `.added`. *(N2, N5–N8)*
-- [ ] **T7** `[shared]` `[ios]` `[android]` **`NamedProductEdit`.** Both cores, with mirrored unit tests (trim,
+- [x] **T7** `[shared]` `[ios]` `[android]` **`NamedProductEdit`.** Both cores, with mirrored unit tests (trim,
   empty, 200 / 201 code points, category not selectable, reset, only-what-changed). *(E1, E2)*
-- [ ] **T8** `[shared]` `[ios]` `[android]` **Backfill rule and runner.** Add `fixtures/named-product-backfill.json`,
+- [x] **T8** `[shared]` `[ios]` `[android]` **Backfill rule and runner.** Add `fixtures/named-product-backfill.json`,
   `NamedProductBackfill`, and `NamedProductBackfillRunner` on both cores, with fixture tests and runner tests
   (design §11 B2). Extend `scripts/tests/test-shared-fixtures-break.sh` with broken `product-memory` and
   `named-product-backfill` cases. *(B1, B2, B4)*
 
 ## App paths that record (each platform)
 
-- [ ] **T9** `[ios]` **Record from session corrections and box edits, run the backfill.** `ScanViewModel+Session.update`
+- [x] **T9** `[ios]` **Record from session corrections and box edits, run the backfill.** `ScanViewModel+Session.update`
   and `BoxEditViewModel.save` call `productMemory.record`. The backfill runner starts after bootstrap. VM tests:
   a name change records; an expiry-only change does not; a record failure leaves the save successful. Bootstrap test:
   the runner runs once and clears the marker with the in-memory reference. *(N4, N5, B2)*
-- [ ] **T10** `[android]` **Same on Android.** `ScanViewModel.update`, `BoxDetailViewModel.save`, and the runner in
+- [x] **T10** `[android]` **Same on Android.** `ScanViewModel.update`, `BoxDetailViewModel.save`, and the runner in
   `MediCabinetApplication` on the injected dispatcher. Same tests. *(N4, N5, B2)*
 
 ## Archive version 2 (shared, both apps)
@@ -73,23 +73,23 @@ if #55 is still open, stop and ask the user.
 
 ## Settings screen
 
-- [ ] **T13** `[ios]` **Shared category picker.** Extract `BoxEditView`'s category section into
+- [x] **T13** `[ios]` **Shared category picker.** Extract `BoxEditView`'s category section into
   `Features/Common/CategoryPickerSection`, used by box edit. The existing box-edit tests stay green unchanged.
   *(E1)*
-- [ ] **T14** `[ios]` **View model.** `NamedProductsViewModel` (design §6.2) with unit tests: phases, order, counts,
+- [x] **T14** `[ios]` **View model.** `NamedProductsViewModel` (design §6.2) with unit tests: phases, order, counts,
   follows changes, save (rename only, category only, both, invalid, failure), forget message with 0 / 1 / 2 boxes,
   cancel, confirm, undo, undo refused. *(S2–S4, E1–E6, F1–F5)*
-- [ ] **T15** `[ios]` **Screens, strings, UI tests.** `NamedProductsEntry`, `NamedProductsView`,
+- [x] **T15** `[ios]` **Screens, strings, UI tests.** `NamedProductsEntry`, `NamedProductsView`,
   `NamedProductEditSheet`, the forget dialog, the Settings row, the strings of design §6.1 (fr + en; first check
   which reused keys exist on both platforms and list them here), and the `UITestSeed.namedProducts` seed.
   `NamedProductsUITests`: Settings row → list; empty state; rename shows in the Cabinet tab; forget + Undo above the
   tab bar; accessibility actions; ≥ 44 pt; largest text size + dark mode. Run `ios-check-strings.sh`.
   *(S1–S6, E1, E5, F1, F3, X4)*
-- [ ] **T16** `[android]` **Shared category field.** Extract `BoxEditSheet`'s `CategoryField` into
+- [x] **T16** `[android]` **Shared category field.** Extract `BoxEditSheet`'s `CategoryField` into
   `features/common/CategoryField.kt`. The existing tests stay green. *(E1)*
-- [ ] **T17** `[android]` **View model.** `NamedProductsViewModel` with the same cases as T14 (Turbine). *(S2–S4,
+- [x] **T17** `[android]` **View model.** `NamedProductsViewModel` with the same cases as T14 (Turbine). *(S2–S4,
   E1–E6, F1–F5)*
-- [ ] **T18** `[android]` **Screens, strings, UI tests.** The route, `NamedProductsScreen`, `NamedProductEditDialog`,
+- [x] **T18** `[android]` **Screens, strings, UI tests.** The route, `NamedProductsScreen`, `NamedProductEditDialog`,
   `ForgetNamedProductDialog`, the Settings row, the strings (`values` + `values-en`), and `namedProducts_more` in
   `ANDROID_ONLY`. `NamedProductsScreenTest` (rows, empty, error + retry, font scale 2, French plurals, ≥ 48 dp,
   custom actions) and `NamedProductsNavigationTest` (Settings → list → back; forget + Undo above the navigation bar).
