@@ -34,6 +34,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.medicabinet.app.R
 import com.medicabinet.app.app.AppEnvironment
+import com.medicabinet.app.features.cabinet.cabinetGraph
 import com.medicabinet.app.features.common.LocalUndoController
 import com.medicabinet.app.features.common.UndoController
 import com.medicabinet.app.features.placeholders.FeaturePlaceholder
@@ -107,13 +108,7 @@ private fun MainContent(
                     val label = stringResource(destination.labelRes)
                     NavigationBarItem(
                         selected = current?.hierarchy?.any { it.route == destination.route } == true,
-                        onClick = {
-                            navController.navigate(destination.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
+                        onClick = { navController.openTab(destination) },
                         icon = { Icon(destination.icon, contentDescription = null) },
                         label = { Text(label) }
                     )
@@ -122,6 +117,15 @@ private fun MainContent(
         }
     ) { padding ->
         MainNavHost(navController, aboutViewModel, environment, scanServices, Modifier.padding(padding))
+    }
+}
+
+/** Switches to a bottom-bar tab, keeping each tab's own back stack. */
+private fun NavHostController.openTab(destination: Destination) {
+    navigate(destination.route) {
+        popUpTo(graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
     }
 }
 
@@ -138,13 +142,7 @@ private fun MainNavHost(
             val model = viewModel { ScanViewModel(environment, scanServices) }
             ScanScreen(model, scanServices)
         }
-        composable(Destination.Cabinet.route) {
-            FeaturePlaceholder(
-                R.string.placeholder_cabinet_title,
-                R.string.placeholder_cabinet_message,
-                Destination.Cabinet.icon
-            )
-        }
+        cabinetGraph(navController, environment) { navController.openTab(Destination.Scan) }
         composable(Destination.Expiring.route) {
             FeaturePlaceholder(
                 R.string.placeholder_expiring_title,

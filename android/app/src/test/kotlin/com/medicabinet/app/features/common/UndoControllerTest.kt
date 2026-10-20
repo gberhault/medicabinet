@@ -51,4 +51,15 @@ class UndoControllerTest {
         assertEquals(0, first)
         assertEquals(1, second)
     }
+
+    @Test
+    fun aPlainMessageHasNoActionAndReplacesTheCurrentOne() = runTest(UnconfinedTestDispatcher()) {
+        val controller = UndoController(snackbars, this)
+        controller.show("Removed", "Undo") {}
+        controller.notify("Can't restore")
+        val data = assertNotNull(snackbars.currentSnackbarData)
+        assertEquals("Can't restore", data.visuals.message)
+        assertNull(data.visuals.actionLabel)
+        data.dismiss()
+    }
 }

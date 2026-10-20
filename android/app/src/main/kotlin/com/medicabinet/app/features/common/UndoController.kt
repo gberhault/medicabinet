@@ -19,6 +19,14 @@ class UndoController(private val snackbars: SnackbarHostState, private val scope
             if (result == SnackbarResult.ActionPerformed) undo()
         }
     }
+
+    /** A message with no action (e.g. an undo that could not be done); replaces the current one. */
+    fun notify(message: String) {
+        scope.launch {
+            snackbars.currentSnackbarData?.dismiss()
+            snackbars.showSnackbar(message, duration = SnackbarDuration.Long)
+        }
+    }
 }
 
 /** Set by the main scaffold; `null` only outside it (isolated tests). */

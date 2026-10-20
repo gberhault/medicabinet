@@ -13,6 +13,8 @@ Rules
   no_network                    no network API imports and no INTERNET permission
   log_through_applog            android.util.Log only inside AppLog.kt
   camera_confined_to_scan_camera androidx.camera / zxingcpp only under app/.../features/scan/camera/
+  views_not_persistence         features/cabinet and features/settings/locations import no persistence package
+                                (views -> view models -> repository ports only)
 """
 import argparse
 import pathlib
@@ -58,6 +60,13 @@ RULES = [
         "message": "androidx.camera and zxingcpp may only be used under .../features/scan/camera/",
         "pattern": re.compile(IMPORT + r"(androidx\.camera|zxingcpp)"),
         "applies": lambda p: "/android/app/src/" in p and p.endswith(".kt") and "/features/scan/camera/" not in p,
+    },
+    {
+        "id": "views_not_persistence",
+        "message": "features/cabinet and features/settings/locations use the repository ports, never the persistence package",
+        "pattern": re.compile(IMPORT + r"com\.medicabinet\.app\.persistence"),
+        "applies": lambda p: "/android/app/src/main/" in p and p.endswith(".kt")
+        and ("/features/cabinet/" in p or "/features/settings/locations/" in p),
     },
     {
         "id": "log_through_applog",
