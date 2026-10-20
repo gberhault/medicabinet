@@ -16,7 +16,7 @@ change would otherwise break the other platform's suite.
 - [x] **T2** `[shared]` `[ios]` `[android]` **Category order.** Add `fixtures/category-order.json` (the real fr and
   en labels plus the edge cases) and its README row. Add `CategoryOrder.alphabetical(labels:)` to both cores, with
   fixture-driven tests. *(G2)*
-- [ ] **T3** `[shared]` `[ios]` `[android]` **Rows: displayed name and A–Z order.**
+- [x] **T3** `[shared]` `[ios]` `[android]` **Rows: displayed name and A–Z order.**
   - Update `fixtures/cabinet-rows.json`: the description, `displayName` on every expected row (added by a one-off
     script and reviewed by hand), the rewritten ordering and month-precision cases, and the new collision cases
     (design §2.4).

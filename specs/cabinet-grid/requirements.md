@@ -108,9 +108,10 @@ are no longer safe, so that I know what we have and what to deal with.*
 1. Each product row SHALL be drawn as a **pill** holding the displayed name and the box count ("×3"; "×1" for a
    single box). The pill SHALL show no date and no *OK*.
 2. Pills SHALL flow left to right and wrap onto as many lines as needed within their card.
-3. Within a card, pills SHALL be ordered by **displayed name compared as normalized text**, then by the full name
-   compared as normalized text, then by the first box id. The order SHALL be identical on both platforms and covered
-   by the shared cabinet-rows fixture.
+3. Within a card, pills SHALL be ordered by **displayed name compared as normalized text**, then by the first box
+   id. (A further tie-break on the full name would never decide: two pills with the same displayed name have the
+   same full name as normalized text, because equal short names show their full names.) The order SHALL be
+   identical on both platforms and covered by the shared cabinet-rows fixture.
 4. WHEN a pill's row status is an **alert status**, the pill SHALL show that status's icon (the icon already used for
    that status in the app) and a tint for that status. The status SHALL not be carried by colour alone: the icon
    shape differs per status. Text and icon SHALL meet 4.5:1 contrast against the tint in light and dark mode.

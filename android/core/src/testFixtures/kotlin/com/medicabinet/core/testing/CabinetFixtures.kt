@@ -79,6 +79,7 @@ data class CabinetRowsCase(
     @Serializable
     data class FixtureRow(
         val name: String,
+        val displayName: String,
         val boxes: List<String>,
         val status: String,
         val earliestExpiry: FixtureExpiry? = null

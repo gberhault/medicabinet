@@ -82,12 +82,14 @@ public struct CabinetRowsCase: Decodable, Sendable, CustomStringConvertible {
 
     public struct FixtureRow: Decodable, Hashable, Sendable {
         public let name: String
+        public let displayName: String
         public let boxes: [String]
         public let status: String
         public let earliestExpiry: FixtureExpiry?
 
-        public init(name: String, boxes: [String], status: String, earliestExpiry: FixtureExpiry?) {
+        public init(name: String, displayName: String, boxes: [String], status: String, earliestExpiry: FixtureExpiry?) {
             self.name = name
+            self.displayName = displayName
             self.boxes = boxes
             self.status = status
             self.earliestExpiry = earliestExpiry

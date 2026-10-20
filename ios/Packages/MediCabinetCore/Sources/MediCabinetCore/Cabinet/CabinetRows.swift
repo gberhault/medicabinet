@@ -50,6 +50,9 @@ public struct ProductRow: Identifiable, Hashable, Sendable {
     public let id: ProductRowID
     /// Name of the most recently created box of the row.
     public let name: String
+    /// What the list shows: the short name, or the full `name` when another row of the same category has the same
+    /// short name (compared as normalized text).
+    public let displayName: String
     /// Only the boxes that passed the filters, earliest expiry first (unknown last).
     public let boxes: [Box]
     /// The most urgent status among `boxes`.
@@ -107,7 +110,7 @@ public enum CabinetRows {
         let sections = rowsByCategory.keys
             .sorted { rank($0) < rank($1) }
             .map { category in
-                CategorySection(category: category, rows: (rowsByCategory[category] ?? []).sorted(by: rowOrder).map(\.row))
+                CategorySection(category: category, rows: orderedRows(rowsByCategory[category] ?? []))
             }
         return CabinetSnapshot(sections: sections, boxCount: entries.reduce(0) { $0 + $1.row.boxes.count })
     }
@@ -116,8 +119,6 @@ public enum CabinetRows {
 
     private struct Entry {
         let row: ProductRow
-        let normalizedName: String
-        let earliestKey: String?
         let firstBoxID: String
     }
 
@@ -150,25 +151,34 @@ public enum CabinetRows {
         let mostUrgent = ordered.map(\.status).min { ExpiryUrgency.rank($0) < ExpiryUrgency.rank($1) } ?? .unknown
         let earliest = ordered.compactMap(\.box.expiry).min()
         let row = ProductRow(
-            id: id, name: newest.product.name, boxes: ordered.map(\.box), status: mostUrgent, earliestExpiry: earliest)
-        return Entry(
-            row: row, normalizedName: normalizedName, earliestKey: earliest?.sortKey,
-            firstBoxID: BoxOrdering.idKey(ordered[0].box))
+            id: id, name: newest.product.name, displayName: newest.product.name, boxes: ordered.map(\.box),
+            status: mostUrgent, earliestExpiry: earliest)
+        return Entry(row: row, firstBoxID: BoxOrdering.idKey(ordered[0].box))
     }
 
-    private static func rowOrder(_ lhs: Entry, _ rhs: Entry) -> Bool {
-        let leftRank = ExpiryUrgency.rank(lhs.row.status)
-        let rightRank = ExpiryUrgency.rank(rhs.row.status)
-        if leftRank != rightRank { return leftRank < rightRank }
-        switch (lhs.earliestKey, rhs.earliestKey) {
-        case let (left?, right?) where left != right: return left < right
-        case (nil, _?): return false
-        case (_?, nil): return true
-        default: break
+    /// The rows of one category with their display names, A–Z by displayed name (normalized), then first box id.
+    /// A row shows its short name unless another row of the category has the same one: then both show their full
+    /// name, so two forms of a product stay distinguishable. Status and expiry never move a row.
+    private static func orderedRows(_ entries: [Entry]) -> [ProductRow] {
+        let shortNames = entries.map { ShortName.of($0.row.name) }
+        var sharing: [String: Int] = [:]
+        for short in shortNames { sharing[TextNormalizer.normalize(short), default: 0] += 1 }
+
+        let named = zip(entries, shortNames).map { entry, short in
+            let shared = (sharing[TextNormalizer.normalize(short)] ?? 0) > 1
+            let row = entry.row
+            let displayName = shared ? row.name : short
+            return (
+                row: ProductRow(
+                    id: row.id, name: row.name, displayName: displayName, boxes: row.boxes, status: row.status,
+                    earliestExpiry: row.earliestExpiry),
+                key: TextNormalizer.normalize(displayName), firstBoxID: entry.firstBoxID)
         }
-        let byName = TextNormalizer.compare(lhs.normalizedName, rhs.normalizedName)
-        if byName != 0 { return byName < 0 }
-        return TextNormalizer.compare(lhs.firstBoxID, rhs.firstBoxID) < 0
+        return named.sorted { lhs, rhs in
+            let byName = TextNormalizer.compare(lhs.key, rhs.key)
+            if byName != 0 { return byName < 0 }
+            return TextNormalizer.compare(lhs.firstBoxID, rhs.firstBoxID) < 0
+        }.map(\.row)
     }
 
     private static func categoryRank(order: [CategoryID]) -> (CategoryID) -> CategoryRank {

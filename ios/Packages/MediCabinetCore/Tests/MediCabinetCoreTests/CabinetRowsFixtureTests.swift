@@ -8,7 +8,7 @@ import MediCabinetCoreTestSupport
     @Test func theSharedFixtureLoadsAndHasCases() throws {
         let fixture = try SharedFixtures.cabinetRows()
         #expect(fixture.formatVersion == 1)
-        #expect(fixture.cases.count >= 20)
+        #expect(fixture.cases.count >= 25)
     }
 
     @Test(arguments: SharedFixtures.cabinetRowsCases())
@@ -53,6 +53,7 @@ import MediCabinetCoreTestSupport
                 rows: section.rows.map { row in
                     CabinetRowsCase.FixtureRow(
                         name: row.name,
+                        displayName: row.displayName,
                         boxes: row.boxes.map { label(of: $0.id) },
                         status: row.status.rawValue,
                         earliestExpiry: row.earliestExpiry.map {

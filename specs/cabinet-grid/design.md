@@ -59,8 +59,9 @@ expects, because the labels hold only letters, spaces and accents, which normali
   field is required in every case.
 - After the rows of a section are built, the short name of each row is computed. Rows whose short names are equal as
   normalized text get `displayName = name` (the full name). The others get `displayName = ShortName.of(name)`.
-- **Row order** (`rowOrder`): first the normalized `displayName`, then the normalized full `name`, then the first box
-  id. Urgency and earliest expiry no longer affect row order.
+- **Row order**: first the normalized `displayName`, then the first box id. Urgency and earliest expiry no longer
+  affect row order. A tie-break on the full name was dropped: with the collision rule, equal displayed names always
+  have equal full names as normalized text, so it could never decide.
 - The order of boxes inside a row (expiry, unknown last, creation order, id) and `earliestExpiry` stay as they are.
   The product-boxes screen still uses that box order. `earliestExpiry` stays in the type because the fixture pins it
   and it costs nothing, but the list no longer shows it.
@@ -84,7 +85,7 @@ expects, because the labels hold only letters, spaces and accents, which normali
     (same GTIN). It then checks the box order, where month precision still matters.
   - New: "the displayed name is the short name", "two products with the same short name in a category show their
     full names", "the same short name in two categories is not a collision", "rows with the same displayed name are
-    ordered by full name, then first box id".
+    ordered by first box id".
   - Every existing case gets `displayName` added to its expected rows. A one-off script does this and the diff is
     reviewed by hand.
 - **`fixtures/README.md`** gains rows for the two new files.
