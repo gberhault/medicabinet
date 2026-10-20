@@ -2,6 +2,8 @@
 
 The Scan tab turns the phone camera into a continuous intake scanner: point it at one box after another and each
 box is added to the cabinet in about two seconds — no tap between boxes, no typing when the code says it all.
+The app opens on the **Cabinet** tab, not on Scan: the camera (and its permission prompt) only starts once the user
+opens the Scan tab, and stops when they leave it.
 Spec: [`specs/bulk-scan/`](../specs/bulk-scan/). Both apps behave the same; the rules are written once as shared
 fixtures (see below).
 
@@ -30,7 +32,7 @@ fixtures (see below).
 ## Remove mode (taking boxes out by scanning)
 
 Spec: [`specs/cabinet-inventory/`](../specs/cabinet-inventory/) (requirements R1–R9, issue #21). The same Scan tab
-has an **Add / Remove** switch. The screen **always opens in Add** (also at launch and every time the tab is opened);
+has an **Add / Remove** switch. The screen **always opens in Add** (every time the tab is opened);
 Remove is never remembered, so a scan meant as an intake can never take a box out.
 
 - **Remove says so** in its title ("Removing boxes", with a minus icon and a red tint, not colour alone) and
@@ -98,7 +100,8 @@ Schema v2 (`fixtures/schema-v2.sql`): `box.deletedAt` (tombstone of a box added 
 - Unit: the view model runs against a real in-memory SQLite cabinet and a scanner the test pushes frames into.
 - iOS UI tests launch with `-UITestCameraAccess <notDetermined|authorized|denied|restricted|unsupported>` and
   replay payloads from `MEDICABINET_UI_TEST_SCANS` (`|`-separated, `<GS>` for a group separator), optionally with
-  `MEDICABINET_UI_TEST_PRODUCTS` (`gtin=Name|…`) and `MEDICABINET_UI_TEST_SCAN_INTERVAL_MS`.
+  `MEDICABINET_UI_TEST_PRODUCTS` (`gtin=Name|…`) and `MEDICABINET_UI_TEST_SCAN_INTERVAL_MS`. The app opens on the
+  Cabinet tab, so a Scan UI test taps the Scan tab first.
 - Android Compose tests use a `FakeCodeScanner` and Robolectric's permission shadow.
 
 ## Not yet
