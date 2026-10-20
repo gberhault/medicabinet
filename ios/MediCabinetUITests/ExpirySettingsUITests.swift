@@ -36,15 +36,19 @@ final class ExpirySettingsUITests: XCTestCase {
     func testChangingTheWindowChangesTheStatusInTheCabinetTab() {
         let app = launch()
         app.tabBars.buttons["Cabinet"].tap()
-        XCTAssertTrue(app.staticTexts["Expiring soon"].waitForExistence(timeout: 10))
+        // The Cabinet pills say a status only when there is something to report, in their spoken label.
+        func pill(_ label: String) -> XCUIElement {
+            app.buttons.matching(identifier: "cabinet.pill").matching(NSPredicate(format: "label == %@", label)).firstMatch
+        }
+        XCTAssertTrue(pill("Nurofen, 1 box, Expiring soon").waitForExistence(timeout: 10))
 
         app.tabBars.buttons["Settings"].tap()
         app.buttons["settings.expiryWindow"].tap()
         app.buttons["30 days"].tap()
 
         app.tabBars.buttons["Cabinet"].tap()
-        XCTAssertTrue(app.staticTexts["OK"].waitForExistence(timeout: 10), "45 days left is outside a 30-day window")
-        XCTAssertFalse(app.staticTexts["Expiring soon"].exists)
+        XCTAssertTrue(pill("Nurofen, 1 box").waitForExistence(timeout: 10), "45 days left is outside a 30-day window")
+        XCTAssertFalse(pill("Nurofen, 1 box, Expiring soon").exists)
     }
 
     func testTheWindowPickerStaysUsableAtTheLargestTextSize() {
