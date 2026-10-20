@@ -118,6 +118,16 @@ On a first launch there is nothing to lose, so no backup is made. **An unreadabl
 ("Storage unavailable") and never deleted** — Android's platform helpers delete corrupt databases by default,
 so `CabinetDatabase` overrides that, with a mutation-checked regression test; iOS has the same guarantee.
 
+### Archive layer and automatic backups
+
+The export archive (encode, decode, validate, migrate) and `CabinetTransfer` live in both cores; the apps add
+`CabinetArchiveStore` (`GRDBCabinetArchiveStore` / `SqlCabinetArchiveStore`: one read for a snapshot, one write
+transaction for a replace) and `ArchiveBackupStore` (`FileArchiveBackupStore`). The replace transaction writes and
+verifies the automatic backup (`pre-import-*` / `pre-restore-*.medicabinet`, newest 3 kept) in the same folder as
+the pre-migration copies, without touching them. After a replace the app bumps a **cabinet revision**
+(`CabinetRevision` on iOS, `StateFlow<Long>` on Android); screens that cache cabinet data reload and the scan
+session ends. See [export-import.md](export-import.md) and [export-format.md](export-format.md).
+
 ## The reference database
 
 A second, **read-only** SQLite database ships inside each app: the BDPM names and categories by CIP13

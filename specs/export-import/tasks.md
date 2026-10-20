@@ -201,7 +201,7 @@ independent of each other.
 - [ ] **T24 — Cross-platform round trip on devices** `[shared]` (F7, X7)
   **Needs the user:** export on iPhone → import on Android → export → import on iPhone;
   compare the summaries; result in the report.
-- [ ] **T25 — Docs** `[shared]` (X6)
+- [x] **T25 — Docs** `[shared]` (X6)
   `docs/export-format.md`, `docs/export-import.md` (+ `docs/README.md` link),
   `docs/architecture.md` (archive layer, backups folder, cabinet revision),
   `fixtures/README.md` final; string parity green.
