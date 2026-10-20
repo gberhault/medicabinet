@@ -22,6 +22,15 @@ public struct ShortNameCase: Decodable, Sendable, CustomStringConvertible {
     public var description: String { name }
 }
 
+/// One case of `fixtures/category-order.json`.
+public struct CategoryOrderCase: Decodable, Sendable, CustomStringConvertible {
+    public let name: String
+    public let labels: [String: String]
+    public let expect: [String]
+
+    public var description: String { name }
+}
+
 /// One case of `fixtures/location-names.json`.
 public struct LocationNameCase: Decodable, Sendable, CustomStringConvertible {
     public struct Expect: Decodable, Sendable {
@@ -168,6 +177,15 @@ extension SharedFixtures {
     public static func shortNames() throws -> (formatVersion: Int, cases: [ShortNameCase]) {
         let list = try JSONDecoder().decode(CabinetCaseList<ShortNameCase>.self, from: data("short-names.json"))
         return (list.formatVersion, list.cases)
+    }
+
+    public static func categoryOrder() throws -> (formatVersion: Int, cases: [CategoryOrderCase]) {
+        let list = try JSONDecoder().decode(CabinetCaseList<CategoryOrderCase>.self, from: data("category-order.json"))
+        return (list.formatVersion, list.cases)
+    }
+
+    public static func categoryOrderCases() -> [CategoryOrderCase] {
+        (try? categoryOrder().cases) ?? []
     }
 
     public static func shortNameCases() -> [ShortNameCase] {

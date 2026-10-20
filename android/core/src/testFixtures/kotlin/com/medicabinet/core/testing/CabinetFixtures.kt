@@ -23,6 +23,12 @@ data class ShortNameCase(val name: String, val input: String, val expect: String
     override fun toString(): String = name
 }
 
+/** One case of `fixtures/category-order.json`. */
+@Serializable
+data class CategoryOrderCase(val name: String, val labels: Map<String, String>, val expect: List<String>) {
+    override fun toString(): String = name
+}
+
 /** One case of `fixtures/location-names.json`. */
 @Serializable
 data class LocationNameCase(
@@ -126,6 +132,9 @@ fun SharedFixtures.textNormalization(): CabinetCaseList<TextNormalizationCase> =
 
 fun SharedFixtures.shortNames(): CabinetCaseList<ShortNameCase> =
     cabinetFixtureJson.decodeFromString(text("short-names.json"))
+
+fun SharedFixtures.categoryOrder(): CabinetCaseList<CategoryOrderCase> =
+    cabinetFixtureJson.decodeFromString(text("category-order.json"))
 
 fun SharedFixtures.locationNames(): CabinetCaseList<LocationNameCase> =
     cabinetFixtureJson.decodeFromString(text("location-names.json"))

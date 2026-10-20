@@ -13,7 +13,7 @@ change would otherwise break the other platform's suite.
   and its row in `fixtures/README.md`. Add `ShortName.of` to `MediCabinetCore` and Kotlin `:core`, with
   `ShortNameTests` / `ShortNameTest` running every fixture case through `SharedFixtures`. Run
   `check-fixtures.py`, `swift test` and `:core:test`. *(N1, N2)*
-- [ ] **T2** `[shared]` `[ios]` `[android]` **Category order.** Add `fixtures/category-order.json` (the real fr and
+- [x] **T2** `[shared]` `[ios]` `[android]` **Category order.** Add `fixtures/category-order.json` (the real fr and
   en labels plus the edge cases) and its README row. Add `CategoryOrder.alphabetical(labels:)` to both cores, with
   fixture-driven tests. *(G2)*
 - [ ] **T3** `[shared]` `[ios]` `[android]` **Rows: displayed name and A–Z order.**
