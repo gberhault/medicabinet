@@ -53,7 +53,7 @@ class BoxDetailLeafletTest {
 
     private fun model(box: Box, reference: ReferenceDataSource) = BoxDetailViewModel(
         box.id,
-        AppEnvironment(kit.store, kit.store, kit.clock, reference, ZoneOffset.UTC),
+        AppEnvironment(kit.store, kit.store, kit.store.named, kit.clock, reference, ZoneOffset.UTC),
         UnconfinedTestDispatcher()
     )
 

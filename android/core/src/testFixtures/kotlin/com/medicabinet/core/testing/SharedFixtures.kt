@@ -115,11 +115,15 @@ data class IntakeCase(
 data class ProductResolutionCase(
     val name: String,
     val reference: Reference? = null,
+    val named: Named? = null,
     val previousBox: Previous? = null,
     val expect: Expect
 ) {
     @Serializable
     data class Reference(val name: String, val category: String? = null)
+
+    @Serializable
+    data class Named(val name: String, val category: String, val categoryOverridden: Boolean)
 
     @Serializable
     data class Previous(val name: String, val category: String, val categoryOverridden: Boolean)

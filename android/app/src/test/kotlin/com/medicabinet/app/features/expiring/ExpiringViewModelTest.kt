@@ -217,6 +217,7 @@ class ExpiringViewModelTest {
             com.medicabinet.app.app.AppEnvironment(
                 kit.store,
                 flaky,
+                kit.store.named,
                 kit.clock,
                 kit.environment.reference,
                 kit.environment.zone

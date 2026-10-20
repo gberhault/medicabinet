@@ -30,7 +30,7 @@ class BootstrapViewModelTest {
     private fun environment(): AppEnvironment {
         val store = InMemoryCabinetStore(SystemClock)
         val reference = InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING))
-        return AppEnvironment(store, store, SystemClock, reference)
+        return AppEnvironment(store, store, store.named, SystemClock, reference)
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.medicabinet.app.persistence
 
 import androidx.test.core.app.ApplicationProvider
+import com.medicabinet.core.named.ProductMemory
 import com.medicabinet.core.reference.ProductLookup
 import com.medicabinet.core.reference.ReferenceProduct
 import com.medicabinet.core.scan.ExpiryReading
@@ -53,7 +54,11 @@ class ScanIntakePerformanceTest {
                     )
                 }
             }
-            val intake = ScanIntake(SqlBoxRepository(cabinet, clock), NoLookup, clock)
+            val intake = ScanIntake(
+                SqlBoxRepository(cabinet, clock),
+                ProductMemory(SqlNamedProductRepository(cabinet, clock), NoLookup),
+                clock
+            )
 
             val millis = (0 until 10).map { run ->
                 val code = ScannedCode(gtin(500 + run), ExpiryReading.Missing, "L", "NEW$run", Symbology.DATA_MATRIX)

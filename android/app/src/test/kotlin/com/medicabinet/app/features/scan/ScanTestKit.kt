@@ -33,6 +33,7 @@ class ScanTestKit(
         AppEnvironment(
             store,
             store,
+            store.named,
             clock,
             InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING))
         )
@@ -90,6 +91,7 @@ fun testEnvironment(): AppEnvironment {
     return AppEnvironment(
         store,
         store,
+        store.named,
         clock,
         InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING))
     )

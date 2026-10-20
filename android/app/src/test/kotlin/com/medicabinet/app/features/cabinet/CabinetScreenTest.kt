@@ -349,7 +349,16 @@ class CabinetScreenTest {
         val never = object : com.medicabinet.core.BoxRepository by kit.store {
             override fun observeCabinet(): Flow<List<com.medicabinet.core.Box>> = flow { awaitCancellation() }
         }
-        show(AppEnvironment(kit.store, never, kit.clock, kit.environment.reference, kit.environment.zone))
+        show(
+            AppEnvironment(
+                kit.store,
+                never,
+                kit.store.named,
+                kit.clock,
+                kit.environment.reference,
+                kit.environment.zone
+            )
+        )
         compose.onNodeWithText("Loading the cabinet…").assertIsDisplayed()
     }
 

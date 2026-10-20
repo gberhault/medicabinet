@@ -91,7 +91,7 @@ class BoxDetailLeafletScreenTest {
             kit.open()
             kit.box("Doliprane 1000", gtin, CabinetTestKit.SOON)
         }
-        val environment = AppEnvironment(kit.store, kit.store, kit.clock, reference, ZoneOffset.UTC)
+        val environment = AppEnvironment(kit.store, kit.store, kit.store.named, kit.clock, reference, ZoneOffset.UTC)
         val viewModel = BoxDetailViewModel(box.id, environment, UnconfinedTestDispatcher())
         compose.setContent { Host(viewModel, handler) }
     }

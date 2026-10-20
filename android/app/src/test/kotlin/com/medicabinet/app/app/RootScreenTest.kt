@@ -77,7 +77,7 @@ class RootScreenTest {
     fun readyShowsTheMainScaffold() {
         val store = com.medicabinet.core.testing.InMemoryCabinetStore(com.medicabinet.core.SystemClock)
         val reference = InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING))
-        val environment = AppEnvironment(store, store, com.medicabinet.core.SystemClock, reference)
+        val environment = AppEnvironment(store, store, store.named, com.medicabinet.core.SystemClock, reference)
         val viewModel = BootstrapViewModel { BootstrapState.Ready(environment) }
         compose.setContent { MediCabinetTheme { RootScreen(viewModel) } }
         compose.onNode(hasText("Cabinet") and isSelectable()).assertIsDisplayed()

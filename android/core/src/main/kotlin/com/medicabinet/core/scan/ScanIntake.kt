@@ -8,10 +8,8 @@ import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.ProductRef
 import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
-import com.medicabinet.core.reference.ProductLookup
-import com.medicabinet.core.reference.ReferenceProduct
+import com.medicabinet.core.named.ProductMemory
 import java.util.UUID
-import kotlin.coroutines.cancellation.CancellationException
 
 /** What will become a box. The completion step, the session list and manual entry edit it before [ScanIntake.add]. */
 data class BoxDraft(
@@ -58,7 +56,7 @@ class IntakeException(val error: IntakeError) : Exception(error.kind)
  * Turns scans and typed entries into boxes. Stateless: the scan session (GTINs added so far, the review list)
  * lives in the view model.
  */
-class ScanIntake(private val boxes: BoxRepository, private val lookup: ProductLookup, private val clock: Clock) {
+class ScanIntake(private val boxes: BoxRepository, private val memory: ProductMemory, private val clock: Clock) {
     suspend fun evaluate(code: ScannedCode, sessionGtins: Set<String>): IntakeOutcome {
         val match = code.serial?.let { boxes.box(code.gtin, it) }
         val resolved = resolve(code.gtin)
@@ -137,17 +135,8 @@ class ScanIntake(private val boxes: BoxRepository, private val lookup: ProductLo
 
     suspend fun undoDelete(id: UUID) = boxes.undoDelete(id)
 
-    private suspend fun resolve(gtin: String): ResolvedProduct =
-        ProductResolver.resolve(reference(gtin), boxes.latestBox(gtin))
-
-    /** A failing reference lookup leaves the product unknown (the user types the name): intake never stops on it. */
-    private suspend fun reference(gtin: String): ReferenceProduct? = try {
-        lookup.product(gtin)
-    } catch (cancelled: CancellationException) {
-        throw cancelled
-    } catch (@Suppress("TooGenericExceptionCaught", "SwallowedException") failure: Exception) {
-        null
-    }
+    /** Reference data, else the product the household named, else unknown. A previous box only carries a category. */
+    private suspend fun resolve(gtin: String): ResolvedProduct = memory.resolve(gtin, boxes.latestBox(gtin))
 
     private fun matched(match: Box?): Box = match ?: throw RepositoryException(RepositoryError.NOT_FOUND)
 

@@ -84,6 +84,7 @@ class ExpiryWindowSettingTest {
         val environment = AppEnvironment(
             store,
             store,
+            store.named,
             clock,
             InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING)),
             expiryPreferences = preferences

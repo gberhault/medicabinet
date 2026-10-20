@@ -214,7 +214,7 @@ class BoxDetailViewModel(
             AppLog.cabinetFailed("category", error)
             null
         }
-        return ProductResolver.resolve(reference, previousBox = null).category
+        return ProductResolver.resolve(reference, named = null, previousBox = null).category
     }
 
     private suspend fun write(what: String, action: suspend () -> Unit): Boolean = try {

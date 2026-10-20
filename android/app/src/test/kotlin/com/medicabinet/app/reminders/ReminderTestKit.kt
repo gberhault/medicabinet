@@ -84,6 +84,7 @@ class DeliveryKit(now: Instant, var zone: ZoneId = ZoneOffset.UTC, val notifier:
     private val environment = AppEnvironment(
         store,
         store,
+        store.named,
         clock,
         InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING))
     )

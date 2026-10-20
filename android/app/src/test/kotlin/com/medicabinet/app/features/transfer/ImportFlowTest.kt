@@ -51,6 +51,7 @@ class ImportFlowTest {
         AppEnvironment(
             store,
             store,
+            store.named,
             kit.clock,
             InMemoryReferenceData(status = ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING)),
             transfer = kit.transfer
