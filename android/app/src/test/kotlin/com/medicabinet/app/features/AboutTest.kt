@@ -7,6 +7,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
+import com.medicabinet.app.features.scan.testEnvironment
+import com.medicabinet.app.features.scan.testScanServices
 import com.medicabinet.app.features.settings.AboutViewModel
 import com.medicabinet.app.features.settings.AppInfo
 import com.medicabinet.app.features.settings.PackageAppInfo
@@ -62,7 +64,9 @@ class AboutScreenTest {
 
     @Test
     fun settingsLeadsToAboutWithVersionBuildAndTheNoMedicalAdviceNotice() {
-        compose.setContent { MediCabinetTheme { MainScaffold(appInfo = fakeInfo) } }
+        compose.setContent {
+            MediCabinetTheme { MainScaffold(testEnvironment(), appInfo = fakeInfo, scanServices = testScanServices()) }
+        }
         compose.onNodeWithText("Settings").performClick()
         compose.onNodeWithText("About").performClick()
 
@@ -73,7 +77,9 @@ class AboutScreenTest {
 
     @Test
     fun theBackButtonReturnsToSettings() {
-        compose.setContent { MediCabinetTheme { MainScaffold(appInfo = fakeInfo) } }
+        compose.setContent {
+            MediCabinetTheme { MainScaffold(testEnvironment(), appInfo = fakeInfo, scanServices = testScanServices()) }
+        }
         compose.onNodeWithText("Settings").performClick()
         compose.onNodeWithText("About").performClick()
         compose.onNodeWithContentDescription("Back").performClick()
@@ -90,7 +96,9 @@ class AboutScreenFrenchTest {
 
     @Test
     fun aboutIsShownInFrench() {
-        compose.setContent { MediCabinetTheme { MainScaffold(appInfo = fakeInfo) } }
+        compose.setContent {
+            MediCabinetTheme { MainScaffold(testEnvironment(), appInfo = fakeInfo, scanServices = testScanServices()) }
+        }
         compose.onNodeWithText("Réglages").performClick()
         compose.onNodeWithText("À propos").performClick()
         compose.onNodeWithText("Version 1.2.3 (45)").assertIsDisplayed()

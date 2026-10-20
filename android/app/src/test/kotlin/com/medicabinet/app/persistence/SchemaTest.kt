@@ -58,19 +58,31 @@ class SchemaTest {
     // --- shape: identical to iOS ---
 
     @Test
-    fun theMigratedDatabaseMatchesTheSharedSchemaFixtureExactly() {
-        assertEquals(SharedFixtures.schemaV1(), SqlProbe.snapshot(db))
+    fun theFullyMigratedDatabaseMatchesTheSharedV2FixtureExactly() {
+        assertEquals(SharedFixtures.schemaV2(), SqlProbe.snapshot(db))
     }
 
     @Test
-    fun theV1SqlEqualsTheSharedSqlFixture() {
+    fun aDatabaseMigratedToV1MatchesTheSharedV1Fixture() {
+        CabinetDatabase(
+            ApplicationProvider.getApplicationContext(),
+            name = "v1-${UUID.randomUUID()}.db",
+            migrations = listOf(Migrations.v1)
+        ).use { assertEquals(SharedFixtures.schemaV1(), SqlProbe.snapshot(it.database)) }
+    }
+
+    @Test
+    fun theMigrationSqlEqualsTheSharedSqlFixtures() {
         assertEquals(normalized(SharedFixtures.text("schema-v1.sql")), normalized(Migrations.v1.sql))
+        assertEquals(normalized(SharedFixtures.text("schema-v2.sql")), normalized(Migrations.v2.sql))
     }
 
     @Test
     fun aChangedStatementDoesNotEqualTheSharedSqlFixture() {
-        val altered = Migrations.v1.sql.replace("BETWEEN 1 AND 100", "BETWEEN 1 AND 99")
-        assertNotEquals(normalized(SharedFixtures.text("schema-v1.sql")), normalized(altered))
+        val altered1 = Migrations.v1.sql.replace("BETWEEN 1 AND 100", "BETWEEN 1 AND 99")
+        assertNotEquals(normalized(SharedFixtures.text("schema-v1.sql")), normalized(altered1))
+        val altered2 = Migrations.v2.sql.replace("CREATE UNIQUE INDEX", "CREATE INDEX")
+        assertNotEquals(normalized(SharedFixtures.text("schema-v2.sql")), normalized(altered2))
     }
 
     /** Whitespace and `--` comment lines are not part of the comparison (same rule as the iOS test). */
@@ -80,21 +92,27 @@ class SchemaTest {
 
     @Test
     fun aFixtureWithAMissingIndexDoesNotMatch() {
-        val fixture = SharedFixtures.schemaV1()
+        val fixture = SharedFixtures.schemaV2()
         val altered = fixture.copy(indexes = fixture.indexes.filterNot { it.name == "box_gtin" })
         assertNotEquals(altered, SqlProbe.snapshot(db))
     }
 
     @Test
     fun theFixtureCoversBothTablesAndEveryLookupIndex() {
-        val fixture = SharedFixtures.schemaV1()
-        assertEquals(setOf("location", "box"), fixture.tables.keys)
-        assertEquals(
-            setOf("location_single_default", "box_gtin", "box_location", "box_expiry", "box_active", "box_serial"),
-            fixture.indexes.map { it.name }.toSet()
-        )
-        assertEquals("serial IS NOT NULL", fixture.indexes.first { it.name == "box_serial" }.where)
-        assertTrue(fixture.tables.getValue("box").columns.any { it.type == "DATETIME" })
+        val indexes =
+            setOf("location_single_default", "box_gtin", "box_location", "box_expiry", "box_active", "box_serial")
+        for (fixture in listOf(SharedFixtures.schemaV1(), SharedFixtures.schemaV2())) {
+            assertEquals(setOf("location", "box"), fixture.tables.keys)
+            assertEquals(indexes, fixture.indexes.map { it.name }.toSet())
+            assertTrue(fixture.tables.getValue("box").columns.any { it.type == "DATETIME" })
+        }
+        val first = SharedFixtures.schemaV1().indexes.first { it.name == "box_serial" }
+        val second = SharedFixtures.schemaV2().indexes.first { it.name == "box_serial" }
+        assertEquals("serial IS NOT NULL", first.where)
+        assertEquals(false, first.unique)
+        assertEquals("serial IS NOT NULL AND deletedAt IS NULL", second.where)
+        assertEquals(true, second.unique)
+        assertEquals("deletedAt", SharedFixtures.schemaV2().tables.getValue("box").columns.last().name)
     }
 
     @Test

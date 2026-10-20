@@ -12,6 +12,13 @@ struct SettingsView: View {
                     Label("settings.about", systemImage: "info.circle")
                 }
                 .accessibilityIdentifier("settings.about")
+                #if DEBUG
+                NavigationLink {
+                    PayloadCaptureView()
+                } label: {
+                    Label { Text(verbatim: "Debug: payload shapes") } icon: { Image(systemName: "ladybug") }
+                }
+                #endif
             }
             .navigationTitle("settings.title")
         }

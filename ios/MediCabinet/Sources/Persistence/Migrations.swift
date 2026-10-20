@@ -4,6 +4,7 @@ import GRDB
 /// shipped — add a new one. `eraseDatabaseOnSchemaChange` is deliberately never used.
 enum Migrations {
     static let v1 = "v1"
+    static let schemaV2 = "v2"
 
     /// The v1 schema SQL; `fixtures/schema-v1.sql` holds the same text and a test compares them.
     static let v1SQL = """
@@ -47,10 +48,21 @@ enum Migrations {
         CREATE INDEX box_serial   ON box(gtin, serial) WHERE serial IS NOT NULL;
         """
 
+    /// The v2 migration step; `fixtures/schema-v2.sql` holds the same text and a test compares them.
+    /// `deletedAt` is the tombstone of a box added by mistake; the serial is unique among boxes not deleted.
+    static let schemaV2SQL = """
+        ALTER TABLE box ADD COLUMN deletedAt DATETIME;
+        DROP INDEX box_serial;
+        CREATE UNIQUE INDEX box_serial ON box(gtin, serial) WHERE serial IS NOT NULL AND deletedAt IS NULL;
+        """
+
     static var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         migrator.registerMigration(v1) { db in
             try db.execute(sql: v1SQL)
+        }
+        migrator.registerMigration(schemaV2) { db in
+            try db.execute(sql: schemaV2SQL)
         }
         return migrator
     }

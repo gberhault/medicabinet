@@ -1,0 +1,3 @@
+import VisionKit
+
+struct CameraUser {}

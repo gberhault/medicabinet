@@ -66,5 +66,18 @@ object Migrations {
         """.trimIndent()
     )
 
-    val all: List<Migration> = listOf(v1)
+    /**
+     * `deletedAt` is the tombstone of a box added by mistake; the serial is unique among boxes not deleted.
+     * The text of `fixtures/schema-v2.sql`, checked by SchemaTest.
+     */
+    val v2 = Migration(
+        name = "v2",
+        sql = """
+            ALTER TABLE box ADD COLUMN deletedAt DATETIME;
+            DROP INDEX box_serial;
+            CREATE UNIQUE INDEX box_serial ON box(gtin, serial) WHERE serial IS NOT NULL AND deletedAt IS NULL;
+        """.trimIndent()
+    )
+
+    val all: List<Migration> = listOf(v1, v2)
 }

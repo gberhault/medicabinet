@@ -12,6 +12,7 @@ import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
 import java.time.Duration
 import java.time.Instant
+import java.util.UUID
 
 class ContractFailure(message: String, cause: Throwable? = null) : AssertionError(message, cause)
 
@@ -25,13 +26,20 @@ object RepositoryContract {
         fun location(name: String = "Bathroom", isDefault: Boolean = false, sortOrder: Int = 0) =
             Location(name = name, isDefault = isDefault, sortOrder = sortOrder, createdAt = clock.now())
 
-        fun box(location: Location, name: String = "Doliprane", expiry: ExpiryDate? = null) = Box(
-            product = ProductRef(gtin = "03400930000001", name = name),
+        /** Every box gets its own serial unless one is given: the same GTIN and serial cannot exist twice. */
+        fun box(
+            location: Location,
+            name: String = "Doliprane",
+            expiry: ExpiryDate? = null,
+            gtin: String = GTIN,
+            serial: String? = UUID.randomUUID().toString().take(SERIAL_LENGTH)
+        ) = Box(
+            product = ProductRef(gtin = gtin, name = name),
             category = CategoryID("pain-fever"),
             locationId = location.id,
             expiry = expiry,
             lot = "L1",
-            serial = "S1",
+            serial = serial,
             createdAt = clock.now()
         )
     }
@@ -47,14 +55,16 @@ object RepositoryContract {
     }
 
     private val EPOCH: Instant = Instant.ofEpochSecond(1_800_000_000)
+    internal const val GTIN = "03400930000001"
+    private const val SERIAL_LENGTH = 12
 
-    val checks: List<Check> get() = locationChecks + boxChecks
+    val checks: List<Check> get() = locationChecks + boxChecks + deletionChecks
 
-    private fun require(condition: Boolean, message: String) {
+    internal fun require(condition: Boolean, message: String) {
         if (!condition) throw ContractFailure(message)
     }
 
-    private suspend fun expect(expected: RepositoryError, work: suspend () -> Unit) {
+    internal suspend fun expect(expected: RepositoryError, work: suspend () -> Unit) {
         try {
             work()
         } catch (thrown: RepositoryException) {

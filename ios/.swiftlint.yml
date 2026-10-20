@@ -48,6 +48,13 @@ custom_rules:
     included: 'MediCabinet/Sources/.*\.swift'
     excluded: 'MediCabinet/Sources/Persistence/'
     severity: error
+  camera_confined_to_scan_camera:
+    name: "Camera framework outside Features/Scan/Camera"
+    message: "import VisionKit / AVFoundation is only allowed under MediCabinet/Sources/Features/Scan/Camera/."
+    regex: '^\s*(@\w+\s+)?import\s+(VisionKit|AVFoundation)\b'
+    included: 'MediCabinet/Sources/.*\.swift'
+    excluded: 'MediCabinet/Sources/Features/Scan/Camera/'
+    severity: error
   no_public_log_privacy:
     name: "Public log interpolation"
     message: "Never log with privacy: .public — logs must not carry cabinet contents (use the default private level)."

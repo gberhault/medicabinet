@@ -35,7 +35,7 @@ import com.medicabinet.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onOpenAbout: () -> Unit, modifier: Modifier = Modifier) {
+fun SettingsScreen(onOpenAbout: () -> Unit, modifier: Modifier = Modifier, extraRows: @Composable () -> Unit = {}) {
     Scaffold(
         modifier = modifier,
         topBar = { TopAppBar(title = { Text(stringResource(R.string.settings_title)) }) }
@@ -46,6 +46,7 @@ fun SettingsScreen(onOpenAbout: () -> Unit, modifier: Modifier = Modifier) {
                 leadingContent = { Icon(Icons.Outlined.Info, contentDescription = null) },
                 modifier = Modifier.clickable(onClick = onOpenAbout)
             )
+            extraRows()
         }
     }
 }

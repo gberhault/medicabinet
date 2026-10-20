@@ -30,6 +30,8 @@ check sql_confined_to_persistence.kt sql_confined_to_persistence android/app/src
 check sql_confined_to_persistence.kt sql_confined_to_persistence android/app/src/main/kotlin/persistence/Ok.kt pass
 check no_network.kt               no_network                  android/app/src/main/kotlin/Bad.kt fail
 check no_internet_permission.xml  no_network                  android/app/src/main/AndroidManifest.xml fail
+check camera_confined.kt          camera_confined_to_scan_camera android/app/src/main/kotlin/features/Bad.kt fail
+check camera_confined.kt          camera_confined_to_scan_camera android/app/src/main/kotlin/features/scan/camera/Ok.kt pass
 check log_through_applog.kt       log_through_applog          android/app/src/main/kotlin/Bad.kt fail
 check log_through_applog.kt       log_through_applog          android/app/src/main/kotlin/AppLog.kt pass
 check clean_core.kt               none                        android/core/src/main/kotlin/Fine.kt pass

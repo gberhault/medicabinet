@@ -1,0 +1,403 @@
+{
+  "formatVersion": 1,
+  "description": "IntakePolicy.decide. scan.hasSerial: the code carries a serial; scan.expiry: known | missing | invalid (what the code says). productKnown: the name is already resolved (reference data or an earlier box). cabinetMatch: null | inCabinet | removed — a non-deleted box with the same GTIN and serial (only meaningful when hasSerial). sessionHasGTIN: a box with this GTIN was already added in the current scan session. expect.decision: add | complete | confirmAnother | alreadyInCabinet | removedEarlier. complete carries missing (name and/or expiry) and expiryUnreadable; confirmAnother carries thenMissing and expiryUnreadable, to be asked after the user confirms. expiryUnreadable is true when the code held an invalid date.",
+  "cases": [
+    {
+      "name": "serial, no match, expiry known, product known (broken)",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "known"
+      },
+      "productKnown": true,
+      "cabinetMatch": null,
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "alreadyInCabinet"
+      }
+    },
+    {
+      "name": "serial, no match, expiry known, product unknown",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "known"
+      },
+      "productKnown": false,
+      "cabinetMatch": null,
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "complete",
+        "missing": [
+          "name"
+        ],
+        "expiryUnreadable": false
+      }
+    },
+    {
+      "name": "serial, no match, expiry missing, product known",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "missing"
+      },
+      "productKnown": true,
+      "cabinetMatch": null,
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "complete",
+        "missing": [
+          "expiry"
+        ],
+        "expiryUnreadable": false
+      }
+    },
+    {
+      "name": "serial, no match, expiry missing, product unknown",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "missing"
+      },
+      "productKnown": false,
+      "cabinetMatch": null,
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "complete",
+        "missing": [
+          "name",
+          "expiry"
+        ],
+        "expiryUnreadable": false
+      }
+    },
+    {
+      "name": "serial, no match, expiry invalid, product known",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "invalid"
+      },
+      "productKnown": true,
+      "cabinetMatch": null,
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "complete",
+        "missing": [
+          "expiry"
+        ],
+        "expiryUnreadable": true
+      }
+    },
+    {
+      "name": "serial, no match, expiry invalid, product unknown",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "invalid"
+      },
+      "productKnown": false,
+      "cabinetMatch": null,
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "complete",
+        "missing": [
+          "name",
+          "expiry"
+        ],
+        "expiryUnreadable": true
+      }
+    },
+    {
+      "name": "serial new, product seen earlier in the session: still added (no 'another box?')",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "known"
+      },
+      "productKnown": true,
+      "cabinetMatch": null,
+      "sessionHasGTIN": true,
+      "expect": {
+        "decision": "add"
+      }
+    },
+    {
+      "name": "serial new, product seen earlier, expiry missing: completion, not confirmation",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "missing"
+      },
+      "productKnown": true,
+      "cabinetMatch": null,
+      "sessionHasGTIN": true,
+      "expect": {
+        "decision": "complete",
+        "missing": [
+          "expiry"
+        ],
+        "expiryUnreadable": false
+      }
+    },
+    {
+      "name": "serial already in the cabinet",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "known"
+      },
+      "productKnown": true,
+      "cabinetMatch": "inCabinet",
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "alreadyInCabinet"
+      }
+    },
+    {
+      "name": "serial in the cabinet beats a missing expiry",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "missing"
+      },
+      "productKnown": false,
+      "cabinetMatch": "inCabinet",
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "alreadyInCabinet"
+      }
+    },
+    {
+      "name": "serial in the cabinet beats the session rule",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "known"
+      },
+      "productKnown": true,
+      "cabinetMatch": "inCabinet",
+      "sessionHasGTIN": true,
+      "expect": {
+        "decision": "alreadyInCabinet"
+      }
+    },
+    {
+      "name": "serial of a removed box",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "known"
+      },
+      "productKnown": true,
+      "cabinetMatch": "removed",
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "removedEarlier"
+      }
+    },
+    {
+      "name": "serial of a removed box with an invalid expiry",
+      "scan": {
+        "hasSerial": true,
+        "expiry": "invalid"
+      },
+      "productKnown": false,
+      "cabinetMatch": "removed",
+      "sessionHasGTIN": true,
+      "expect": {
+        "decision": "removedEarlier"
+      }
+    },
+    {
+      "name": "no serial, first of its product, expiry known, product known",
+      "scan": {
+        "hasSerial": false,
+        "expiry": "known"
+      },
+      "productKnown": true,
+      "cabinetMatch": null,
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "add"
+      }
+    },
+    {
+      "name": "no serial, first of its product, expiry known, product unknown",
+      "scan": {
+        "hasSerial": false,
+        "expiry": "known"
+      },
+      "productKnown": false,
+      "cabinetMatch": null,
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "complete",
+        "missing": [
+          "name"
+        ],
+        "expiryUnreadable": false
+      }
+    },
+    {
+      "name": "no serial, first of its product, expiry missing, product known",
+      "scan": {
+        "hasSerial": false,
+        "expiry": "missing"
+      },
+      "productKnown": true,
+      "cabinetMatch": null,
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "complete",
+        "missing": [
+          "expiry"
+        ],
+        "expiryUnreadable": false
+      }
+    },
+    {
+      "name": "no serial, first of its product, expiry missing, product unknown",
+      "scan": {
+        "hasSerial": false,
+        "expiry": "missing"
+      },
+      "productKnown": false,
+      "cabinetMatch": null,
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "complete",
+        "missing": [
+          "name",
+          "expiry"
+        ],
+        "expiryUnreadable": false
+      }
+    },
+    {
+      "name": "no serial, first of its product, expiry invalid, product known",
+      "scan": {
+        "hasSerial": false,
+        "expiry": "invalid"
+      },
+      "productKnown": true,
+      "cabinetMatch": null,
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "complete",
+        "missing": [
+          "expiry"
+        ],
+        "expiryUnreadable": true
+      }
+    },
+    {
+      "name": "no serial, first of its product, expiry invalid, product unknown",
+      "scan": {
+        "hasSerial": false,
+        "expiry": "invalid"
+      },
+      "productKnown": false,
+      "cabinetMatch": null,
+      "sessionHasGTIN": false,
+      "expect": {
+        "decision": "complete",
+        "missing": [
+          "name",
+          "expiry"
+        ],
+        "expiryUnreadable": true
+      }
+    },
+    {
+      "name": "no serial, product already in this session, expiry known, product known",
+      "scan": {
+        "hasSerial": false,
+        "expiry": "known"
+      },
+      "productKnown": true,
+      "cabinetMatch": null,
+      "sessionHasGTIN": true,
+      "expect": {
+        "decision": "confirmAnother",
+        "thenMissing": [],
+        "expiryUnreadable": false
+      }
+    },
+    {
+      "name": "no serial, product already in this session, expiry known, product unknown",
+      "scan": {
+        "hasSerial": false,
+        "expiry": "known"
+      },
+      "productKnown": false,
+      "cabinetMatch": null,
+      "sessionHasGTIN": true,
+      "expect": {
+        "decision": "confirmAnother",
+        "thenMissing": [
+          "name"
+        ],
+        "expiryUnreadable": false
+      }
+    },
+    {
+      "name": "no serial, product already in this session, expiry missing, product known",
+      "scan": {
+        "hasSerial": false,
+        "expiry": "missing"
+      },
+      "productKnown": true,
+      "cabinetMatch": null,
+      "sessionHasGTIN": true,
+      "expect": {
+        "decision": "confirmAnother",
+        "thenMissing": [
+          "expiry"
+        ],
+        "expiryUnreadable": false
+      }
+    },
+    {
+      "name": "no serial, product already in this session, expiry missing, product unknown",
+      "scan": {
+        "hasSerial": false,
+        "expiry": "missing"
+      },
+      "productKnown": false,
+      "cabinetMatch": null,
+      "sessionHasGTIN": true,
+      "expect": {
+        "decision": "confirmAnother",
+        "thenMissing": [
+          "name",
+          "expiry"
+        ],
+        "expiryUnreadable": false
+      }
+    },
+    {
+      "name": "no serial, product already in this session, expiry invalid, product known",
+      "scan": {
+        "hasSerial": false,
+        "expiry": "invalid"
+      },
+      "productKnown": true,
+      "cabinetMatch": null,
+      "sessionHasGTIN": true,
+      "expect": {
+        "decision": "confirmAnother",
+        "thenMissing": [
+          "expiry"
+        ],
+        "expiryUnreadable": true
+      }
+    },
+    {
+      "name": "no serial, product already in this session, expiry invalid, product unknown",
+      "scan": {
+        "hasSerial": false,
+        "expiry": "invalid"
+      },
+      "productKnown": false,
+      "cabinetMatch": null,
+      "sessionHasGTIN": true,
+      "expect": {
+        "decision": "confirmAnother",
+        "thenMissing": [
+          "name",
+          "expiry"
+        ],
+        "expiryUnreadable": true
+      }
+    }
+  ]
+}

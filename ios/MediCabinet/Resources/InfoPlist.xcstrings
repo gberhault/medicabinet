@@ -17,6 +17,23 @@
           }
         }
       }
+    },
+    "NSCameraUsageDescription": {
+      "comment": "Why the camera is needed (shown in the system permission prompt)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MediCabinet uses the camera to read the codes on medicine boxes. No image is saved or sent."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MediCabinet utilise l'appareil photo pour lire les codes des boîtes de médicaments. Aucune image n'est enregistrée ni envoyée."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

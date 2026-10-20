@@ -40,6 +40,33 @@
     },
     {
       "name": "a box in an unknown location or with a known id is rejected"
+    },
+    {
+      "name": "a deleted box disappears from every query"
+    },
+    {
+      "name": "undoDelete restores a deleted box"
+    },
+    {
+      "name": "delete and undoDelete on unknown or wrong-state boxes throw notFound"
+    },
+    {
+      "name": "a second box with the same gtin and serial is rejected with duplicateSerial"
+    },
+    {
+      "name": "a deleted box frees its serial"
+    },
+    {
+      "name": "box by gtin and serial returns removed boxes but not deleted ones"
+    },
+    {
+      "name": "latestBox returns the most recent non-deleted box of a gtin"
+    },
+    {
+      "name": "update to a serial already in the cabinet is rejected"
+    },
+    {
+      "name": "undoDelete is rejected when the serial was taken meanwhile"
     }
   ]
 }

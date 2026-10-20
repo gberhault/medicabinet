@@ -59,7 +59,8 @@ import MediCabinetCoreTestSupport
         let readme = try #require(String(bytes: SharedFixtures.data("README.md"), encoding: .utf8))
         let names = RemovalReason.allCases.map(\.rawValue) + ExpiryStatus.allCases.map(\.rawValue)
             + [CategoryID.uncategorized.rawValue, "invalidYear", "invalidMonth", "invalidDay"]
-            + ["notFound", "unknownLocation", "duplicate", "duplicateDefault"]
+            + ["notFound", "unknownLocation", "duplicate", "duplicateDefault", "duplicateSerial"]
+            + ["invalidName", "invalidCode", "add", "complete", "confirmAnother", "alreadyInCabinet", "removedEarlier"]
         for name in names {
             #expect(readme.contains("`\(name)`"), "fixtures/README.md does not list `\(name)`")
         }

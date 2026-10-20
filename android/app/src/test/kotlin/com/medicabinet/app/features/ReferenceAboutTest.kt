@@ -1,6 +1,5 @@
 package com.medicabinet.app.features
 
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -9,7 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import app.cash.turbine.test
 import com.medicabinet.app.app.AppEnvironment
-import com.medicabinet.app.app.LocalAppEnvironment
+import com.medicabinet.app.features.scan.testScanServices
 import com.medicabinet.app.features.settings.AboutViewModel
 import com.medicabinet.app.features.settings.AppInfo
 import com.medicabinet.app.features.settings.ReferenceUiState
@@ -147,13 +146,9 @@ class ReferenceAboutScreenTest {
     @get:Rule
     val compose = createComposeRule()
 
-    private fun openAbout(status: ReferenceStatus?) {
+    private fun openAbout(status: ReferenceStatus) {
         compose.setContent {
-            MediCabinetTheme {
-                CompositionLocalProvider(LocalAppEnvironment provides status?.let(::environment)) {
-                    MainScaffold(appInfo = info)
-                }
-            }
+            MediCabinetTheme { MainScaffold(environment(status), appInfo = info, scanServices = testScanServices()) }
         }
         compose.onNodeWithText("Settings").performClick()
         compose.onNodeWithText("About").performClick()
@@ -183,9 +178,7 @@ class ReferenceAboutScreenTest {
         val store = InMemoryCabinetStore(SystemClock)
         val environment = AppEnvironment(store, store, SystemClock, reference)
         compose.setContent {
-            MediCabinetTheme {
-                CompositionLocalProvider(LocalAppEnvironment provides environment) { MainScaffold(appInfo = info) }
-            }
+            MediCabinetTheme { MainScaffold(environment, appInfo = info, scanServices = testScanServices()) }
         }
         compose.onNodeWithText("Settings").performClick()
         compose.waitForIdle()
@@ -202,8 +195,8 @@ class ReferenceAboutScreenTest {
     }
 
     @Test
-    fun aboutWorksWithoutAnEnvironment() {
-        openAbout(null)
+    fun aboutSaysSoWhenTheReferenceDataIsMissing() {
+        openAbout(ReferenceStatus.Unavailable(ReferenceUnavailableReason.MISSING))
         compose.assertShown("Reference data unavailable", substring = true)
     }
 }
@@ -219,8 +212,11 @@ class ReferenceAboutScreenFrenchTest {
     fun aboutIsShownInFrench() {
         compose.setContent {
             MediCabinetTheme {
-                val reference = environment(ReferenceStatus.Available(dataDate))
-                CompositionLocalProvider(LocalAppEnvironment provides reference) { MainScaffold(appInfo = info) }
+                MainScaffold(
+                    environment(ReferenceStatus.Available(dataDate)),
+                    appInfo = info,
+                    scanServices = testScanServices()
+                )
             }
         }
         compose.onNodeWithText("Réglages").performClick()

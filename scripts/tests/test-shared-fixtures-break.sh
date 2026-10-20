@@ -20,6 +20,12 @@ if [[ "$WHICH" == ios || "$WHICH" == all ]]; then
     env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter TaxonomyFixtureTests
   expect_failure "ios: Swift suite fails on a broken reference-lookup fixture" \
     env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter CIP13FixtureTests
+  expect_failure "ios: Swift suite fails on a broken GS1 fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter GS1ParserFixtureTests
+  for suite in ScanDebouncerFixtureTests IntakePolicyFixtureTests ProductResolverFixtureTests; do
+    expect_failure "ios: Swift suite fails on a broken fixture ($suite)" \
+      env MEDICABINET_FIXTURES_DIR="$BROKEN" swift test --package-path "$ROOT/ios/Packages/MediCabinetCore" --filter "$suite"
+  done
 fi
 if [[ ("$WHICH" == android || "$WHICH" == all) && -f "$ROOT/android/gradlew" ]]; then
   expect_failure "android: Kotlin suite fails on a broken expiry fixture" \
@@ -28,5 +34,11 @@ if [[ ("$WHICH" == android || "$WHICH" == all) && -f "$ROOT/android/gradlew" ]];
     env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*TaxonomyFixtureTest*'"
   expect_failure "android: Kotlin suite fails on a broken reference-lookup fixture" \
     env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*Cip13FixtureTest*'"
+  expect_failure "android: Kotlin suite fails on a broken GS1 fixture" \
+    env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*GS1ParserFixtureTest*'"
+  for suite in ScanDebouncerFixtureTest IntakePolicyFixtureTest ProductResolverFixtureTest; do
+    expect_failure "android: Kotlin suite fails on a broken fixture ($suite)" \
+      env MEDICABINET_FIXTURES_DIR="$BROKEN" bash -c "cd '$ROOT/android' && ./gradlew --console=plain -q :core:test --tests '*$suite*'"
+  done
 fi
 exit $fail

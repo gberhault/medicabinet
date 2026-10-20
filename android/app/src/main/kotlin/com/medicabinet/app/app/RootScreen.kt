@@ -37,7 +37,7 @@ fun RootScreen(viewModel: BootstrapViewModel, modifier: Modifier = Modifier) {
             modifier = modifier
         )
         is BootstrapUiState.Ready -> CompositionLocalProvider(LocalAppEnvironment provides current.environment) {
-            MainScaffold(modifier = modifier)
+            MainScaffold(current.environment, modifier = modifier)
         }
     }
 }

@@ -12,8 +12,10 @@ Language-neutral test vectors that both test suites run (see [`fixtures/README.m
 | File | Guarantees |
 |------|------------|
 | `expiry-dates.json` | `ExpiryDate` validation, last valid day, sort key and error kinds are identical |
-| `schema-v1.sql` | the v1 database DDL is **character for character** the same SQL on both platforms |
-| `schema-v1.json` | the migrated databases have the same tables, columns, foreign keys and indexes |
+| `schema-v1.sql`, `schema-v2.sql` | each migration step is **character for character** the same SQL on both platforms |
+| `schema-v1.json`, `schema-v2.json` | the migrated databases have the same tables, columns, foreign keys and indexes (v1 = migrated to v1 only, v2 = fully migrated) |
+| `gs1-datamatrix.json` | the GS1 / EAN-13 parser returns the same GTIN, expiry (valid, missing or invalid), lot, serial, payload *shape* and error kind |
+| `scan-debounce.json`, `scan-intake.json`, `product-resolution.json` | what counts as a new scan, whether a scan is added / asked / refused, and how a product is named |
 | `repository-contract.json` | both repository implementations pass the same named list of contract checks |
 | `categories.json` | the twelve categories, in display order, are identical in both cores and the reference build |
 | `reference-lookup.json` + `reference-sample.sqlite` | GTIN → CIP13 and the product lookup answer identically on both platforms |
@@ -44,7 +46,7 @@ The architecture rules are enforced by lint: SwiftLint custom rules (`ios/.swift
 
 ## The database
 
-SQLite on both platforms, running the **same v1 SQL**, in the app's private storage:
+SQLite on both platforms, running the **same SQL** (v1, then v2), in the app's private storage:
 
 - iOS: GRDB, `Application Support/MediCabinet/cabinet.sqlite`, Data Protection
   `completeUntilFirstUserAuthentication`, included in iCloud/iPhone backups.
@@ -56,12 +58,18 @@ SQLite on both platforms, running the **same v1 SQL**, in the app's private stor
 - Expiry is stored as year/month/day parts plus `expirySortKey`. A box with no expiry has all of them `NULL`
   and is *unknown*, never OK. Month precision (GS1 day `00`) leaves `expiryDay` `NULL`.
 - SQL constraints back up the Kotlin/Swift rules (lengths, 14-digit GTIN, month range, one default
-  location, removal columns set together, no deleting a location that holds boxes).
+  location, removal columns set together, no deleting a location that holds boxes, one box per
+  GTIN + serial among boxes that are not deleted).
+- **Removed vs deleted.** *Removed* (used up / thrown away) is a stock movement: the box stays visible to Undo.
+  *Deleted* (`deletedAt`, schema v2) is a box added by mistake, kept as a tombstone for the future sync and
+  export but invisible to every query; the scan session's delete and Undo use it.
 
 ### Migrations
 
 Named, ordered, append-only (`Migrations.swift` / `Migrations.kt`): never edit one that has shipped, add a
-new one **on both platforms** (and update `fixtures/schema-v1.sql`/`.json`'s successors). iOS tracks them in
+new one **on both platforms** (and add its `fixtures/schema-vN.sql`/`.json`). v2 adds `box.deletedAt` and makes
+`box_serial` unique among non-deleted boxes; opening a v1 file backs it up first, and a v1 file that holds
+duplicate serials fails the migration, is restored and keeps working on v1. iOS tracks them in
 GRDB's table, Android in `PRAGMA user_version`. Neither platform ever erases the database on a schema change;
 Android refuses a downgrade.
 
@@ -100,10 +108,17 @@ household data, and is never migrated: a new data release replaces the whole fil
   manifest's `contentSha256`; a marker file naming the installed version is written last.
 - Classification happens when the file is **built**, not in the apps.
 
+## The scan path
+
+See [`bulk-scan.md`](bulk-scan.md). The camera sits behind a `CodeScanner` protocol/interface and is the only
+place that knows VisionKit (iOS) or CameraX + zxing-cpp (Android) — a lint rule on each platform enforces it. Frames
+become payload strings; everything after that (GS1 parsing, debouncing, intake decision, product resolution) is
+pure code in the two cores, tested by the shared fixtures.
+
 ## Privacy
 
 No analytics, crash reporting, advertising or network code (lint rules on both platforms; the Android manifest
-requests no permission). iOS `PrivacyInfo.xcprivacy` declares no tracking and no collected data. Logs carry
+requests the camera permission only — nothing else, in particular no `INTERNET`). iOS `PrivacyInfo.xcprivacy` declares no tracking, no collected data and the `UserDefaults` required-reason API (`CA92.1`, the scanner's two UI preferences). Camera frames are never stored or sent. Logs carry
 no cabinet contents: iOS uses `os.Logger`'s private default (public interpolation is lint-forbidden), Android
 logs only the failure stage and exception class through `AppLog`.
 

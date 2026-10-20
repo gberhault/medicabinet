@@ -25,6 +25,8 @@ check core_forbidden_imports.swift core_forbidden_imports Packages/MediCabinetCo
 check core_no_wall_clock.swift core_no_wall_clock Packages/MediCabinetCore/Sources/MediCabinetCore/Bad.swift fail
 check grdb_confined_to_persistence.swift grdb_confined_to_persistence MediCabinet/Sources/Features/Bad.swift fail
 check grdb_confined_to_persistence.swift grdb_confined_to_persistence MediCabinet/Sources/Persistence/Allowed.swift pass
+check camera_confined.swift camera_confined_to_scan_camera MediCabinet/Sources/Features/Bad.swift fail
+check camera_confined.swift camera_confined_to_scan_camera MediCabinet/Sources/Features/Scan/Camera/Allowed.swift pass
 check no_network.swift no_network MediCabinet/Sources/App/Bad.swift fail
 check log_privacy_public.swift no_public_log_privacy MediCabinet/Sources/App/Bad.swift fail
 check clean.swift none Packages/MediCabinetCore/Sources/MediCabinetCore/Fine.swift pass

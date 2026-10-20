@@ -57,6 +57,155 @@ private struct CasesFile<Case: Decodable>: Decodable {
     let cases: [Case]
 }
 
+/// The expiry a GS1 fixture case expects: a date, `"missing"`, or `{invalid: kind}`.
+public enum GS1ExpectedExpiry: Decodable, Sendable, Equatable {
+    case missing
+    case date(year: Int, month: Int, day: Int?)
+    case invalid(kind: String)
+
+    private enum Keys: String, CodingKey { case year, month, day, invalid }
+
+    public init(from decoder: any Decoder) throws {
+        if let text = try? decoder.singleValueContainer().decode(String.self) {
+            guard text == "missing" else {
+                throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: text))
+            }
+            self = .missing
+            return
+        }
+        let container = try decoder.container(keyedBy: Keys.self)
+        if let kind = try container.decodeIfPresent(String.self, forKey: .invalid) {
+            self = .invalid(kind: kind)
+        } else {
+            self = .date(
+                year: try container.decode(Int.self, forKey: .year),
+                month: try container.decode(Int.self, forKey: .month),
+                day: try container.decodeIfPresent(Int.self, forKey: .day)
+            )
+        }
+    }
+}
+
+/// One case of `fixtures/gs1-datamatrix.json`, the payloads shared with the Android app.
+public struct GS1Case: Decodable, Sendable, CustomStringConvertible {
+    public struct Expect: Decodable, Sendable {
+        public let gtin: String?
+        /// `dataMatrix` | `ean13`
+        public let symbology: String?
+        public let expiry: GS1ExpectedExpiry?
+        public let lot: String?
+        public let serial: String?
+        /// `empty` | `tooLong` | `invalidCharacters` | `missingGTIN` | `invalidGTIN`
+        public let error: String?
+    }
+
+    public let name: String
+    public let payload: String
+    public let shape: String
+    public let expect: Expect
+
+    public var description: String { name }
+}
+
+public struct GS1Fixture: Decodable, Sendable {
+    public let formatVersion: Int
+    public let description: String
+    public let cases: [GS1Case]
+}
+
+public struct ScanDebounceFrame: Decodable, Sendable {
+    public let milliseconds: Int
+    public let visible: [String]
+
+    private enum CodingKeys: String, CodingKey {
+        case milliseconds = "t"
+        case visible
+    }
+}
+
+public struct ScanDebounceScan: Decodable, Sendable, Equatable {
+    public let milliseconds: Int
+    public let payload: String
+
+    public init(milliseconds: Int, payload: String) {
+        self.milliseconds = milliseconds
+        self.payload = payload
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case milliseconds = "t"
+        case payload
+    }
+}
+
+/// One case of `fixtures/scan-debounce.json`.
+public struct ScanDebounceCase: Decodable, Sendable, CustomStringConvertible {
+    public let name: String
+    public let rescanGapMs: Int
+    public let frames: [ScanDebounceFrame]
+    public let expectScans: [ScanDebounceScan]
+
+    public var description: String { name }
+}
+
+/// One case of `fixtures/scan-intake.json`.
+public struct IntakeCase: Decodable, Sendable, CustomStringConvertible {
+    public struct Scan: Decodable, Sendable {
+        public let hasSerial: Bool
+        /// `known` | `missing` | `invalid`
+        public let expiry: String
+    }
+
+    public struct Expect: Decodable, Sendable {
+        /// `add` | `complete` | `confirmAnother` | `alreadyInCabinet` | `removedEarlier`
+        public let decision: String
+        public let missing: [String]?
+        public let thenMissing: [String]?
+        public let expiryUnreadable: Bool?
+    }
+
+    public let name: String
+    public let scan: Scan
+    public let productKnown: Bool
+    /// `inCabinet` | `removed` | `nil`
+    public let cabinetMatch: String?
+    public let sessionHasGTIN: Bool
+    public let expect: Expect
+
+    public var description: String { name }
+}
+
+/// One case of `fixtures/product-resolution.json`.
+public struct ProductResolutionCase: Decodable, Sendable, CustomStringConvertible {
+    public struct Reference: Decodable, Sendable {
+        public let name: String
+        public let category: String?
+    }
+
+    public struct Previous: Decodable, Sendable {
+        public let name: String
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
+    public struct Expect: Decodable, Sendable {
+        public let name: String?
+        public let category: String
+        public let categoryOverridden: Bool
+    }
+
+    public let name: String
+    public let reference: Reference?
+    public let previousBox: Previous?
+    public let expect: Expect
+
+    public var description: String { name }
+}
+
+private struct CaseList<Element: Decodable>: Decodable {
+    let cases: [Element]
+}
+
 /// A fixture file that is only a list of named cases.
 private struct NamedCases: Decodable {
     let cases: [NamedCase]
@@ -87,6 +236,10 @@ public enum SharedFixtures {
         try JSONDecoder().decode(ExpiryDateFixture.self, from: data("expiry-dates.json"))
     }
 
+    public static func gs1Datamatrix() throws -> GS1Fixture {
+        try JSONDecoder().decode(GS1Fixture.self, from: data("gs1-datamatrix.json"))
+    }
+
     /// Names of the repository contract checks, in order (`fixtures/repository-contract.json`).
     public static func repositoryContractCheckNames() throws -> [String] {
         try JSONDecoder().decode(NamedCases.self, from: data("repository-contract.json")).cases.map(\.name)
@@ -96,6 +249,23 @@ public enum SharedFixtures {
     /// fixture-driven suite also has a test asserting the file loads (which fails loudly).
     public static func expiryDateCases() -> [ExpiryDateCase] {
         (try? expiryDates().cases) ?? []
+    }
+
+    private static func cases<Element: Decodable>(_ file: String, as type: Element.Type) -> [Element] {
+        guard let data = try? data(file) else { return [] }
+        return (try? JSONDecoder().decode(CaseList<Element>.self, from: data).cases) ?? []
+    }
+
+    public static func scanDebounceCases() -> [ScanDebounceCase] { cases("scan-debounce.json", as: ScanDebounceCase.self) }
+
+    public static func intakeCases() -> [IntakeCase] { cases("scan-intake.json", as: IntakeCase.self) }
+
+    public static func productResolutionCases() -> [ProductResolutionCase] {
+        cases("product-resolution.json", as: ProductResolutionCase.self)
+    }
+
+    public static func gs1Cases() -> [GS1Case] {
+        (try? gs1Datamatrix().cases) ?? []
     }
 
     /// The taxonomy in display order (`fixtures/categories.json`).
