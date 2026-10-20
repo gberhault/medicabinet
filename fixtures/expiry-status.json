@@ -1,0 +1,563 @@
+{
+  "formatVersion": 1,
+  "description": "Expiry status from an expiry, today (a calendar date) and the 'expiring soon' window in days: cases = {today, expiry (year/month/day, day null = month precision, or null), windowDays, expect {status: expired|expiringSoon|ok|unknown, daysLeft (null only for unknown)}}. daysLeft = last valid day minus today (0 on the expiry day). todayCases = {instant, timeZone, expect (the local calendar date), minutesSinceMidnight (local wall clock)}: how a phone clock and time zone become 'today'. Expected values were computed independently with Python datetime/zoneinfo.",
+  "cases": [
+    {
+      "name": "the day before the expiry day is expiring soon",
+      "today": "2027-03-14",
+      "expiry": {
+        "year": 2027,
+        "month": 3,
+        "day": 15
+      },
+      "windowDays": 60,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 1
+      }
+    },
+    {
+      "name": "the expiry day itself is expiring soon with 0 days left",
+      "today": "2027-03-15",
+      "expiry": {
+        "year": 2027,
+        "month": 3,
+        "day": 15
+      },
+      "windowDays": 60,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 0
+      }
+    },
+    {
+      "name": "the day after the expiry day is expired",
+      "today": "2027-03-16",
+      "expiry": {
+        "year": 2027,
+        "month": 3,
+        "day": 15
+      },
+      "windowDays": 60,
+      "expect": {
+        "status": "expired",
+        "daysLeft": -1
+      }
+    },
+    {
+      "name": "a long expired box is expired",
+      "today": "2030-01-01",
+      "expiry": {
+        "year": 2027,
+        "month": 3,
+        "day": 15
+      },
+      "windowDays": 60,
+      "expect": {
+        "status": "expired",
+        "daysLeft": -1023
+      }
+    },
+    {
+      "name": "window 30: the last day of the window is expiring soon",
+      "today": "2027-06-10",
+      "expiry": {
+        "year": 2027,
+        "month": 7,
+        "day": 10
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 30
+      }
+    },
+    {
+      "name": "window 30: one day past the window is ok",
+      "today": "2027-06-10",
+      "expiry": {
+        "year": 2027,
+        "month": 7,
+        "day": 11
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "ok",
+        "daysLeft": 31
+      }
+    },
+    {
+      "name": "window 60: the last day of the window is expiring soon",
+      "today": "2027-06-10",
+      "expiry": {
+        "year": 2027,
+        "month": 8,
+        "day": 9
+      },
+      "windowDays": 60,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 60
+      }
+    },
+    {
+      "name": "window 60: one day past the window is ok",
+      "today": "2027-06-10",
+      "expiry": {
+        "year": 2027,
+        "month": 8,
+        "day": 10
+      },
+      "windowDays": 60,
+      "expect": {
+        "status": "ok",
+        "daysLeft": 61
+      }
+    },
+    {
+      "name": "window 90: the last day of the window is expiring soon",
+      "today": "2027-06-10",
+      "expiry": {
+        "year": 2027,
+        "month": 9,
+        "day": 8
+      },
+      "windowDays": 90,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 90
+      }
+    },
+    {
+      "name": "window 90: one day past the window is ok",
+      "today": "2027-06-10",
+      "expiry": {
+        "year": 2027,
+        "month": 9,
+        "day": 9
+      },
+      "windowDays": 90,
+      "expect": {
+        "status": "ok",
+        "daysLeft": 91
+      }
+    },
+    {
+      "name": "the same box is ok under 30 days and soon under 90 days (ok)",
+      "today": "2027-06-10",
+      "expiry": {
+        "year": 2027,
+        "month": 8,
+        "day": 1
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "ok",
+        "daysLeft": 52
+      }
+    },
+    {
+      "name": "the same box is ok under 30 days and soon under 90 days (soon)",
+      "today": "2027-06-10",
+      "expiry": {
+        "year": 2027,
+        "month": 8,
+        "day": 1
+      },
+      "windowDays": 90,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 52
+      }
+    },
+    {
+      "name": "month precision 30-day month: first day of the month",
+      "today": "2027-04-01",
+      "expiry": {
+        "year": 2027,
+        "month": 4,
+        "day": null
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 29
+      }
+    },
+    {
+      "name": "month precision 30-day month: last day of the month is still usable",
+      "today": "2027-04-30",
+      "expiry": {
+        "year": 2027,
+        "month": 4,
+        "day": null
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 0
+      }
+    },
+    {
+      "name": "month precision 30-day month: the day after the month is expired",
+      "today": "2027-05-01",
+      "expiry": {
+        "year": 2027,
+        "month": 4,
+        "day": null
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expired",
+        "daysLeft": -1
+      }
+    },
+    {
+      "name": "month precision 31-day month: first day of the month",
+      "today": "2027-01-01",
+      "expiry": {
+        "year": 2027,
+        "month": 1,
+        "day": null
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 30
+      }
+    },
+    {
+      "name": "month precision 31-day month: last day of the month is still usable",
+      "today": "2027-01-31",
+      "expiry": {
+        "year": 2027,
+        "month": 1,
+        "day": null
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 0
+      }
+    },
+    {
+      "name": "month precision 31-day month: the day after the month is expired",
+      "today": "2027-02-01",
+      "expiry": {
+        "year": 2027,
+        "month": 1,
+        "day": null
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expired",
+        "daysLeft": -1
+      }
+    },
+    {
+      "name": "month precision February of a common year: first day of the month",
+      "today": "2027-02-01",
+      "expiry": {
+        "year": 2027,
+        "month": 2,
+        "day": null
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 27
+      }
+    },
+    {
+      "name": "month precision February of a common year: last day of the month is still usable",
+      "today": "2027-02-28",
+      "expiry": {
+        "year": 2027,
+        "month": 2,
+        "day": null
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 0
+      }
+    },
+    {
+      "name": "month precision February of a common year: the day after the month is expired",
+      "today": "2027-03-01",
+      "expiry": {
+        "year": 2027,
+        "month": 2,
+        "day": null
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expired",
+        "daysLeft": -1
+      }
+    },
+    {
+      "name": "month precision February of a leap year: first day of the month",
+      "today": "2028-02-01",
+      "expiry": {
+        "year": 2028,
+        "month": 2,
+        "day": null
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 28
+      }
+    },
+    {
+      "name": "month precision February of a leap year: last day of the month is still usable",
+      "today": "2028-02-29",
+      "expiry": {
+        "year": 2028,
+        "month": 2,
+        "day": null
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 0
+      }
+    },
+    {
+      "name": "month precision February of a leap year: the day after the month is expired",
+      "today": "2028-03-01",
+      "expiry": {
+        "year": 2028,
+        "month": 2,
+        "day": null
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expired",
+        "daysLeft": -1
+      }
+    },
+    {
+      "name": "year end: expiry on 31 December, today the same day",
+      "today": "2027-12-31",
+      "expiry": {
+        "year": 2027,
+        "month": 12,
+        "day": 31
+      },
+      "windowDays": 60,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 0
+      }
+    },
+    {
+      "name": "year end: the next day is expired",
+      "today": "2028-01-01",
+      "expiry": {
+        "year": 2027,
+        "month": 12,
+        "day": 31
+      },
+      "windowDays": 60,
+      "expect": {
+        "status": "expired",
+        "daysLeft": -1
+      }
+    },
+    {
+      "name": "window crossing a year end",
+      "today": "2027-12-20",
+      "expiry": {
+        "year": 2028,
+        "month": 1,
+        "day": 15
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 26
+      }
+    },
+    {
+      "name": "window crossing a leap day is soon",
+      "today": "2028-01-20",
+      "expiry": {
+        "year": 2028,
+        "month": 3,
+        "day": 15
+      },
+      "windowDays": 60,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 55
+      }
+    },
+    {
+      "name": "window crossing a leap day is ok when shorter",
+      "today": "2028-01-20",
+      "expiry": {
+        "year": 2028,
+        "month": 3,
+        "day": 15
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "ok",
+        "daysLeft": 55
+      }
+    },
+    {
+      "name": "far future date",
+      "today": "2027-03-15",
+      "expiry": {
+        "year": 2099,
+        "month": 12,
+        "day": 31
+      },
+      "windowDays": 90,
+      "expect": {
+        "status": "ok",
+        "daysLeft": 26589
+      }
+    },
+    {
+      "name": "a phone clock after 2099 still expires the box",
+      "today": "2100-01-01",
+      "expiry": {
+        "year": 2099,
+        "month": 12,
+        "day": 31
+      },
+      "windowDays": 60,
+      "expect": {
+        "status": "expired",
+        "daysLeft": -1
+      }
+    },
+    {
+      "name": "a phone clock before 2000 does not crash",
+      "today": "1999-12-31",
+      "expiry": {
+        "year": 2000,
+        "month": 1,
+        "day": 1
+      },
+      "windowDays": 30,
+      "expect": {
+        "status": "expiringSoon",
+        "daysLeft": 1
+      }
+    },
+    {
+      "name": "no expiry is unknown under 30 days",
+      "today": "2027-03-15",
+      "expiry": null,
+      "windowDays": 30,
+      "expect": {
+        "status": "unknown",
+        "daysLeft": null
+      }
+    },
+    {
+      "name": "no expiry is unknown under 60 days",
+      "today": "2027-03-15",
+      "expiry": null,
+      "windowDays": 60,
+      "expect": {
+        "status": "unknown",
+        "daysLeft": null
+      }
+    },
+    {
+      "name": "no expiry is unknown under 90 days",
+      "today": "2027-03-15",
+      "expiry": null,
+      "windowDays": 90,
+      "expect": {
+        "status": "unknown",
+        "daysLeft": null
+      }
+    }
+  ],
+  "todayCases": [
+    {
+      "name": "UTC midday",
+      "instant": "2027-03-15T12:00:00Z",
+      "timeZone": "UTC",
+      "expect": "2027-03-15",
+      "minutesSinceMidnight": 720
+    },
+    {
+      "name": "23:30 UTC on 31 March is already 1 April in Paris",
+      "instant": "2027-03-31T23:30:00Z",
+      "timeZone": "Europe/Paris",
+      "expect": "2027-04-01",
+      "minutesSinceMidnight": 90
+    },
+    {
+      "name": "Paris in winter is UTC+1",
+      "instant": "2027-01-15T23:30:00Z",
+      "timeZone": "Europe/Paris",
+      "expect": "2027-01-16",
+      "minutesSinceMidnight": 30
+    },
+    {
+      "name": "Paris just before midnight in summer",
+      "instant": "2027-07-15T21:59:00Z",
+      "timeZone": "Europe/Paris",
+      "expect": "2027-07-15",
+      "minutesSinceMidnight": 1439
+    },
+    {
+      "name": "Paris at midnight in summer",
+      "instant": "2027-07-15T22:00:00Z",
+      "timeZone": "Europe/Paris",
+      "expect": "2027-07-16",
+      "minutesSinceMidnight": 0
+    },
+    {
+      "name": "Auckland is a day ahead of UTC",
+      "instant": "2027-06-30T13:00:00Z",
+      "timeZone": "Pacific/Auckland",
+      "expect": "2027-07-01",
+      "minutesSinceMidnight": 60
+    },
+    {
+      "name": "Los Angeles is still the previous day",
+      "instant": "2027-07-01T03:00:00Z",
+      "timeZone": "America/Los_Angeles",
+      "expect": "2027-06-30",
+      "minutesSinceMidnight": 1200
+    },
+    {
+      "name": "New York on the spring DST change day",
+      "instant": "2027-03-14T12:00:00Z",
+      "timeZone": "America/New_York",
+      "expect": "2027-03-14",
+      "minutesSinceMidnight": 480
+    },
+    {
+      "name": "Paris on the autumn DST change day",
+      "instant": "2027-10-31T12:00:00Z",
+      "timeZone": "Europe/Paris",
+      "expect": "2027-10-31",
+      "minutesSinceMidnight": 780
+    },
+    {
+      "name": "New Year in Paris",
+      "instant": "2026-12-31T23:00:00Z",
+      "timeZone": "Europe/Paris",
+      "expect": "2027-01-01",
+      "minutesSinceMidnight": 0
+    },
+    {
+      "name": "leap day in UTC",
+      "instant": "2028-02-29T00:00:00Z",
+      "timeZone": "UTC",
+      "expect": "2028-02-29",
+      "minutesSinceMidnight": 0
+    }
+  ]
+}
