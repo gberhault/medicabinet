@@ -30,7 +30,8 @@ private struct ScanTab: View {
     @State private var model: ScanViewModel
 
     init(environment: AppEnvironment) {
-        _model = State(initialValue: ScanViewModel(environment: environment, services: .live(clock: environment.clock)))
+        let services = ScanServices.live(clock: environment.clock, lookup: environment.reference)
+        _model = State(initialValue: ScanViewModel(environment: environment, services: services))
     }
 
     var body: some View {

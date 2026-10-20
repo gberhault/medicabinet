@@ -16,18 +16,24 @@ struct ScanServices {
     /// UI tests: products the reference lookup knows, as `gtin=Name|gtin=Name` (otherwise every product is unknown).
     static let productsKey = "MEDICABINET_UI_TEST_PRODUCTS"
 
-    static func live(clock: any Clock) -> ScanServices {
-        make(clock: clock, arguments: ProcessInfo.processInfo.arguments, environment: ProcessInfo.processInfo.environment)
+    /// `lookup` is the bundled BDPM reference data (`AppEnvironment.reference`); UI tests replace it.
+    static func live(clock: any Clock, lookup: any ProductLookup) -> ScanServices {
+        make(
+            clock: clock, arguments: ProcessInfo.processInfo.arguments, environment: ProcessInfo.processInfo.environment,
+            lookup: lookup
+        )
     }
 
-    static func make(clock: any Clock, arguments: [String], environment: [String: String]) -> ScanServices {
+    static func make(
+        clock: any Clock, arguments: [String], environment: [String: String], lookup: any ProductLookup = UnknownProductLookup()
+    ) -> ScanServices {
         guard let index = arguments.firstIndex(of: cameraAccessArgument), index + 1 < arguments.count else {
             return ScanServices(
                 permission: SystemCameraPermission(),
                 makeScanner: { VisionKitScanner.make(clock: clock) },
                 preferences: UserDefaultsScanPreferences(),
                 feedback: SystemScanFeedback(),
-                lookup: UnknownProductLookup()
+                lookup: lookup
             )
         }
         let requested = arguments[index + 1]

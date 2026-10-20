@@ -58,7 +58,7 @@ fun MainScaffold(
     environment: AppEnvironment,
     modifier: Modifier = Modifier,
     appInfo: AppInfo = PackageAppInfo(LocalContext.current),
-    scanServices: ScanServices = ScanServices.live(LocalContext.current)
+    scanServices: ScanServices = ScanServices.live(LocalContext.current, environment.reference)
 ) {
     val aboutViewModel = remember(appInfo, environment.reference) { AboutViewModel(appInfo, environment.reference) }
     val navController = rememberNavController()

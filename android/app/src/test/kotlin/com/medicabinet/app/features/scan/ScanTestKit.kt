@@ -6,10 +6,10 @@ import com.medicabinet.app.features.scan.camera.VisibleCodes
 import com.medicabinet.core.Box
 import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.Location
+import com.medicabinet.core.reference.ProductLookup
+import com.medicabinet.core.reference.ReferenceProduct
 import com.medicabinet.core.reference.ReferenceStatus
 import com.medicabinet.core.reference.ReferenceUnavailableReason
-import com.medicabinet.core.scan.ProductLookup
-import com.medicabinet.core.scan.ReferenceProduct
 import com.medicabinet.core.testing.InMemoryCabinetStore
 import com.medicabinet.core.testing.InMemoryReferenceData
 import com.medicabinet.core.testing.MutableClock

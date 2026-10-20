@@ -126,6 +126,41 @@ import MediCabinetCoreTestSupport
         #expect(missing == [.name])
     }
 
+    // MARK: the bundled reference data (CIP13 behind the GTIN)
+
+    private let referenceDate = ReferenceDataDate(iso: "2026-10-18")
+
+    private func reference() throws -> InMemoryReferenceData {
+        InMemoryReferenceData(
+            products: ["3400935955838": ReferenceProduct(name: "PARACETAMOL EXEMPLE 500 mg", category: CategoryID(rawValue: "pain-fever"))],
+            dataDate: try #require(referenceDate)
+        )
+    }
+
+    @Test func aGtinKnownToTheReferenceDataIsNamedAndCategorisedWithoutAsking() async throws {
+        let service = ScanIntake(boxes: store, lookup: try reference(), clock: clock)
+        let outcome = try await service.evaluate(code(gtin: "03400935955838"), sessionGTINs: [])
+        guard case let .ready(draft) = outcome else { Issue.record("expected ready, got \(outcome)"); return }
+        #expect(draft.name == "PARACETAMOL EXEMPLE 500 mg")
+        #expect(draft.category.rawValue == "pain-fever" && !draft.categoryOverridden)
+    }
+
+    @Test func aGtinMissingFromTheReferenceDataStillAsksForAName() async throws {
+        let service = ScanIntake(boxes: store, lookup: try reference(), clock: clock)
+        guard case let .needsCompletion(_, missing, _) = try await service.evaluate(code(), sessionGTINs: []) else {
+            Issue.record("expected completion"); return
+        }
+        #expect(missing == [.name])
+    }
+
+    @Test func unavailableReferenceDataLeavesEveryProductUnknownInsteadOfStoppingIntake() async throws {
+        let service = ScanIntake(boxes: store, lookup: InMemoryReferenceData(status: .unavailable(.unreadable)), clock: clock)
+        guard case let .needsCompletion(_, missing, _) = try await service.evaluate(code(gtin: "03400935955838"), sessionGTINs: []) else {
+            Issue.record("expected completion"); return
+        }
+        #expect(missing == [.name])
+    }
+
     // MARK: add
 
     @Test func addStoresTheBoxWithTheClockAndTheLocation() async throws {

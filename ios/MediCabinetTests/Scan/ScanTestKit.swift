@@ -97,7 +97,10 @@ struct ScanTestKit {
             permission: permission, makeScanner: { [scanner] in scanner }, preferences: preferences,
             feedback: feedback, lookup: lookup
         )
-        model = ScanViewModel(environment: AppEnvironment(locations: locations, boxes: boxes, clock: clock), services: services)
+        let environment = AppEnvironment(
+            locations: locations, boxes: boxes, clock: clock, reference: InMemoryReferenceData(status: .unavailable(.missing))
+        )
+        model = ScanViewModel(environment: environment, services: services)
     }
 
     /// A GS1 DataMatrix payload.

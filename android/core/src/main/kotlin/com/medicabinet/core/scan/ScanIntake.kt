@@ -8,6 +8,8 @@ import com.medicabinet.core.ExpiryDate
 import com.medicabinet.core.ProductRef
 import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
+import com.medicabinet.core.reference.ProductLookup
+import com.medicabinet.core.reference.ReferenceProduct
 import java.util.UUID
 import kotlin.coroutines.cancellation.CancellationException
 

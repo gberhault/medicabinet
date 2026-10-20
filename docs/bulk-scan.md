@@ -27,8 +27,9 @@ fixtures (see below).
 7. **No camera?** Permission denied, restricted, no camera, camera failing to start: the screen says so and
    **Add without scanning** always works (name, optional barcode, expiry, location).
 
-A product is named from the reference data (not yet bundled — epic #7, see "Not yet" below), else from the last
-box with the same code, else the user types it. Scanned boxes stay *uncategorized* until classification (#10).
+A product is named, and categorised, from the bundled medicines database ([`reference-data.md`](reference-data.md)),
+else from the last box with the same code (keeping a category the user set), else the user types the name. Boxes
+whose product is not in the database stay *uncategorized*.
 
 ## The rules (shared fixtures)
 
@@ -47,7 +48,8 @@ group separator is missing, a variable-length field swallows what follows and th
 it is never searched for inside another field** (the user is asked instead). Malformed input never crashes: the
 parser returns a typed error (`empty`, `tooLong`, `invalidCharacters`, `missingGTIN`, `invalidGTIN`).
 
-`ScanIntake` (both cores) turns a scan into an outcome and adds, puts back, deletes and restores boxes; a failing
+The product lookup is the `ProductLookup` port owned by the reference-data epic; the app binds
+`AppEnvironment.reference` to it. `ScanIntake` (both cores) turns a scan into an outcome and adds, puts back, deletes and restores boxes; a failing
 reference lookup leaves the product unknown instead of stopping intake.
 
 ## Data
@@ -77,6 +79,5 @@ Schema v2 (`fixtures/schema-v2.sql`): `box.deletedAt` (tombstone of a box added 
 
 ## Not yet
 
-- BDPM product names and categories (epic #7): until then every product is "unknown" and the app asks for its name
-  (`UnknownProductLookup`). The 0.2.0 release waits for #11; the PR into `develop` does not.
 - Real-box payload shapes (task T6) and the on-device timing (T28) need a phone: see `reports/bulk-scan/`.
+  One Android shape is captured (`]d2 01 17 10(5)`); boxes with a serial and an iPhone are still to do.

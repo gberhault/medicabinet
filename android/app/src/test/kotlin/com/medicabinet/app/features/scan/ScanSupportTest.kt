@@ -7,6 +7,7 @@ import android.view.View
 import androidx.test.core.app.ApplicationProvider
 import com.medicabinet.core.Box
 import com.medicabinet.core.ProductRef
+import com.medicabinet.core.reference.ReferenceProduct
 import java.time.Instant
 import java.util.UUID
 import kotlin.test.Test
@@ -159,10 +160,11 @@ class ScanPreferencesTest {
     }
 
     @Test
-    fun theLiveServicesKnowWhetherTheDeviceHasACameraAndKnowNoProduct() = runBlocking {
-        val services = ScanServices.live(context)
+    fun theLiveServicesKnowWhetherTheDeviceHasACameraAndUseTheGivenLookup() = runBlocking {
+        val lookup = StubLookup(mapOf("03400930000014" to ReferenceProduct("DOLIPRANE")))
+        val services = ScanServices.live(context, lookup)
         assertFalse(services.hasCamera, "Robolectric devices declare no camera")
-        assertNull(UnknownProductLookup.product("03400930000014"))
+        assertEquals("DOLIPRANE", services.lookup.product("03400930000014")?.name)
         assertEquals(services.preferences::class, SharedScanPreferences::class)
     }
 

@@ -3,6 +3,7 @@ package com.medicabinet.core.scan
 import com.medicabinet.core.Box
 import com.medicabinet.core.CategoryID
 import com.medicabinet.core.ProductRef
+import com.medicabinet.core.reference.ReferenceProduct
 import com.medicabinet.core.testing.SharedFixtures
 import java.time.Instant
 import java.util.UUID

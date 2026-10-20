@@ -134,7 +134,7 @@ The iOS UI block (T15–T20) and the Android UI block (T21–T26) are independen
 - [ ] **T28 — Device measurements** `[shared]` (X2; §8)
   Scan → confirmed and sustained rate on an iPhone and on the Android device the user names;
   APK size delta. `reports/bulk-scan/README.md`.
-- [ ] **T29 — Bind the BDPM lookup** `[shared]` (L1, L5) — **blocked by #11; gates the 0.2.0 release, not the PR**
+- [x] **T29 — Bind the BDPM lookup** `[shared]` (L1, L5) — *done after #7 merged: my duplicate `ProductLookup`/`ReferenceProduct` removed, `AppEnvironment.reference` bound on both platforms*
   Replace `UnknownProductLookup` with the #11 lookup on both platforms after rebasing on
   `develop`; flow 1 of §7 tested with a real reference GTIN.
 - [x] **T30 — Versions and gate** `[shared]` (X6)

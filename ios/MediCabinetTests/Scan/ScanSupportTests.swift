@@ -1,5 +1,6 @@
 import Foundation
 import MediCabinetCore
+import MediCabinetCoreTestSupport
 import Testing
 @testable import MediCabinet
 
@@ -220,6 +221,14 @@ import Testing
         #expect(throws: CodeScannerError.unsupported) { try scanner.start() }
         scanner.stop()
         _ = scanner.preview
+    }
+
+    @Test func withoutTestArgumentsTheScanUsesTheGivenReferenceLookup() async throws {
+        let reference = InMemoryReferenceData(
+            products: ["3400930000014": ReferenceProduct(name: "DOLIPRANE")], dataDate: try #require(ReferenceDataDate(iso: "2026-10-18"))
+        )
+        let services = ScanServices.live(clock: clock, lookup: reference)
+        #expect(try await services.lookup.product(gtin: "03400930000014")?.name == "DOLIPRANE")
     }
 
     @Test func theUnknownProductLookupKnowsNothing() async throws {

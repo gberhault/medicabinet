@@ -6,7 +6,13 @@ import com.medicabinet.core.Location
 import com.medicabinet.core.RemovalReason
 import com.medicabinet.core.RepositoryError
 import com.medicabinet.core.RepositoryException
+import com.medicabinet.core.reference.ProductLookup
+import com.medicabinet.core.reference.ReferenceDataDate
+import com.medicabinet.core.reference.ReferenceProduct
+import com.medicabinet.core.reference.ReferenceStatus
+import com.medicabinet.core.reference.ReferenceUnavailableReason
 import com.medicabinet.core.testing.InMemoryCabinetStore
+import com.medicabinet.core.testing.InMemoryReferenceData
 import com.medicabinet.core.testing.MutableClock
 import java.time.Instant
 import kotlin.test.Test
@@ -134,6 +140,36 @@ class ScanIntakeTest {
     @Test
     fun aFailingLookupLeavesTheProductUnknownInsteadOfStoppingIntake() = test {
         val outcome = intake(StubLookup(fails = true)).evaluate(code(), emptySet())
+        assertEquals(setOf(IntakeField.NAME), assertIs<IntakeOutcome.NeedsCompletion>(outcome).missing)
+    }
+
+    // the bundled reference data (CIP13 behind the GTIN)
+
+    private fun reference(status: ReferenceStatus = ReferenceStatus.Available(ReferenceDataDate(2026, 10, 18))) =
+        InMemoryReferenceData(
+            mapOf("3400935955838" to ReferenceProduct("PARACETAMOL EXEMPLE 500 mg", CategoryID("pain-fever"))),
+            status
+        )
+
+    @Test
+    fun aGtinKnownToTheReferenceDataIsNamedAndCategorisedWithoutAsking() = test {
+        val outcome = ScanIntake(store, reference(), clock).evaluate(code().copy(gtin = "03400935955838"), emptySet())
+        val draft = assertIs<IntakeOutcome.Ready>(outcome).draft
+        assertEquals("PARACETAMOL EXEMPLE 500 mg", draft.name)
+        assertEquals(CategoryID("pain-fever"), draft.category)
+        assertEquals(false, draft.categoryOverridden)
+    }
+
+    @Test
+    fun aGtinMissingFromTheReferenceDataStillAsksForAName() = test {
+        val outcome = ScanIntake(store, reference(), clock).evaluate(code(), emptySet())
+        assertEquals(setOf(IntakeField.NAME), assertIs<IntakeOutcome.NeedsCompletion>(outcome).missing)
+    }
+
+    @Test
+    fun unavailableReferenceDataLeavesEveryProductUnknownInsteadOfStoppingIntake() = test {
+        val unavailable = reference(ReferenceStatus.Unavailable(ReferenceUnavailableReason.UNREADABLE))
+        val outcome = ScanIntake(store, unavailable, clock).evaluate(code().copy(gtin = "03400935955838"), emptySet())
         assertEquals(setOf(IntakeField.NAME), assertIs<IntakeOutcome.NeedsCompletion>(outcome).missing)
     }
 

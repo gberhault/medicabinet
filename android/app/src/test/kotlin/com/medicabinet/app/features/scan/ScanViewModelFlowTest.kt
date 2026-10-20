@@ -3,8 +3,8 @@ package com.medicabinet.app.features.scan
 import app.cash.turbine.test
 import com.medicabinet.core.Location
 import com.medicabinet.core.RemovalReason
+import com.medicabinet.core.reference.ReferenceProduct
 import com.medicabinet.core.scan.IntakeField
-import com.medicabinet.core.scan.ReferenceProduct
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

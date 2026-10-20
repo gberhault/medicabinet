@@ -1,10 +1,10 @@
 package com.medicabinet.app.persistence
 
 import androidx.test.core.app.ApplicationProvider
+import com.medicabinet.core.reference.ProductLookup
+import com.medicabinet.core.reference.ReferenceProduct
 import com.medicabinet.core.scan.ExpiryReading
 import com.medicabinet.core.scan.IntakeOutcome
-import com.medicabinet.core.scan.ProductLookup
-import com.medicabinet.core.scan.ReferenceProduct
 import com.medicabinet.core.scan.ScanIntake
 import com.medicabinet.core.scan.ScannedCode
 import com.medicabinet.core.scan.Symbology
